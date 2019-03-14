@@ -8,6 +8,4 @@ dropdown menus and filling in blanks for user parameters.
 ## Dependencies
 Cyclus
 Cycamore
-PyQt5
-fbs
-PyInstaller
+tkinter
