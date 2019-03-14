@@ -1,3 +1,0 @@
-PyQt5>=5.6
-fbs
-PyInstaller=3.4
