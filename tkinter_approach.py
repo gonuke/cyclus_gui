@@ -2,6 +2,8 @@ from tkinter import *
 from PIL import Image, ImageTk
 from tkinter import messagebox
 from tkinter import filedialog
+import xml.etree.ElementTree as et
+import xmltodict
 import uuid
 import os
 import shutil
@@ -131,13 +133,16 @@ class SimulationWindow(Frame):
         for row, txt in enumerate(inputs):
             self.entry_dict[txt] = Entry(master)
             self.entry_dict[txt].grid(row=row*2+1, column=1)
-        
+
         # default values
         self.entry_dict['startyear'].insert(END, 2019)
         self.entry_dict['decay'].insert(END, 'lazy')
         self.entry_dict['dt'].insert(END, 2629846)
         self.entry_dict['explicit_inventory'].insert(END, 0)
         self.entry_dict['explicit_inventory_compact'].insert(END, 0)
+
+        if os.path.isfile(os.path.join(output_path, 'simulation.xml')):
+            self.read_xml()
 
         done_button = Button(self.master, text='Done', command=lambda: self.done())
         done_button.grid(row=len(inputs)*2+1, column=1)
@@ -149,6 +154,12 @@ class SimulationWindow(Frame):
         if float(num)  < 0:
             return False
         return True
+
+    def read_xml(self):
+        with open(os.path.join(output_path, 'simulation.xml'), 'r') as f:
+            xml_dict = xmltodict.parse(f.read())['control']
+        for key, val in xml_dict.items():
+            self.entry_dict[key].insert(END, val)
 
 
     def done(self):
