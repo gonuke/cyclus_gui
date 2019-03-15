@@ -221,6 +221,10 @@ class Cygui(Frame):
 class SimulationWindow(Frame):
     """ This is the simulation window where it takes input from the user on
         simulation parameters and makes a Cyclus control box
+        
+        entry_dict looks like:
+        key: criteria
+        val: value
     """
     def __init__(self, master):
         self.master = master
@@ -322,6 +326,12 @@ class SimulationWindow(Frame):
 
 class ArchetypeWindow(Frame):
     def __init__(self, master):
+        """
+        arche looks like:
+        array = []
+        [0] = library
+        [1] = archetype name
+        """
         self.master = master
         self.frame = Frame(self.master)
         master.geometry('+600+200')
@@ -453,6 +463,10 @@ class ArchetypeWindow(Frame):
 
 class PrototypeWindow(Frame):
     def __init__(self, master):
+        """
+        proto_dict looks like:
+
+        """
         self.master = master
         self.frame = Frame(self.master)
         master.geometry('+600+200')
@@ -507,6 +521,17 @@ class PrototypeWindow(Frame):
 
 class RegionWindow(Frame):
     def __init__(self, master):
+        """
+        Region dict looks like:
+        key: region name
+        val: dictionary
+            key: institution name
+            val: array
+                [0] prototype name
+                [1] n_build
+                [2] entertime
+                [3] lifetime
+        """
         self.master = master
         self.frame = Frame(self.master)
         master.geometry('+600+200')
@@ -521,17 +546,50 @@ class RegionWindow(Frame):
         self.update_region_status()
         Label(self.status_window, textvariable=self.status_var, justify=LEFT).pack()
 
-        """
-        Region dict should look like:
-        key: region name
-        val: dictionary
-            key: institution name
-            val: array
-                [0] prototype name
-                [1] n_build
-                [2] entertime
-                [3] lifetime
-        """
+        if os.path.isfile(os.path.join(output_path, 'region.xml')):
+            self.read_xml()
+
+    def read_xml(self):
+        with open(os.path.join(output_path, 'region.xml'), 'r') as f:
+            xml_list = xmltodict.parse(f.read())['root']['region']
+            for region in xml_list:
+                print('REGION', region)
+                self.region_dict[region['name']] = {}
+                if not isinstance(region['institution'], list):
+                    do_it = 1
+                else:
+                    do_it = len(region['institution'])
+                for i in range(do_it):
+                    inst_array = []
+                    if do_it == 1:
+                        prototypes = region['institution']['config']['DeployInst']['prototypes']['val']
+                        instname = region['institution']['name']
+                    else:
+                        prototypes = region['institution'][i]['config']['DeployInst']['prototypes']['val']
+                        instname = region['institution'][i]['name']
+
+                    if isinstance(prototypes, str):
+                        entry_length = 1
+                    else:
+                        entry_length = len(prototypes)
+
+                    for indx in range(entry_length):
+                        entry_list = []
+                        if do_it == 1:
+                            entry_dict = region['institution']['config']['DeployInst']
+                        else:
+                            entry_dict = region['institution'][i]['config']['DeployInst']
+                        for cat in ['prototypes', 'n_build', 'build_times', 'lifetimes']:
+                            if entry_length == 1:
+                                entry_list.append(entry_dict[cat]['val'])
+                            else:
+                                entry_list.append(entry_dict[cat]['val'][indx])
+                        inst_array.append(entry_list)
+
+
+                    self.region_dict[region['name']][instname] = inst_array
+
+        self.update_region_status()
 
     def add_region(self):
         # region name
@@ -559,7 +617,7 @@ class RegionWindow(Frame):
         # name, deployinst
         inst_template = '\t<institution>\n\t\t<name>{name}</name>\n\t\t<config>\n\t\t\t<DeployInst>\n{deployinst}\n\t\t\t</DeployInst>\n\t\t</config>\n\t</institution>'
         val_template = '\t\t\t\t\t<val>{entry}</val>\n'
-        string = ''
+        string = '<root>\n'
         for regionname, inst_dict in self.region_dict.items():
             inst_chunk = ''
             for inst_name, inst_array in inst_dict.items():
@@ -579,6 +637,7 @@ class RegionWindow(Frame):
                 all_four = proto_string + n_build_string + buildtime_string + lifetime_string
                 inst_chunk += inst_template.format(name=inst_name, deployinst=all_four)
             string += region_template.format(name=regionname, institution=inst_chunk)
+        string += '\n</root>'
         with open(os.path.join(output_path, 'region.xml'), 'w') as f:
             f.write(string)
         messagebox.showinfo('Success', 'Successfully rendered %i regions!' %len(self.region_dict))
@@ -658,17 +717,14 @@ class RegionWindow(Frame):
         self.rownum += 1
 
     def update_region_status(self):
-        string = ''
+        string = '\t\t\t\tN_build\tBuild Time\t Lifetime'
         for key, val in self.region_dict.items():
             string += '\n' + key + '\n'
             for key2, val2 in val.items():
-                string += '\t-> ' + key2 + '\t\t\t' + 'n\t' + 't_o\t' + 'T\n'
+                string += '\t-> ' + key2 + '\t\t\t' + '\t' + '\t' + '\n'
                 for i in val2:
-                    string += '\t\t->> ' + i[0] + '\tn=' + i[1] +'\tt0=' + i[2] + '\tT=' + i[3] + '\n'
+                    string += '\t\t->> ' + i[0] + '\t' + i[1] +'\t' + i[2] + '\t' + i[3] + '\n'
         self.status_var.set(string)
-
-
-
 
 
     def close_window(self):
