@@ -519,7 +519,7 @@ class RegionWindow(Frame):
         Label(self.status_window, text='Current regions:').pack()
         self.status_var = StringVar()
         self.update_region_status()
-        Label(self.status_window, textvariable=self.status_var).pack()
+        Label(self.status_window, textvariable=self.status_var, justify=LEFT).pack()
 
         """
         Region dict should look like:
@@ -546,16 +546,89 @@ class RegionWindow(Frame):
         Button(self.add_region_window, text='Done', command=lambda : self.done_region())
         z = 0
 
+    def done_region(self):
+        z=0
 
-    def add_inst(self):
-        # click to add row
-        # row = prototype name, n_build, entertime, lifetime
-        z = 0
+
+
+
+    def add_inst(self, region_name):
+        if region_name == '':
+            messagebox.showerror('Error', 'You have to define the region name before adding and institution!')
+            return
+        self.add_inst_window = Toplevel(self.add_region_window)
+        self.inst_dict = {}
+        self.region_dict[region_name] = {}
+        self.current_region = region_name
+        Label(self.add_inst_window, text='Institution Name:').grid(row=0, column=1)
+        inst_name_entry = Entry(self.add_inst_window)
+        inst_name_entry.grid(row=0, column=2)
+        Button(self.add_inst_window, text='Done', command= lambda : self.submit_inst(inst_name_entry.get())).grid(row=1, column=0)
+        Label(self.add_inst_window, text='Add new prototypes here:').grid(row=2, columnspan=3)
+        Button(self.add_inst_window, text='Add Row', command= lambda: self.add_inst_row()).grid(row=3, column=3)
+        self.inst_entry_dict = {'prototypes': [], 'lifetimes': [],
+                                'n_build': [], 'build_times': []}
+        self.cat_list = ['prototypes', 'n_build', 'build_times', 'lifetimes']
+        for indx, val in enumerate(self.cat_list):
+            Label(self.add_inst_window, text=val).grid(row=4, column=indx)
+            self.inst_entry_dict[val].append(Entry(self.add_inst_window))
+            self.inst_entry_dict[val][-1].grid(row=5, column=indx)
+        self.rownum = 6
+
+        # show realtime institutions added
+
+    def submit_inst(self, inst_name):
+        # check input correctness:
+        if inst_name == '':
+            messagebox.showerror('Error', 'You have to define an Institution Name')
+            return
+        inst_array = []
+        for indx in range(len(self.inst_entry_dict['prototypes'])):
+            prototype_ = self.inst_entry_dict['prototypes'][indx].get()
+            lifetime_ = self.inst_entry_dict['lifetimes'][indx].get()
+            build_time_ = self.inst_entry_dict['build_times'][indx].get()
+            n_build_ = self.inst_entry_dict['n_build'][indx].get()
+            # skip missing rows
+            if prototype_ == lifetime_ == build_time_ == n_build_ == '':
+                continue
+            # check if there are missing parameters
+            elif '' in [prototype_, lifetime_, build_time_, n_build_]:
+                messagebox.showerror('Error', 'You are missing a parameter for line %i' %indx)
+                return
+            # check if the ints are ints
+            if not (self.check_if_int(lifetime_) & self.check_if_int(build_time_)
+                    & self.check_if_int(n_build_)):
+                messagebox.showerror('Error', 'Entertime, lifetime, and n_build have to be integers.')
+                return
+            inst_array.append([prototype_, lifetime_, build_time_, n_build_])
+            
+        if len(inst_array) == 0:
+            messagebox.showerror('Error', 'There are no entries! ')
+            return
+        self.inst_dict[inst_name] = inst_array
+        messagebox.showinfo('Added', 'Added institution %s' %inst_name)
+        self.region_dict[self.current_region] = self.inst_dict
+        self.update_region_status()
+
+
+    def check_if_int(self, string):
+        try:
+            int(string)
+            return True
+        except ValueError:
+            return False
+
+
+    def add_inst_row(self):
+        for indx, val in enumerate(self.cat_list):
+            self.inst_entry_dict[val].append(Entry(self.add_inst_window))
+            self.inst_entry_dict[val][-1].grid(row=self.rownum, column=indx)
+        self.rownum += 1
 
     def update_region_status(self):
         string = ''
         for key, val in self.region_dict.items():
-            string += key + '\n'
+            string += '\n' + key + '\n'
             for key2, val2 in val.items():
                 string += '\t-> ' + key2 + '\n'
                 for i in val2:
