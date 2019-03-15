@@ -108,7 +108,6 @@ class Cygui(Frame):
 
     def load_prev(self, entry):
         folders = os.listdir(file_path)
-        print(folders)
         folders = [f for f in folders if os.path.isdir(os.path.join(file_path, f))]
         hash_ = str(entry.get())
         for i in folders:
@@ -202,8 +201,6 @@ class SimulationWindow(Frame):
     def done(self):
         self.entry_dict = {key: val.get() for key, val in self.entry_dict.items()}
 
-        print(self.entry_dict)
-        print(self.entry_dict.values())
         # check input:
         if '' in self.entry_dict.values():
             messagebox.showerror('Error', 'You omitted some parameters')
