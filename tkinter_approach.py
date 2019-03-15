@@ -543,13 +543,45 @@ class RegionWindow(Frame):
         region_name = Entry(self.add_region_window)
         region_name.grid(row=0, column=1)
         Button(self.add_region_window, text='Add Institution', command=lambda : self.add_inst(region_name.get())).grid(row=1, column=0)
-        Button(self.add_region_window, text='Done', command=lambda : self.done_region())
+        Button(self.add_region_window, text='Done', command=lambda : self.done_region()).grid(row=2, column=0)
         z = 0
 
     def done_region(self):
-        z=0
+        if len(self.region_dict) == 0:
+            messagebox.showerror('Error', 'No Regions were defined!')
+            return
+        self.compile_dict_to_xml()
+        self.master.destroy()
 
-
+    def compile_dict_to_xml(self):
+        # name, institution
+        region_template = '<region>\n\t<name>{name}</name>\n\t<config><NullRegion/></config>\n{institution}\n</region>\n'
+        # name, deployinst
+        inst_template = '\t<institution>\n\t\t<name>{name}</name>\n\t\t<config>\n\t\t\t<DeployInst>\n{deployinst}\n\t\t\t</DeployInst>\n\t\t</config>\n\t</institution>'
+        val_template = '\t\t\t\t\t<val>{entry}</val>\n'
+        string = ''
+        for regionname, inst_dict in self.region_dict.items():
+            inst_chunk = ''
+            for inst_name, inst_array in inst_dict.items():
+                proto_string = '\t\t\t\t<prototypes>\n'
+                n_build_string = '\t\t\t\t<n_build>\n'
+                buildtime_string = '\t\t\t\t<build_times>\n'
+                lifetime_string = '\t\t\t\t<lifetimes>\n'
+                for entry in inst_array:
+                    proto_string += val_template.format(entry=entry[0])
+                    n_build_string += val_template.format(entry=entry[1])
+                    buildtime_string += val_template.format(entry=entry[2])
+                    lifetime_string += val_template.format(entry=entry[3])
+                proto_string += '\t\t\t\t</prototypes>\n'
+                n_build_string += '\t\t\t\t</n_build>\n'
+                buildtime_string += '\t\t\t\t</build_times>\n'
+                lifetime_string += '\t\t\t\t</lifetimes>\n'
+                all_four = proto_string + n_build_string + buildtime_string + lifetime_string
+                inst_chunk += inst_template.format(name=inst_name, deployinst=all_four)
+            string += region_template.format(name=regionname, institution=inst_chunk)
+        with open(os.path.join(output_path, 'region.xml'), 'w') as f:
+            f.write(string)
+        messagebox.showinfo('Success', 'Successfully rendered %i regions!' %len(self.region_dict))
 
 
     def add_inst(self, region_name):
@@ -630,7 +662,7 @@ class RegionWindow(Frame):
         for key, val in self.region_dict.items():
             string += '\n' + key + '\n'
             for key2, val2 in val.items():
-                string += '\t-> ' + key2 + '\n'
+                string += '\t-> ' + key2 + '\t\t\t' + 'n\t' + 't_o\t' + 'T\n'
                 for i in val2:
                     string += '\t\t->> ' + i[0] + '\tn=' + i[1] +'\tt0=' + i[2] + '\tT=' + i[3] + '\n'
         self.status_var.set(string)
