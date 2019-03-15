@@ -7,19 +7,32 @@ import xmltodict
 import uuid
 import os
 import shutil
+import copy
 
-uniq_id = str(uuid.uuid4())
+uniq_id = str(uuid.uuid4())[:3]
 file_path = os.path.abspath(os.path.dirname(__file__))
+
+# generate unique id
+folders = os.listdir(file_path)
+folders = [f for f in folders if os.path.isdir(os.path.join(file_path, f))]
+unique = False
+while not unique:
+    for folder in folders:
+        if uniq_id in folder:
+            print('JACKPOT! You have two identical 3 random letternumbers! Today is your lucky day go buy a lottery')
+            uniq_id = str(uuid.uuid4())[:3]
+            continue
+    unique = True
+
 output_path = os.path.join(file_path, 'output_'+uniq_id)
 os.mkdir(output_path)
-print('This your hash boy:', uniq_id)
+print('This your id boy:', uniq_id)
 
 class Cygui(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.master = master
         self.init_window()
-
 
     def init_window(self):
         self.master.title('GUI')
@@ -43,7 +56,6 @@ class Cygui(Frame):
 
 
         Label(root, text='Cyclus Input generator').pack()
-        Label(root, text='HASH:').pack()
         Label(root, textvariable=self.hash_var).pack()
 
         sim_button = Button(root, text='Simulation', command=lambda : self.open_window('simulation'))
@@ -100,7 +112,7 @@ class Cygui(Frame):
 
     def load_prev_window(self):
         self.load_window = Toplevel(self.master)
-        Label(self.load_window, text='Enter hash:').pack()
+        Label(self.load_window, text='Enter id:').pack()
         entry = Entry(self.load_window)
         entry.pack()
         Button(self.load_window, text='Load!', command=lambda: self.load_prev(entry)).pack()
@@ -112,28 +124,33 @@ class Cygui(Frame):
         hash_ = str(entry.get())
         for i in folders:
             if hash_ in i:
-                messagebox.showinfo('Found!', 'Found folder %s. Loading the files in that folder here..' %i)
+                messagebox.showinfo('Found!', 'Found folder %s.\n Loading the files in that folder here..' %i)
                 global uniq_id
                 global output_path
                 uniq_id = hash_
                 self.hash_var.set(hash_)
+                print('Changed ID to %s' %hash_)
                 output_path = os.path.join(file_path, i)
                 self.load_window.destroy()
                 return
         # if folder is not found,
-        messagebox.showerror('Error', 'No folder with that name. The folder must exist in: \n %s' %file_path)
+        messagebox.showerror('Error', 'No folder with that name.\n The folder must exist in: \n %s' %file_path)
         
-
-
 
     def check_and_run(self):
         files = os.listdir(output_path)
         okay = True
+        absentee = []
         for i in ['simulation.xml', 'archetype.xml', 'prototype.xml',
                   'region.xml', 'recipe.xml']:
             if i not in files:
-                messagebox.showerror('Error', 'You have not made the %s block yet! :(' %i.replace('.xml', ''))
-                okay = False
+                absentee.append(i.replace('.xml', ''))
+        if len(absentee) != 0:
+            string = 'You have not made the following blocks:\n'
+            for abse in absentee:
+                string += '\t' + abse + '\n'
+            messagebox.showerror('Error', string)
+            okay = False
 
         if okay:
             print('I am okay')
@@ -231,8 +248,105 @@ class ArchetypeWindow(Frame):
     def __init__(self, master):
         self.master = master
         self.frame = Frame(self.master)
+        
+        self.arche = [['agents', 'NullInst'], ['agents', 'NullRegion'], ['cycamore', 'Source'],
+                      ['cycamore', 'Sink'], ['cycamore', 'DeployInst'], ['cycamore', 'Enrichment'],
+                      ['cycamore', 'FuelFab'], ['cycamore', 'GrowthRegion'], ['cycamore', 'ManagerInst'],
+                      ['cycamore', 'Mixer'], ['cycamore', 'Reactor'], ['cycamore', 'Separations'],
+                      ['cycamore', 'Storage']]
+        self.default_arche = copy.deepcopy(self.arche)
+        if os.path.isfile(os.path.join(output_path, 'archetypes.xml')):
+            self.read_xml()
 
-    def close_window(self):
+
+
+        Label(master, text='All Cyclus and Cycamore agents are already added. If there are additional archetypes you would like to add, list them here:').grid(row=0)
+        Button(master, text='Add Row', command= lambda : self.add_more()).grid(row=1)
+        Button(master, text='Add!', command= lambda : self.add()).grid(row=2)
+        Button(master, text='Default', command= lambda: self.to_default()).grid(row=3)
+        Button(master, text='Done', command= lambda: self.done()).grid(row=4)
+        Label(master, text='Library').grid(row=0, column=2)
+        Label(master, text='Archetype').grid(row=0, column=3)
+        self.entry_list = []
+        self.additional_arche = []
+        self.rownum = 1
+
+        # status window
+        self.status_window = Toplevel(master)
+        Label(self.status_window, text='Loaded modules:').pack()
+        self.status_var = StringVar()
+        self.update_loaded_modules()
+        Label(self.status_window, textvariable=self.status_var).pack()
+
+
+    def update_loaded_modules(self):
+        """ this functions updates the label object in the status window
+            so the loaded archetypes are updated live"""
+        string = ''
+
+        for i in self.arche:
+            string += i[0]+ ' :: ' + i[1] + '\n'
+        self.status_var.set(string)
+
+    def read_xml(self):
+        new_arche = []
+        with open(os.path.join(output_path, 'archetypes.xml'), 'r') as f:
+            xml_dict = xmltodict.parse(f.read())['archetypes']
+        for entry in xml_dict['spec']:
+            new_arche.append([entry['lib'], entry['name']])
+        self.arche = new_arche
+
+    def add_more(self):
+        row_list = []
+        # library and archetype set
+        row_list.append(Entry(self.master))
+        row_list.append(Entry(self.master))
+        row_list[0].grid(row=self.rownum, column=2)
+        row_list[1].grid(row=self.rownum, column=3)
+        self.entry_list.append(row_list)
+        self.rownum += 1
+
+    def to_default(self):
+        self.arche = self.default_arche
+        self.update_loaded_modules()
+
+    def add(self):
+        self.entry_list = [[x[0].get(), x[1].get()] for x in self.entry_list]
+        dont_add_indx = []
+        messed_up_indx = []
+        err = False
+        for indx,entry in enumerate(self.entry_list):
+            if entry[0] == '' and entry[1] == '':
+                dont_add_indx.append(indx)
+            if entry[0] == '' and entry[1] != '':
+                messed_up_indx.append(indx)
+                err = True
+        if err:
+            message = 'You messed up on rows:\n'
+            for indx in messed_up_indx:
+                message += indx + '\t'
+            messagebox.showerror('Error', message)
+        else:
+
+            string = 'Adding %i new libraries' %(len(self.entry_list) - len(dont_add_indx))
+            if len(dont_add_indx) != 0:
+                string += '\n Ignoring empty rows: '
+                for r in dont_add_indx:
+                    string += r + '  '
+            for indx, val in enumerate(self.entry_list):
+                if indx in dont_add_indx:
+                    continue
+                self.arche.append(val)
+            self.update_loaded_modules()
+
+
+    def done(self):
+        string = '<archetypes>\n'
+        for pair in self.arche:
+            string += '\t<spec>\t<lib>%s</lib>\t<name>%s</name></spec>\n' %(pair[0], pair[1])
+        string += '</archetypes>\n'
+        with open(os.path.join(output_path, 'archetypes.xml'), 'w') as f:
+            f.write(string)
         self.master.destroy()
 
 
