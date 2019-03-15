@@ -550,6 +550,11 @@ class RegionWindow(Frame):
             self.read_xml()
 
     def read_xml(self):
+        """
+        read xml has wayy too many if else statements
+        becasuse xmltodict reads single entries as strings
+        while multiple entries as lists..
+        """
         with open(os.path.join(output_path, 'region.xml'), 'r') as f:
             xml_list = xmltodict.parse(f.read())['root']['region']
             for region in xml_list:
