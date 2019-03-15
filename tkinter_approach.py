@@ -29,6 +29,8 @@ class Cygui(Frame):
         menu = Menu(self.master)
         self.master.config(menu=menu)
 
+        self.hash_var = StringVar()
+        self.hash_var.set(uniq_id)
         file = Menu(menu)
         file.add_command(label='Exit', command=self.client_exit)
         menu.add_cascade(label='File', menu=file)
@@ -40,6 +42,9 @@ class Cygui(Frame):
         menu.add_cascade(label='Edit', menu=edit)
 
 
+        Label(root, text='Cyclus Input generator').pack()
+        Label(root, text='HASH:').pack()
+        Label(root, textvariable=self.hash_var).pack()
 
         sim_button = Button(root, text='Simulation', command=lambda : self.open_window('simulation'))
         sim_button.pack()
@@ -55,6 +60,9 @@ class Cygui(Frame):
 
         recipe_button = Button(root, text='Recipes', command=lambda : self.open_window('recipe'))
         recipe_button.pack()
+
+        load_button = Button(root, text='Load', command=lambda: self.load_prev_window())
+        load_button.pack()
 
         done_button = Button(root, text='Combine and Run', command= lambda: self.check_and_run())
         done_button.pack()
@@ -89,6 +97,35 @@ class Cygui(Frame):
             self.app = RegionWindow(self.newWindow)
         if name == 'recipe':
             self.app = RecipeWindow(self.newWindow)
+
+    def load_prev_window(self):
+        self.load_window = Toplevel(self.master)
+        Label(self.load_window, text='Enter hash:').pack()
+        entry = Entry(self.load_window)
+        entry.pack()
+        Button(self.load_window, text='Load!', command=lambda: self.load_prev(entry)).pack()
+
+
+    def load_prev(self, entry):
+        folders = os.listdir(file_path)
+        print(folders)
+        folders = [f for f in folders if os.path.isdir(os.path.join(file_path, f))]
+        hash_ = str(entry.get())
+        for i in folders:
+            if hash_ in i:
+                messagebox.showinfo('Found!', 'Found folder %s. Loading the files in that folder here..' %i)
+                global uniq_id
+                global output_path
+                uniq_id = hash_
+                self.hash_var.set(hash_)
+                output_path = os.path.join(file_path, i)
+                self.load_window.destroy()
+                return
+        # if folder is not found,
+        messagebox.showerror('Error', 'No folder with that name. The folder must exist in: \n %s' %file_path)
+        
+
+
 
     def check_and_run(self):
         files = os.listdir(output_path)
