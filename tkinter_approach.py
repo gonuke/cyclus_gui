@@ -29,6 +29,7 @@ output_path = os.path.join(file_path, 'output_'+uniq_id)
 os.mkdir(output_path)
 print('This your id boy:', uniq_id)
 
+
 class Cygui(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
@@ -106,6 +107,9 @@ class Cygui(Frame):
         if name == 'archetype':
             self.app = ArchetypeWindow(self.newWindow)
         if name == 'prototype':
+            if not os.path.isfile(os.path.join(output_path, 'archetypes.xml')):
+                messagebox.showerror('Error', 'You must define the Archetype libraries first!')
+                return
             self.app = PrototypeWindow(self.newWindow)
         if name == 'region':
             self.app = RegionWindow(self.newWindow)
@@ -168,14 +172,11 @@ class Cygui(Frame):
         guide_text = """
         Welcome!
 
-        A Cyclus input file has 5 major blocks, with explanations
-        ( and a bad analogy to chess ):
+        A Cyclus input file has 5 major blocks, with explanations:
 
         Simulation:
             Here, you define meta simulation parameters like
             startyear, timesteps, and decay methods.
-
-            ( number of grids in chess board )
 
         Archetypes:
             Since Cyclus is a modular framework, here you
@@ -183,7 +184,8 @@ class Cygui(Frame):
             An archetype is a self-contained code that defines
             a facility's behavior (e.g. reactor, sink)
 
-            ( A king (archetype) can go any direction n times)
+            (A reactor archetype [takes in, depletes, and discharges fuel at a
+             predefined cycle length])
 
         Prototypes:
             Here, you define the archetypes' parameters.
@@ -199,14 +201,17 @@ class Cygui(Frame):
             the outcommodity of the source prototype should match the
             incommodity of the reactor prototype, so they trade.
 
-            ( If n=3, this specific king (prototype) can go
-                any direction 3 grids)
+            ( The Clinton reactor prototype takes in, depletes and discharges
+             fuel in [18-month cycles], outputs [1,062 MWe], and uses [UOX] fuel.) 
 
         Regions:
             Here, you actually set up how the prototypes will be `played'
             - when to enter, when to exit, and how many to play.
 
-            ( The setup of chess, where or when the King is placed in the game )
+            (The Clinton reactor (prototype) is inside the Exelon Institution,
+             which is inside the U.S.A. region, has 1 unit (n_build),
+             has a lifetime of 960 months (lifetimes),
+             and enters simulation in timestep 100 (build_times).)
 
         Recipes:
             Well, recipes, are, well, recipes.
@@ -475,10 +480,10 @@ class PrototypeWindow(Frame):
         self.proto_dict = {}
         if os.path.isfile(os.path.join(output_path, 'prototypes.xml')):
             self.read_xml()
+        self.load_archetypes()
 
-        # ideally this would all be imported from the libraries
         self.tkvar = StringVar(self.master)
-        archetypes = ('cycamore::Reactor', 'cycamore::Sink')
+        archetypes = [x[0] + ':' + x[1] for x in self.arches]
         self.tkvar.set('\t\t')
         OptionMenu(self.master, self.tkvar, *archetypes).grid(row=1)
         self.tkvar.trace('w', self.add_prototype)
@@ -491,6 +496,17 @@ class PrototypeWindow(Frame):
         self.status_var.set('')
         self.update_loaded_modules()
         Label(self.status_window, textvariable=self.status_var).pack()
+
+    def load_archetypes(self):
+        # get from archetypes definition
+        self.arches = []
+        with open(os.path.join(output_path, 'archetypes.xml'), 'r') as f:
+            xml_dict = xmltodict.parse(f.read())['archetypes']
+        for entry in xml_dict['spec']:
+            self.arches.append([entry['lib'], entry['name']])
+
+
+
 
     def update_loaded_modules(self):
         string = ''
@@ -533,6 +549,8 @@ class PrototypeWindow(Frame):
         self.def_window.geometry('+800+400')
         Label(self.def_window, text='Prototype Name:').grid(row=0, column=0)
         name_entry = Entry(self.def_window)
+        
+
 
         # autopopulate label and entries somehow
 
