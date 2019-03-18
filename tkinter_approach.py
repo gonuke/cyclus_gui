@@ -476,6 +476,7 @@ class PrototypeWindow(Frame):
         self.guide()
         Label(self.master, text='Choose an archetype to add:').grid(row=0)
         self.proto_dict = {}
+        self.tag_dict = {}
         if os.path.isfile(os.path.join(output_path, 'prototypes.xml')):
             self.read_xml()
         self.load_archetypes()
@@ -551,10 +552,7 @@ class PrototypeWindow(Frame):
         Button(self.def_window, text='Done', command=lambda : self.submit_proto(archetype, proto_name_entry.get())).grid(row=0, column=2)
         Label(self.def_window, text='Prototype Name:').grid(row=1, column=0)
         
-        if archetype == 'cycamore:Reactor':
-            self.reactor_def()
-        else:
-            print('What up')
+        self.def_entries(archetype)
 
     def submit_proto(self, archetype, proto_name):
         if proto_name == '':
@@ -571,6 +569,8 @@ class PrototypeWindow(Frame):
                     val_list = [x for x in val_list if x != '']
                     if len(val_list) == 0:
                         continue
+                    # change tag with param by referencing
+                    # tag_dict
                     val_list = {'val': val_list}
                     
                 else:
@@ -587,7 +587,8 @@ class PrototypeWindow(Frame):
         self.update_loaded_modules()
         self.def_window.destroy()
 
-    def reactor_def(self):
+
+    def def_entries(self, archetype):
         start_row = 2
         self.entry_dict = {}
         """
@@ -598,27 +599,81 @@ class PrototypeWindow(Frame):
             val: entry object list (length = column no.)
         # did not do matrix since the column lengths can be irregular
         """
-        for val in ['fuel_incommods', 'fuel_inrecipes', 'fuel_prefs', 'fuel_outcommods',
-                    'fuel_outrecipes', 'recipe_change_times', 'recipe_change_commods',
-                    'recipe_change_in', 'recipe_change_out', 'pref_change_times',
-                    'pref_change_commods', 'pref_change_values']:
-            start_row += 1
-            self.add_row_oneormore(val, self.def_window, start_row)   
+        if archetype == 'cycamore:Reactor':
+            oneormore = ['fuel_incommods', 'fuel_inrecipes', 'fuel_prefs*', 'fuel_outcommods',
+                        'fuel_outrecipes', 'recipe_change_times*', 'recipe_change_commods*',
+                        'recipe_change_in*', 'recipe_change_out*', 'pref_change_times*',
+                        'pref_change_commods*', 'pref_change_values*']
+            one = ['assem_size', 'n_assem_batch', 'n_assem_core', 'n_assem_fresh*',
+                   'n_assem_spent*', 'cycle_time', 'refuel_time', 'cycle_step*', 'power_cap',
+                   'power_name*']
+        
+
+        if archetype == 'cycamore:Source':
+            one = ['outcommod', 'outrecipe*', 'inventory_size*', 'throughput*']
+            oneormore = []
+
+
+        if archetype == 'cycamore:Sink':
+            oneormore = ['in_commods', 'in_commod_prefs*'] 
+            one = ['recipe_name*', 'max_inv_size*', 'capacity*']
+
+        if archetype == 'cycamore:Enrichment':
+            oneormore = []
+            one = ['feed_commod', 'feed_recipe', 'product_commod', 'tails_commod', 'tails_assay*',
+                   'initial_feed*', 'max_feed_inventory*', 'max_enrich*', 'order_prefs*' , 'swu_capacity*']
+
+        if archetype == 'cycamore:Separations':
+            oneormore = ['feed_commods', 'feed_commod_prefs*', ]
+            one = ['feed_recipe*', 'feedbuf_size', 'throughput*', 'lefover_commod*', 'leftoverbuf_size*']
+            # add stream button
+            # start_row += 1
+            # Button(self.def_window, )
+
+        if archetype == 'cycamore:FuelFab':
+            oneormore = ['fill_commods', 'fill_commod_prefs*', 'fiss_commods', 'fiss_commod_prefs*']
+            one = ['fill_recipe','fill_size', 'fiss_recipe', 'fiss_size', 'topup_cmomod*', 'topup_pref*',
+                   'topup_recipe*', 'topup_size*', 'outcommod', 'throughput*', 'spectrum']
+            # discrete choice for spectrum
+
+
+        if archetype == 'cycamore:Storage':
+            oneormore = []
+            one = []
+
+        if archetype == 'cycamore:Enrichment':
+            oneormore = []
+            one = []
+
+
+
+
+
+        start_row += 1
+        self.add_row_oneormore(val, self.def_window, start_row)
+        self.add_rwo(val, self.def_window, start_row)   
             # add color for non-essential parameters
-        for val in ['assem_size', 'n_assem_batch', 'n_assem_core', 'n_assem_fresh',
-                    'n_assem_spent', 'cycle_time', 'refuel_time', 'cycle_step', 'power_cap',
-                    'power_name']:
-            start_row += 1
-            self.add_row(val, self.def_window, start_row)
+
+
+    def source_def(self):
+        start_row = 2
+        self.entry_dict = {}
+        
 
 
     def add_row(self, label, master, rownum, color='black'):
+        if '*' in label:
+            color = 'red'
+        label = label.replace('*', '')
         Label(master, text=label, fg=color).grid(row=rownum, column=1)
         self.entry_dict[label] = {rownum: Entry(self.def_window)}
         self.entry_dict[label][rownum].grid(row=rownum, column=2)
 
 
-    def add_row_oneormore(self, label, master, rownum,  color='black'):
+    def add_row_oneormore(self, label, master, rownum, color='black'):
+        if '*' in label:
+            color = 'red'
+        label = label.replace('*', '')
         Label(master, text=label, fg=color).grid(row=rownum, column=1)
         self.entry_dict[label] = {rownum : []}
         Button(master, text='Add', command=lambda : self.add_entry(label, rownum)).grid(row=rownum, column=0)
