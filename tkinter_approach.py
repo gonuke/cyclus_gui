@@ -144,7 +144,7 @@ class Cygui(Frame):
         okay = True
         absentee = []
         for i in ['simulation.xml', 'archetype.xml', 'prototype.xml',
-                  'region.xml', 'recipe.xml']:
+                  'regions.xml', 'recipe.xml']:
             if i not in files:
                 absentee.append(i.replace('.xml', ''))
         if len(absentee) != 0:
@@ -342,7 +342,7 @@ class ArchetypeWindow(Frame):
                       ['cycamore', 'Mixer'], ['cycamore', 'Reactor'], ['cycamore', 'Separations'],
                       ['cycamore', 'Storage']]
         self.default_arche = copy.deepcopy(self.arche)
-        if os.path.isfile(os.path.join(output_path, 'archetypes.xml')):
+        if os.path.isfile(os.path.join(output_path, 'archetypes.xml')): 
             self.read_xml()
 
 
@@ -472,6 +472,9 @@ class PrototypeWindow(Frame):
         master.geometry('+600+200')
         self.guide()
         Label(self.master, text='Choose an archetype to add:').grid(row=0)
+        self.proto_dict = {}
+        if os.path.isfile(os.path.join(output_path, 'prototypes.xml')):
+            self.read_xml()
 
         # ideally this would all be imported from the libraries
         self.tkvar = StringVar(self.master)
@@ -479,6 +482,42 @@ class PrototypeWindow(Frame):
         self.tkvar.set('\t\t')
         OptionMenu(self.master, self.tkvar, *archetypes).grid(row=1)
         self.tkvar.trace('w', self.add_prototype)
+
+        Button(self.master, text='Done', command= lambda x: self.submit()).grid(row=2)
+
+        self.status_window = Toplevel(master)
+        Label(self.status_window, text='Defined Archetypes:').pack()
+        self.status_var = StringVar()
+        self.status_var.set('')
+        self.update_loaded_modules()
+        Label(self.status_window, textvariable=self.status_var).pack()
+
+    def update_loaded_modules(self):
+        string = ''
+        for name, val in self.proto_dict.items():
+            string += '%s (%s)\n' %(name, val['archetype'])
+            # this is disabled to save space
+            #self.config_string = ''
+            #self.dig_dict(val['config'])
+            #string += self.config_string + '\n'
+        self.status_var.set(string)
+
+    def submit(self):
+        string = ''
+        for name, config in self.proto_dict.items():
+            block = '<facility>\n\t<name>%s</name>\n\t<config>\n' %name
+            block += '\t\t<%s>'
+
+
+
+    def dig_dict(self, dictionary, pretab=0, indent=0):
+        self.config_string = ''
+        for key, val in dictionary.items():
+            self.config_string += '\t'*(pretab + indent) + str(key) + '\n'
+            if isinstance(val, dict):
+                self.dig_dict(val, indent+1)
+            else:
+                self.config_string += '\t'*(pretab + indent+1) + str(val) + '\n'
 
 
     def add_prototype(self, *args):
@@ -496,6 +535,16 @@ class PrototypeWindow(Frame):
         name_entry = Entry(self.def_window)
 
         # autopopulate label and entries somehow
+
+    def read_xml(self):
+        with open(os.path.join(output_path, 'prototypes.xml'), 'r') as f:
+            xml_list = xmltodict.parse(f.read())['root']['facility']
+            for facility in xml_list:
+                facility_name = facility['name']
+                archetype = list(facility['config'].keys())[0]
+                self.proto_dict[facility_name] = {'archetype': archetype,
+                                                  'config': facility['config'][archetype]}
+
 
 
     def close_window(self):
@@ -535,19 +584,35 @@ class RegionWindow(Frame):
         self.master = master
         self.frame = Frame(self.master)
         master.geometry('+600+200')
+        self.load_prototypes()
+        print(self.prototypes)
+        self.status_var = StringVar()
         self.guide()
         self.region_dict = {}
         Button(self.master, text='Add Region', command=lambda: self.add_region()).grid(row=0)
 
+
+        if os.path.isfile(os.path.join(output_path, 'regions.xml')):
+            self.read_xml()
+
         self.status_window = Toplevel(master)
         self.status_window.geometry('+800+400')
         Label(self.status_window, text='Current regions:').pack()
-        self.status_var = StringVar()
+        
         self.update_region_status()
         Label(self.status_window, textvariable=self.status_var, justify=LEFT).pack()
 
-        if os.path.isfile(os.path.join(output_path, 'region.xml')):
-            self.read_xml()
+
+    def load_prototypes(self):
+        self.prototypes = []
+        if os.path.isfile(os.path.join(output_path, 'prototypes.xml')):
+            with open(os.path.join(output_path, 'prototypes.xml'), 'r') as f:
+                xml_list = xmltodict.parse(f.read())['root']['facility']
+                for facility in xml_list:
+                    self.prototypes.append(facility['name'])
+ 
+        else:
+            return
 
     def read_xml(self):
         """
@@ -555,8 +620,10 @@ class RegionWindow(Frame):
         becasuse xmltodict reads single entries as strings
         while multiple entries as lists..
         """
-        with open(os.path.join(output_path, 'region.xml'), 'r') as f:
+        with open(os.path.join(output_path, 'regions.xml'), 'r') as f:
             xml_list = xmltodict.parse(f.read())['root']['region']
+            if isinstance(xml_list, dict):
+                xml_list = [xml_list]
             for region in xml_list:
                 print('REGION', region)
                 self.region_dict[region['name']] = {}
@@ -595,6 +662,9 @@ class RegionWindow(Frame):
                     self.region_dict[region['name']][instname] = inst_array
 
         self.update_region_status()
+
+        # also get from the prototype file
+
 
     def add_region(self):
         # region name
@@ -643,7 +713,7 @@ class RegionWindow(Frame):
                 inst_chunk += inst_template.format(name=inst_name, deployinst=all_four)
             string += region_template.format(name=regionname, institution=inst_chunk)
         string += '\n</root>'
-        with open(os.path.join(output_path, 'region.xml'), 'w') as f:
+        with open(os.path.join(output_path, 'regions.xml'), 'w') as f:
             f.write(string)
         messagebox.showinfo('Success', 'Successfully rendered %i regions!' %len(self.region_dict))
 
@@ -696,7 +766,7 @@ class RegionWindow(Frame):
                     & self.check_if_int(n_build_)):
                 messagebox.showerror('Error', 'Entertime, lifetime, and n_build have to be integers.')
                 return
-            inst_array.append([prototype_, lifetime_, build_time_, n_build_])
+            inst_array.append([prototype_, n_build_, build_time_, lifetime_])
             
         if len(inst_array) == 0:
             messagebox.showerror('Error', 'There are no entries! ')
@@ -722,13 +792,16 @@ class RegionWindow(Frame):
         self.rownum += 1
 
     def update_region_status(self):
-        string = '\t\t\t\tN_build\tBuild Time\t Lifetime'
+        print(self.region_dict)
+        string = '\t\t\t\t\tN_build\tBuild Time\t Lifetime'
         for key, val in self.region_dict.items():
             string += '\n' + key + '\n'
             for key2, val2 in val.items():
                 string += '\t-> ' + key2 + '\t\t\t' + '\t' + '\t' + '\n'
                 for i in val2:
-                    string += '\t\t->> ' + i[0] + '\t' + i[1] +'\t' + i[2] + '\t' + i[3] + '\n'
+                    if i[0] in self.prototypes:
+                        i[0] += ' (x)'
+                    string += '\t\t->> ' + i[0] + '\t\t' + i[1] +'\t' + i[2] + '\t' + i[3] + '\n'
         self.status_var.set(string)
 
 
@@ -930,8 +1003,6 @@ root = Tk()
 root.geometry('400x300')
 app = Cygui(root)
 root.mainloop()
-# delete this later
-# shutil.rmtree(output_path)
 
 
 
