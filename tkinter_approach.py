@@ -799,7 +799,7 @@ class RegionWindow(Frame):
             for key2, val2 in val.items():
                 string += '\t-> ' + key2 + '\t\t\t' + '\t' + '\t' + '\n'
                 for i in val2:
-                    if i[0] in self.prototypes:
+                    if i[0] not in self.prototypes:
                         i[0] += ' (x)'
                     string += '\t\t->> ' + i[0] + '\t\t' + i[1] +'\t' + i[2] + '\t' + i[3] + '\n'
         self.status_var.set(string)
