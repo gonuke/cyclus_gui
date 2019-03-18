@@ -99,22 +99,20 @@ class Cygui(Frame):
         text = Label(self, text=text)
         text.pack()
 
-    def open_window(self, name):        
-        self.newWindow = Toplevel(self.master)
-
+    def open_window(self, name):
         if name == 'simulation':
-            self.app = SimulationWindow(self.newWindow)
+            self.app = SimulationWindow(self.master)
         if name == 'archetype':
-            self.app = ArchetypeWindow(self.newWindow)
+            self.app = ArchetypeWindow(self.master)
         if name == 'prototype':
             if not os.path.isfile(os.path.join(output_path, 'archetypes.xml')):
                 messagebox.showerror('Error', 'You must define the Archetype libraries first!')
                 return
-            self.app = PrototypeWindow(self.newWindow)
+            self.app = PrototypeWindow(self.master)
         if name == 'region':
-            self.app = RegionWindow(self.newWindow)
+            self.app = RegionWindow(self.master)
         if name == 'recipe':
-            self.app = RecipeWindow(self.newWindow)
+            self.app = RecipeWindow(self.master)
 
     def load_prev_window(self):
         self.load_window = Toplevel(self.master)
@@ -232,19 +230,19 @@ class SimulationWindow(Frame):
         val: value
     """
     def __init__(self, master):
-        self.master = master
+        self.master = Toplevel(master)
         self.frame = Frame(self.master)
-        master.geometry('+600+200')
+        self.master.geometry('+600+200')
         self.guide()
         inputs = ['duration', 'startmonth', 'startyear', 'decay',
                   'explicit_inventory', 'explicit_inventory_compact',
                   'dt']
         for i, txt in enumerate(inputs):
-            Label(master, text=txt).grid(row=(i))
+            Label(self.master, text=txt).grid(row=(i))
 
         self.entry_dict = {}
         for row, txt in enumerate(inputs):
-            self.entry_dict[txt] = Entry(master)
+            self.entry_dict[txt] = Entry(self.master)
             self.entry_dict[txt].grid(row=row, column=1)
 
         # default values
@@ -337,9 +335,9 @@ class ArchetypeWindow(Frame):
         [0] = library
         [1] = archetype name
         """
-        self.master = master
+        self.master = Toplevel(master)
         self.frame = Frame(self.master)
-        master.geometry('+600+200')
+        self.master.geometry('+600+200')
         self.guide()
         self.arche = [['agents', 'NullInst'], ['agents', 'NullRegion'], ['cycamore', 'Source'],
                       ['cycamore', 'Sink'], ['cycamore', 'DeployInst'], ['cycamore', 'Enrichment'],
@@ -352,18 +350,18 @@ class ArchetypeWindow(Frame):
 
 
 
-        Button(master, text='Add Row', command= lambda : self.add_more()).grid(row=1)
-        Button(master, text='Add!', command= lambda : self.add()).grid(row=2)
-        Button(master, text='Default', command= lambda: self.to_default()).grid(row=3)
-        Button(master, text='Done', command= lambda: self.done()).grid(row=4)
-        Label(master, text='Library').grid(row=0, column=2)
-        Label(master, text='Archetype').grid(row=0, column=3)
+        Button(self.master, text='Add Row', command= lambda : self.add_more()).grid(row=1)
+        Button(self.master, text='Add!', command= lambda : self.add()).grid(row=2)
+        Button(self.master, text='Default', command= lambda: self.to_default()).grid(row=3)
+        Button(self.master, text='Done', command= lambda: self.done()).grid(row=4)
+        Label(self.master, text='Library').grid(row=0, column=2)
+        Label(self.master, text='Archetype').grid(row=0, column=3)
         self.entry_list = []
         self.additional_arche = []
         self.rownum = 1
 
         # status window
-        self.status_window = Toplevel(master)
+        self.status_window = Toplevel(self.master)
         Label(self.status_window, text='Loaded modules:').pack()
         self.status_var = StringVar()
         self.update_loaded_modules()
@@ -472,9 +470,9 @@ class PrototypeWindow(Frame):
         proto_dict looks like:
 
         """
-        self.master = master
+        self.master = Toplevel(master)
         self.frame = Frame(self.master)
-        master.geometry('+600+200')
+        self.master.geometry('+600+200')
         self.guide()
         Label(self.master, text='Choose an archetype to add:').grid(row=0)
         self.proto_dict = {}
@@ -486,16 +484,17 @@ class PrototypeWindow(Frame):
         archetypes = [x[0] + ':' + x[1] for x in self.arches]
         self.tkvar.set('\t\t')
         OptionMenu(self.master, self.tkvar, *archetypes).grid(row=1)
-        self.tkvar.trace('w', self.add_prototype)
+        self.tkvar.trace('w', self.definition_window)
 
-        Button(self.master, text='Done', command= lambda x: self.submit()).grid(row=2)
+        Button(self.master, text='Done', command= lambda : self.submit()).grid(row=2)
 
-        self.status_window = Toplevel(master)
+        self.status_window = Toplevel(self.master)
         Label(self.status_window, text='Defined Archetypes:').pack()
         self.status_var = StringVar()
         self.status_var.set('')
         self.update_loaded_modules()
         Label(self.status_window, textvariable=self.status_var).pack()
+
 
     def load_archetypes(self):
         # get from archetypes definition
@@ -503,9 +502,9 @@ class PrototypeWindow(Frame):
         with open(os.path.join(output_path, 'archetypes.xml'), 'r') as f:
             xml_dict = xmltodict.parse(f.read())['archetypes']
         for entry in xml_dict['spec']:
-            self.arches.append([entry['lib'], entry['name']])
-
-
+            # ignore institutions and regions
+            if 'region' not in entry['name'].lower() or 'inst' not in entry['name'].lower():
+                self.arches.append([entry['lib'], entry['name']])
 
 
     def update_loaded_modules(self):
@@ -518,13 +517,18 @@ class PrototypeWindow(Frame):
             #string += self.config_string + '\n'
         self.status_var.set(string)
 
+
     def submit(self):
-        string = ''
-        for name, config in self.proto_dict.items():
-            block = '<facility>\n\t<name>%s</name>\n\t<config>\n' %name
-            block += '\t\t<%s>'
-
-
+        new_dict = {'root': {'facility': []}}
+        with open(os.path.join(output_path, 'prototypes.xml'), 'w') as f:
+            for name, config in self.proto_dict.items():
+                facility_dict = {}
+                facility_dict['name'] = name
+                facility_dict['config'] = {config['archetype']: config['config']}
+                new_dict['root']['facility'].append(facility_dict)
+            f.write(xmltodict.unparse(new_dict, pretty=True))
+        messagebox.showinfo('Sucess', 'Successfully rendered %i prototypes!' %len(new_dict['root']['facility']))
+        self.master.destroy()
 
     def dig_dict(self, dictionary, pretab=0, indent=0):
         self.config_string = ''
@@ -536,23 +540,95 @@ class PrototypeWindow(Frame):
                 self.config_string += '\t'*(pretab + indent+1) + str(val) + '\n'
 
 
-    def add_prototype(self, *args):
-        archetype = self.tkvar.get()
-        if archetype == 'cycamore::Reactor':
-            
-            print('REACTOR')
-        if archetype == 'cycamore::Sink':
-            print('SINK')
-
-    def definition_window(self, archetype):
+    def definition_window(self, *args):
         self.def_window = Toplevel(self.master)
         self.def_window.geometry('+800+400')
-        Label(self.def_window, text='Prototype Name:').grid(row=0, column=0)
-        name_entry = Entry(self.def_window)
+        archetype = self.tkvar.get()
+        Label(self.def_window, text='%s' %archetype).grid(row=0, columnspan=2)
+
+        proto_name_entry = Entry(self.def_window)
+        proto_name_entry.grid(row=1, column=1)
+        Button(self.def_window, text='Done', command=lambda : self.submit_proto(archetype, proto_name_entry.get())).grid(row=0, column=2)
+        Label(self.def_window, text='Prototype Name:').grid(row=1, column=0)
         
+        if archetype == 'cycamore:Reactor':
+            self.reactor_def()
+        else:
+            print('What up')
+
+    def submit_proto(self, archetype, proto_name):
+        if proto_name == '':
+            messagebox.showerror('Error', 'You must define the prototype name')
+            return
+
+        archetype_name = archetype.split(':')[-1]
+        config_dict = {archetype_name: {}}
+        # .get() all the entries
+        for param, row_val_dict in self.entry_dict.items():
+            for rownum, val_list in row_val_dict.items():
+                if isinstance(val_list, list):
+                    val_list = [x.get() for x in val_list]
+                    val_list = [x for x in val_list if x != '']
+                    if len(val_list) == 0:
+                        continue
+                    val_list = {'val': val_list}
+                    
+                else:
+                    val_list = val_list.get()
+                    if val_list == '':
+                        continue
+                # check for empty values    
+                config_dict[archetype_name][param] = val_list
+        
+        self.proto_dict[proto_name] = {'archetype': archetype_name,
+                                       'config': config_dict}
+        messagebox.showinfo('Success', 'Successfully created %s prototype %s' %(archetype_name, proto_name))
+        print(self.proto_dict)
+        self.update_loaded_modules()
+        self.def_window.destroy()
+
+    def reactor_def(self):
+        start_row = 2
+        self.entry_dict = {}
+        """
+        entry_dict:
+        key: name of entry (e.g. cycle_time)
+        val: dict
+            key: rownum
+            val: entry object list (length = column no.)
+        # did not do matrix since the column lengths can be irregular
+        """
+        for val in ['fuel_incommods', 'fuel_inrecipes', 'fuel_prefs', 'fuel_outcommods',
+                    'fuel_outrecipes', 'recipe_change_times', 'recipe_change_commods',
+                    'recipe_change_in', 'recipe_change_out', 'pref_change_times',
+                    'pref_change_commods', 'pref_change_values']:
+            start_row += 1
+            self.add_row_oneormore(val, self.def_window, start_row)   
+            # add color for non-essential parameters
+        for val in ['assem_size', 'n_assem_batch', 'n_assem_core', 'n_assem_fresh',
+                    'n_assem_spent', 'cycle_time', 'refuel_time', 'cycle_step', 'power_cap',
+                    'power_name']:
+            start_row += 1
+            self.add_row(val, self.def_window, start_row)
 
 
-        # autopopulate label and entries somehow
+    def add_row(self, label, master, rownum, color='black'):
+        Label(master, text=label, fg=color).grid(row=rownum, column=1)
+        self.entry_dict[label] = {rownum: Entry(self.def_window)}
+        self.entry_dict[label][rownum].grid(row=rownum, column=2)
+
+
+    def add_row_oneormore(self, label, master, rownum,  color='black'):
+        Label(master, text=label, fg=color).grid(row=rownum, column=1)
+        self.entry_dict[label] = {rownum : []}
+        Button(master, text='Add', command=lambda : self.add_entry(label, rownum)).grid(row=rownum, column=0)
+
+
+    def add_entry(self, label, rownum):
+        col = len(self.entry_dict[label][rownum]) + 2
+        self.entry_dict[label][rownum].append(Entry(self.def_window))
+        self.entry_dict[label][rownum][-1].grid(row=rownum, column=col)
+
 
     def read_xml(self):
         with open(os.path.join(output_path, 'prototypes.xml'), 'r') as f:
@@ -562,11 +638,11 @@ class PrototypeWindow(Frame):
                 archetype = list(facility['config'].keys())[0]
                 self.proto_dict[facility_name] = {'archetype': archetype,
                                                   'config': facility['config'][archetype]}
+        print(self.proto_dict)
 
 
-
-    def close_window(self):
-        self.master.destroy()
+    def render_xml(self):
+        z= 0
 
     def guide(self):
 
@@ -599,11 +675,11 @@ class RegionWindow(Frame):
                 [2] entertime
                 [3] lifetime
         """
-        self.master = master
+
+        self.master = Toplevel(master)
         self.frame = Frame(self.master)
-        master.geometry('+600+200')
+        self.master.geometry('+600+200')
         self.load_prototypes()
-        print(self.prototypes)
         self.status_var = StringVar()
         self.guide()
         self.region_dict = {}
@@ -613,7 +689,7 @@ class RegionWindow(Frame):
         if os.path.isfile(os.path.join(output_path, 'regions.xml')):
             self.read_xml()
 
-        self.status_window = Toplevel(master)
+        self.status_window = Toplevel(self.master)
         self.status_window.geometry('+800+400')
         Label(self.status_window, text='Current regions:').pack()
         
@@ -838,23 +914,23 @@ class RecipeWindow(Frame):
     """ Note: Recipes are generated with <root> parent node for xml for parsing reasons"""
 
     def __init__(self, master):
-        self.master = master
+        self.master = Toplevel(master)
         self.frame = Frame(self.master)
-        master.geometry('+600+200')
+        self.master.geometry('+600+200')
         self.guide()
         Label(self.master, text='You can upload a csv or plaintext').grid(row=0)
         browse_button = Button(self.master, text='Add From File [atomic]', command=lambda : self.askopenfile('atom')).grid(row=1)
         browse_button = Button(self.master, text='Add From File [mass]', command= lambda : self.askopenfile('mass')).grid(row=2)
-        Button(master, text='Add Recipe Manually [atomic]', command=lambda : self.add_recipe('atom')).grid(row=3)
-        Button(master, text='Add Recipe Manually [mass]', command=lambda : self.add_recipe('mass')).grid(row=4)
+        Button(self.master, text='Add Recipe Manually [atomic]', command=lambda : self.add_recipe('atom')).grid(row=3)
+        Button(self.master, text='Add Recipe Manually [mass]', command=lambda : self.add_recipe('mass')).grid(row=4)
 
-        Button(master, text='Finish', command=lambda: self.done()).grid(row=6)
+        Button(self.master, text='Finish', command=lambda: self.done()).grid(row=6)
         self.recipe_dict = {}
 
         if os.path.isfile(os.path.join(output_path, 'recipes.xml')):
             self.read_xml()
 
-        self.status_window = Toplevel(master)
+        self.status_window = Toplevel(self.master)
         self.status_window.geometry('+800+400')
         Label(self.status_window, text='Loaded recipes:').pack()
         self.status_var = StringVar()
