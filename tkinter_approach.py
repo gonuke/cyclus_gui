@@ -80,6 +80,9 @@ class Cygui(Frame):
         load_button = Button(root, text='Load', command=lambda: self.load_prev_window())
         load_button.pack()
 
+        make_input_button = Button(root, text='Generate Input', command=lambda: self.check_and_run(run=False))
+        make_input_button.pack()
+
         done_button = Button(root, text='Combine and Run', command= lambda: self.check_and_run())
         done_button.pack()
 
@@ -142,12 +145,13 @@ class Cygui(Frame):
         messagebox.showerror('Error', 'No folder with that name.\n The folder must exist in: \n %s' %file_path)
         
 
-    def check_and_run(self):
+    def check_and_run(self, run=True):
         files = os.listdir(output_path)
         okay = True
         absentee = []
-        for i in ['simulation.xml', 'archetype.xml', 'prototype.xml',
-                  'regions.xml', 'recipe.xml']:
+        file_list = ['simulation.xml', 'archetypes.xml', 'prototypes.xml',
+                     'regions.xml', 'recipes.xml']
+        for i in file_list:
             if i not in files:
                 absentee.append(i.replace('.xml', ''))
         if len(absentee) != 0:
@@ -158,7 +162,27 @@ class Cygui(Frame):
             okay = False
 
         if okay:
-            print('I am okay')
+            input_file = ''
+            for i in file_list:
+                skipfront = 0
+                skipback = 0
+                with open(os.path.join(output_path, i), 'r') as f:
+                    x = f.readlines()
+                    if 'prototype' in i:
+                        skipfront += 1
+                    if 'prototype' in i or 'region' in i or 'recipe' in i:
+                        skipfront += 1
+                        skipback -= 1
+                    if skipback == 0:
+                        lines = x[skipfront:]
+                    else:
+                        lines = x[skipfront:skipback]
+                    input_file += ''.join(lines)
+                    input_file += '\n\n\n'
+            with open(os.path.join(output_path, 'input.xml'), 'w') as f:
+                f.write(input_file)
+            if run:
+                print('Running!')
             # compile into one big file
             # run it
             # see if it turns successfully
@@ -682,6 +706,7 @@ class PrototypeWindow(Frame):
                     val_list = val_list.get()
                     if val_list == '':
                         continue
+                    val_list 
                 # check for empty values    
                 config_dict[archetype_name][param] = val_list
         
@@ -742,7 +767,7 @@ class PrototypeWindow(Frame):
         # documentation for archetype
         input_variables = self.param_dict[archetype]['oneormore'] + self.param_dict[archetype]['one']
         input_variables = [x.replace('*', '') for x in input_variables]
-        string += self.doc_dict[archetype]['arche'] + '\n\n'
+        string += self.doc_dict[archetype]['arche'] + '\n\n' + '========== Parameters ==========\n'
         for key, val in self.doc_dict[archetype].items():
             if key not in input_variables or key == 'arche':
                 continue
@@ -893,7 +918,7 @@ class PrototypeWindow(Frame):
                     facility_name = xml_list['name']
                     archetype = list(xml_list['config'].keys())[0]
                     self.proto_dict[facility_name] = {'archetype': archetype,
-                                                      'config': xml_list['config'][archetype]}
+                                                      'config': {archetype: xml_list['config'][archetype]}}
                     break
 
                 facility_name = facility['name']
