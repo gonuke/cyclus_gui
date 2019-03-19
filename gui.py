@@ -78,11 +78,18 @@ class Cygui(Frame):
         recipe_button = Button(root, text='Recipes', command=lambda : self.open_window('recipe'))
         recipe_button.pack()
 
+
+        Label(root, text='').pack()
+
         load_button = Button(root, text='Load', command=lambda: self.load_prev_window())
         load_button.pack()
 
+
+        Label(root, text='').pack()
+
         make_input_button = Button(root, text='Generate Input', command=lambda: self.check_and_run(run=False))
         make_input_button.pack()
+
 
         done_button = Button(root, text='Combine and Run', command= lambda: self.check_and_run())
         done_button.pack()
@@ -401,7 +408,10 @@ class ArchetypeWindow(Frame):
         Button(self.master, text='Add Row', command= lambda : self.add_more()).grid(row=1)
         Button(self.master, text='Add!', command= lambda : self.add()).grid(row=2)
         Button(self.master, text='Default', command= lambda: self.to_default()).grid(row=3)
-        Button(self.master, text='Done', command= lambda: self.done()).grid(row=4)
+
+        Label(self.master, text='').grid(row=4)
+
+        Button(self.master, text='Done', command= lambda: self.done()).grid(row=5)
         Label(self.master, text='Library').grid(row=0, column=2)
         Label(self.master, text='Archetype').grid(row=0, column=3)
         self.entry_list = []
@@ -665,15 +675,15 @@ class PrototypeWindow(Frame):
 
     def submit(self):
         new_dict = {'root': {'facility': []}}
+        if len(self.proto_dict) == 0:
+            messagebox.showerror('Nope', 'You have not defined any prototypes yet.')
+            return
         with open(os.path.join(output_path, 'prototypes.xml'), 'w') as f:
             for name, config in self.proto_dict.items():
                 facility_dict = {}
                 facility_dict['name'] = name
                 facility_dict['config'] = config['config']
                 new_dict['root']['facility'].append(facility_dict)
-            print(self.proto_dict)
-            print('\n\n')
-            print(new_dict)
             f.write(xmltodict.unparse(new_dict, pretty=True))
         messagebox.showinfo('Sucess', 'Successfully rendered %i prototypes!' %len(new_dict['root']['facility']))
         self.master.destroy()
@@ -727,7 +737,6 @@ class PrototypeWindow(Frame):
         self.proto_dict[proto_name] = {'archetype': archetype_name,
                                        'config': config_dict}
         messagebox.showinfo('Success', 'Successfully created %s prototype %s' %(archetype_name, proto_name))
-        print(self.proto_dict)
         self.update_loaded_modules()
         self.def_window.destroy()
 
@@ -795,7 +804,6 @@ class PrototypeWindow(Frame):
                     default_val = "''"
                 string += ', default=%s' %default_val
             string += '):\n' + val + '\n\n' 
-        print(string)
         t = Text(proto_guide_window_)
         t.pack()
         t.insert(END, string)
@@ -838,7 +846,6 @@ class PrototypeWindow(Frame):
             messagebox.showerror('Error', 'You did not define a single stream')
             return  
         self.entry_dict['streams'][9999]['item'].append(sep_stream_dict)
-        print(self.entry_dict)
         messagebox.showinfo('Success', 'Succesfully added separation stream')
         self.sep_stream_window.destroy()
 
@@ -940,7 +947,6 @@ class PrototypeWindow(Frame):
                 archetype = list(facility['config'].keys())[0]
                 self.proto_dict[facility_name] = {'archetype': archetype,
                                                   'config': facility['config'][archetype]}
-        print(self.proto_dict)
 
 
     def guide(self):
@@ -977,19 +983,24 @@ class RegionWindow(Frame):
 
         self.master = Toplevel(master)
         self.frame = Frame(self.master)
-        self.master.geometry('+0+700')
+        self.master.geometry('+150+850')
         self.load_prototypes()
         self.status_var = StringVar()
         self.guide()
         self.region_dict = {}
-        Button(self.master, text='Add Region', command=lambda: self.add_region()).grid(row=0)
 
+        Label(self.master, text='Region Name:').grid(row=0, column=0)
+        region_name = Entry(self.master)
+        region_name.grid(row=0, column=1)
+        Button(self.master, text='Add Institution', command=lambda : self.add_inst(region_name.get())).grid(row=1, column=0)
+        Label(self.master, text='').grid(row=2, column=0)
+        Button(self.master, text='Done', command=lambda : self.done_region()).grid(row=3, column=0)
 
         if os.path.isfile(os.path.join(output_path, 'regions.xml')):
             self.read_xml()
 
         self.status_window = Toplevel(self.master)
-        self.status_window.geometry('+250+700')
+        self.status_window.geometry('+500+920')
         Label(self.status_window, text='Current regions:').pack()
         
         self.update_region_status()
@@ -1018,7 +1029,6 @@ class RegionWindow(Frame):
             if isinstance(xml_list, dict):
                 xml_list = [xml_list]
             for region in xml_list:
-                print('REGION', region)
                 self.region_dict[region['name']] = {}
                 if not isinstance(region['institution'], list):
                     do_it = 1
@@ -1059,18 +1069,6 @@ class RegionWindow(Frame):
         # also get from the prototype file
 
 
-    def add_region(self):
-        # region name
-        # add institution
-        # finish button
-        self.add_region_window = Toplevel(self.master)
-        self.add_region_window.geometry('+800+300')
-        Label(self.add_region_window, text='Region Name:').grid(row=0, column=0)
-        region_name = Entry(self.add_region_window)
-        region_name.grid(row=0, column=1)
-        Button(self.add_region_window, text='Add Institution', command=lambda : self.add_inst(region_name.get())).grid(row=1, column=0)
-        Button(self.add_region_window, text='Done', command=lambda : self.done_region()).grid(row=2, column=0)
-        z = 0
 
     def done_region(self):
         if len(self.region_dict) == 0:
@@ -1115,7 +1113,8 @@ class RegionWindow(Frame):
         if region_name == '':
             messagebox.showerror('Error', 'You have to define the region name before adding and institution!')
             return
-        self.add_inst_window = Toplevel(self.add_region_window)
+        self.add_inst_window = Toplevel(self.master)
+        self.add_inst_window.geometry('+100+1000')
         self.inst_dict = {}
         self.region_dict[region_name] = {}
         self.current_region = region_name
@@ -1168,6 +1167,7 @@ class RegionWindow(Frame):
         messagebox.showinfo('Added', 'Added institution %s' %inst_name)
         self.region_dict[self.current_region] = self.inst_dict
         self.update_region_status()
+        self.add_inst_window.destroy()
 
 
     def check_if_int(self, string):
@@ -1185,7 +1185,6 @@ class RegionWindow(Frame):
         self.rownum += 1
 
     def update_region_status(self):
-        print(self.region_dict)
         string = '\t\t\t\t\tN_build\tBuild Time\t Lifetime'
         for key, val in self.region_dict.items():
             string += '\n' + key + '\n'
@@ -1202,10 +1201,31 @@ class RegionWindow(Frame):
         self.master.destroy()
 
     def guide(self):
+        string = """
+        This is where you define how the prototypes you defined will be played
+        in the simulation - when they enter, how many enters, and when they exit.
 
+        The region definition in this GUI by default uses 
+        NullInst and DeployInst. A region has one or many institutions.
+        Click on `Add Region', specify a Region Name, and click 'Add Institution'
+        to define a single institution. The institution will be part of the region
+        you specified.
+
+        One row in the institution definition window is for one prototype.
+        Define the name, how many to build, when to enter, and how long to stay
+        for each prototype. Click 'Add Row' if you want to add more prototypes.
+
+        Once done, click done to add the institution into the region. The status
+        window will reflect the changes you've made.
+
+        A prototype with a `(x)' next to it means that the prototype has not
+        been defined by the prototype definition section.
+
+        Once done, clikc Done in the region window.
+        """
         self.guide_window = Toplevel(self.master)
         self.guide_window.geometry('+0+400')
-        Label(self.guide_window, text='some helpful message').pack(padx=30, pady=30)
+        Label(self.guide_window, text=string).pack(padx=30, pady=30)
 
 
 
@@ -1219,10 +1239,14 @@ class RecipeWindow(Frame):
         self.guide()
         browse_button = Button(self.master, text='Add From File [atomic]', command=lambda : self.askopenfile('atom')).grid(row=1)
         browse_button = Button(self.master, text='Add From File [mass]', command= lambda : self.askopenfile('mass')).grid(row=2)
-        Button(self.master, text='Add Recipe Manually [atomic]', command=lambda : self.add_recipe('atom')).grid(row=3)
-        Button(self.master, text='Add Recipe Manually [mass]', command=lambda : self.add_recipe('mass')).grid(row=4)
+        Button(self.master, text='Add all from Directory [atomic]', command=lambda : self.askopendir('atom')).grid(row=3)
+        Button(self.master, text='Add all from Directory [mass]', command=lambda : self.askopendir('mass')).grid(row=4)
+        Button(self.master, text='Add Recipe Manually [atomic]', command=lambda : self.add_recipe('atom')).grid(row=5)
+        Button(self.master, text='Add Recipe Manually [mass]', command=lambda : self.add_recipe('mass')).grid(row=6)
 
-        Button(self.master, text='Finish', command=lambda: self.done()).grid(row=6)
+        Label(self.master, text='').grid(row=7)
+
+        Button(self.master, text='Finish', command=lambda: self.done()).grid(row=8)
         self.recipe_dict = {}
 
         if os.path.isfile(os.path.join(output_path, 'recipes.xml')):
@@ -1278,11 +1302,6 @@ class RecipeWindow(Frame):
                         comp_dict[iso] = comp
                 self.recipe_dict[recipe['name']] = {'base': recipe['basis'],
                                                     'composition': comp_dict}
-                print('Printing the nuclide part')
-                print(recipe['nuclide'])
-
-        print('Final')
-        print(self.recipe_dict)
 
 
     def recipe_input(self, name, text, window):
@@ -1292,7 +1311,6 @@ class RecipeWindow(Frame):
         if name.split('_')[-1] not in ['atom', 'mass']:
             raise ValueError('Something Wrong man, either has to have _atom or _mass appended')
         base = name.split('_')[-1]
-        print(base)
         name = name.replace('_'+base, '')
 
 
@@ -1303,32 +1321,31 @@ class RecipeWindow(Frame):
         if ',' in text:
             text = text.replace(',', ' ')    
         composition_dict = self.parse_plaintext(text)
+        print(composition_dict)
 
 
         if composition_dict == None:
-            messagebox.showerror('Error', 'The recipe text is malformed! :( ')
+            messagebox.showerror('Error', 'The recipe text (%s) is malformed! :( ' %name)
             return
 
 
         self.recipe_dict[name] = {'base': base,
                                   'composition': composition_dict}
+        print(self.recipe_dict)
         # if not good, error message
         # if good, kill window
         messagebox.showinfo('Recipe Saved', 'Recipe %s is saved!' %name)
         if window != None:
             window.destroy()
-        self.update_loaded_recipes()    
+        self.update_loaded_recipes()
 
 
     def parse_plaintext(self, text):
-        print(text)
         composition_dict = {}
         for row in text.split('\n'):
             if row == '':
                 continue
-            print('row', row)
             e = row.split()
-            print('split', e)
             composition_dict[e[0]] = float(e[1])        
         return composition_dict
 
@@ -1337,10 +1354,20 @@ class RecipeWindow(Frame):
         file = filedialog.askopenfile(parent=self.master, mode='r', title='Choose a file')
         filename = os.path.splitext(os.path.basename(file.name))[0] + '_' + base
         data = file.read()
-        print('filename', filename)
-        print('data', data)
         
         self.recipe_input(filename, data, None)
+
+    def askopendir(self, base):
+        file = filedialog.askdirectory()
+        files = os.listdir(file)
+        for filename in files:
+            filename_base = filename+'_'+base
+            f = open(os.path.join(file, filename), 'r')
+            data = f.read()
+            print(filename)
+            print(data)
+            self.recipe_input(filename_base, data, None)
+
 
 
     def done(self):
@@ -1349,8 +1376,9 @@ class RecipeWindow(Frame):
             messagebox.error('Error', 'There are no recipes to output :(')
             return
         temp = '<recipe>\n\t<name>{name}</name>\n\t<basis>{base}</basis>\n{recipe}</recipe>\n'
-        comp_string = ''
+        
         for key in self.recipe_dict:
+            comp_string = ''
             for iso, comp in self.recipe_dict[key]['composition'].items():
                 comp_string += '\t<nuclide>\t<id>%s</id>\t<comp>%f</comp>\t</nuclide>\n' %(iso, comp)
             name = key
@@ -1386,6 +1414,8 @@ class RecipeWindow(Frame):
         1. The compositions are automatically normalized by Cyclus :)
         2. Acceptable formats for isotope symbols are:
             ZZAAA, ZZAAASSSS, name (e.g. Pu-239, Pu239, pu-239)
+
+        When you add recipe from a file, the filename becomes the recipe name.
         """
         Label(self.guide_window, text=guide_string, justify=LEFT).pack(padx=30, pady=30)
 
