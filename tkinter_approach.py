@@ -35,6 +35,7 @@ class Cygui(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.master = master
+        self.master.geometry('+0+0')
         self.init_window()
         self.guide()
 
@@ -202,7 +203,7 @@ class Cygui(Frame):
     def guide(self):
 
         self.guide_window = Toplevel(self.master)
-        self.guide_window.geometry('+0+0')
+        self.guide_window.geometry('+500+0')
         guide_text = """
         Welcome!
 
@@ -268,7 +269,7 @@ class SimulationWindow(Frame):
     def __init__(self, master):
         self.master = Toplevel(master)
         self.frame = Frame(self.master)
-        self.master.geometry('+600+200')
+        self.master.geometry('+0+500')
         self.guide()
         inputs = ['duration', 'startmonth', 'startyear', 'decay',
                   'explicit_inventory', 'explicit_inventory_compact',
@@ -338,7 +339,7 @@ class SimulationWindow(Frame):
     def guide(self):
 
         self.guide_window = Toplevel(self.master)
-        self.guide_window.geometry('+0+0')
+        self.guide_window.geometry('+0+3500')
 
         guide_string = """
         duration = Duration of the simulation in dt (default is month)
@@ -373,7 +374,7 @@ class ArchetypeWindow(Frame):
         """
         self.master = Toplevel(master)
         self.frame = Frame(self.master)
-        self.master.geometry('+600+200')
+        self.master.geometry('+0+900')
         self.guide()
         self.arche = [['agents', 'NullInst'], ['agents', 'NullRegion'], ['cycamore', 'Source'],
                       ['cycamore', 'Sink'], ['cycamore', 'DeployInst'], ['cycamore', 'Enrichment'],
@@ -409,6 +410,7 @@ class ArchetypeWindow(Frame):
 
         # status window
         self.status_window = Toplevel(self.master)
+        self.status_window.geometry('+700+1000')
         Label(self.status_window, text='Loaded modules:').pack()
         self.status_var = StringVar()
         self.update_loaded_modules()
@@ -492,7 +494,7 @@ class ArchetypeWindow(Frame):
     def guide(self):
 
         self.guide_window = Toplevel(self.master)
-        self.guide_window.geometry('+0+0')
+        self.guide_window.geometry('+0+3500')
         guide_string = """
         All Cyclus and Cycamore archetypes are already added. If there are additional archetypes
         you would like to add, click the `Add Row' button, type in the library and archetype,
@@ -519,7 +521,7 @@ class PrototypeWindow(Frame):
         """
         self.master = Toplevel(master)
         self.frame = Frame(self.master)
-        self.master.geometry('+600+200')
+        self.master.geometry('+0+700')
         self.guide()
         Label(self.master, text='Choose an archetype to add:').grid(row=0)
         self.get_schema()
@@ -539,6 +541,7 @@ class PrototypeWindow(Frame):
         Button(self.master, text='Done', command= lambda : self.submit()).grid(row=2)
 
         self.status_window = Toplevel(self.master)
+        self.status_window.geometry('+250+700')
         Label(self.status_window, text='Defined Archetypes:').pack()
         self.status_var = StringVar()
         self.status_var.set('')
@@ -679,7 +682,7 @@ class PrototypeWindow(Frame):
 
     def definition_window(self, *args):
         self.def_window = Toplevel(self.master)
-        self.def_window.geometry('+800+400')
+        self.def_window.geometry('+700+1000')
         archetype = self.tkvar.get()
         Label(self.def_window, text='%s' %archetype).grid(row=0, columnspan=2)
 
@@ -774,6 +777,7 @@ class PrototypeWindow(Frame):
 
     def proto_guide_window(self, archetype):
         proto_guide_window_ = Toplevel(self.def_window)
+        proto_guide_window_.geometry('+0+1000')
         string = archetype + '\n'
         # documentation for archetype
         input_variables = self.param_dict[archetype]['oneormore'] + self.param_dict[archetype]['one']
@@ -942,7 +946,7 @@ class PrototypeWindow(Frame):
     def guide(self):
 
         self.guide_window = Toplevel(self.master)
-        self.guide_window.geometry('+0+0')
+        self.guide_window.geometry('+0+400')
         guide_text = """
         Here you define archetypes with specific parameters to use in the simulation.
         An archetype is the code (general behavior of facility - e.g. reactor facility )
@@ -973,7 +977,7 @@ class RegionWindow(Frame):
 
         self.master = Toplevel(master)
         self.frame = Frame(self.master)
-        self.master.geometry('+600+200')
+        self.master.geometry('+0+700')
         self.load_prototypes()
         self.status_var = StringVar()
         self.guide()
@@ -985,7 +989,7 @@ class RegionWindow(Frame):
             self.read_xml()
 
         self.status_window = Toplevel(self.master)
-        self.status_window.geometry('+800+400')
+        self.status_window.geometry('+250+700')
         Label(self.status_window, text='Current regions:').pack()
         
         self.update_region_status()
@@ -1200,7 +1204,7 @@ class RegionWindow(Frame):
     def guide(self):
 
         self.guide_window = Toplevel(self.master)
-        self.guide_window.geometry('+0+0')
+        self.guide_window.geometry('+0+400')
         Label(self.guide_window, text='some helpful message').pack(padx=30, pady=30)
 
 
@@ -1211,7 +1215,7 @@ class RecipeWindow(Frame):
     def __init__(self, master):
         self.master = Toplevel(master)
         self.frame = Frame(self.master)
-        self.master.geometry('+600+200')
+        self.master.geometry('+0+900')
         self.guide()
         browse_button = Button(self.master, text='Add From File [atomic]', command=lambda : self.askopenfile('atom')).grid(row=1)
         browse_button = Button(self.master, text='Add From File [mass]', command= lambda : self.askopenfile('mass')).grid(row=2)
@@ -1225,7 +1229,7 @@ class RecipeWindow(Frame):
             self.read_xml()
 
         self.status_window = Toplevel(self.master)
-        self.status_window.geometry('+800+400')
+        self.status_window.geometry('+250+900')
         Label(self.status_window, text='Loaded recipes:').pack()
         self.status_var = StringVar()
         self.update_loaded_recipes()
@@ -1363,7 +1367,7 @@ class RecipeWindow(Frame):
 
     def guide(self):
         self.guide_window = Toplevel(self.master)
-        self.guide_window.geometry('+0+0')
+        self.guide_window.geometry('+0+400')
         guide_string = """
         ** Currently, you can only add one recipe at a time (future work)
 
