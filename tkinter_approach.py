@@ -182,7 +182,18 @@ class Cygui(Frame):
             with open(os.path.join(output_path, 'input.xml'), 'w') as f:
                 f.write(input_file)
             if run:
-                print('Running!')
+                try:
+                    input_path = os.path.join(output_path, 'input.xml')
+                    output = os.path.join(output_path, 'output.sqlite')
+                    command = 'cyclus -o %s %s' %(output, input_path)
+                    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+                    # check success
+                except:
+                    messagebox.showerror('Error', 'Cannot find Cyclus. Input file is rendered, though.')
+            else:
+                messagebox.showinfo('Success', 'Complete Cyclus input file rendered in %s' %os.path.join(output_path, 'input.xml'))
+                self.master.destroy()
+
             # compile into one big file
             # run it
             # see if it turns successfully
