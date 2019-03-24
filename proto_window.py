@@ -19,6 +19,7 @@ class PrototypeWindow(Frame):
 
         """
         self.master = Toplevel(master)
+        self.master.title('Add prototypes')
         self.output_path = output_path
         self.master.geometry('+0+700')
         self.guide()
@@ -40,8 +41,9 @@ class PrototypeWindow(Frame):
         Button(self.master, text='Done', command= lambda : self.submit()).grid(row=2)
 
         self.status_window = Toplevel(self.master)
+        self.status_window.title('Defined prototypes')
         self.status_window.geometry('+250+700')
-        Label(self.status_window, text='Defined Archetypes:').pack()
+        Label(self.status_window, text='Defined Prototypes:').pack()
         self.status_var = StringVar()
         self.status_var.set('')
         self.update_loaded_modules()
@@ -181,6 +183,7 @@ class PrototypeWindow(Frame):
 
     def definition_window(self, *args):
         self.def_window = Toplevel(self.master)
+        self.def_window.title('Define prototype')
         self.def_window.geometry('+700+1000')
         archetype = self.tkvar.get()
         Label(self.def_window, text='%s' %archetype).grid(row=0, columnspan=2)
@@ -275,6 +278,7 @@ class PrototypeWindow(Frame):
 
     def proto_guide_window(self, archetype):
         proto_guide_window_ = Toplevel(self.def_window)
+        proto_guide_window_.title('%s documentation' %archetype)
         proto_guide_window_.geometry('+0+1000')
         string = archetype + '\n'
         # documentation for archetype
@@ -300,6 +304,7 @@ class PrototypeWindow(Frame):
 
     def add_sep_stream(self):
         self.sep_stream_window = Toplevel(self.def_window)
+        self.sep_stream_window.title('Stream definition')
 
         Label(self.sep_stream_window, text='Commodity name').grid(row=0, column=0)
         self.commod_entry = Entry(self.sep_stream_window)
@@ -349,6 +354,7 @@ class PrototypeWindow(Frame):
 
     def add_mix_stream(self):
         self.mix_stream_window = Toplevel(self.def_window)
+        self.mix_stream_window.title('Mixture stream definition')
         Label(self.mix_stream_window, text='Mixing Ratio (<1.0)').grid(row=0, column=0)
         self.mix_ratio_entry = Entry(self.mix_stream_window)
         self.mix_ratio_entry.grid(row=0, column=1)
@@ -441,6 +447,7 @@ class PrototypeWindow(Frame):
     def guide(self):
 
         self.guide_window = Toplevel(self.master)
+        self.guide_window.title('Prototypes guide')
         self.guide_window.geometry('+0+400')
         guide_text = """
         Here you define archetypes with specific parameters to use in the simulation.
@@ -450,6 +457,17 @@ class PrototypeWindow(Frame):
 
         Here you can add prototypes by taking an archetype template and defining
         your parameters.
+
+        Click on the dropdown to select the archetype you want to add, 
+        and two windows will pop up. One is the documentation for the
+        archetype and the parameters, and the other is the one you should
+        fill out. The red parameters have default values (specified in 
+        documnetation window), thus are optional. The parameters with 'Add'
+        button next to it are parameters with (potentially) more than one
+        variables. You can add more values by clicking 'Add'. Fill out
+        the prototype name and the parameters, then click 'Done' to
+        save the prototye. The window with 'Defined Archetypes' will update
+        as you define prototypes 
 
         """
         Label(self.guide_window, text=guide_text, justify=LEFT).pack(padx=30, pady=30)

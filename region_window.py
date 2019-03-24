@@ -27,6 +27,7 @@ class RegionWindow(Frame):
         """
 
         self.master = Toplevel(master)
+        self.master.title('Define regions')
         self.output_path = output_path
         self.master.geometry('+150+850')
         self.load_prototypes()
@@ -45,6 +46,7 @@ class RegionWindow(Frame):
             self.read_xml()
 
         self.status_window = Toplevel(self.master)
+        self.status_window.title('Defined Regions')
         self.status_window.geometry('+500+920')
         Label(self.status_window, text='Current regions:').pack()
         
@@ -57,9 +59,12 @@ class RegionWindow(Frame):
         if os.path.isfile(os.path.join(self.output_path, 'prototypes.xml')):
             with open(os.path.join(self.output_path, 'prototypes.xml'), 'r') as f:
                 xml_list = xmltodict.parse(f.read())['root']['facility']
-                for facility in xml_list:
-                    self.prototypes.append(facility['name'])
- 
+                if isinstance(xml_list, dict):
+                    self.prototypes.append(xml_list['name'])
+                else:
+                    for facility in xml_list:
+                        print(facility)
+                        self.prototypes.append(facility['name']) 
         else:
             return
 
@@ -159,9 +164,11 @@ class RegionWindow(Frame):
             messagebox.showerror('Error', 'You have to define the region name before adding and institution!')
             return
         self.add_inst_window = Toplevel(self.master)
+        self.add_inst_window.title('Add institution')
         self.add_inst_window.geometry('+100+1000')
         self.inst_dict = {}
-        self.region_dict[region_name] = {}
+        if region_name not in self.region_dict.keys():
+            self.region_dict[region_name] = {}
         self.current_region = region_name
         Label(self.add_inst_window, text='Institution Name:').grid(row=0, column=1)
         inst_name_entry = Entry(self.add_inst_window)
@@ -208,9 +215,8 @@ class RegionWindow(Frame):
         if len(inst_array) == 0:
             messagebox.showerror('Error', 'There are no entries! ')
             return
-        self.inst_dict[inst_name] = inst_array
         messagebox.showinfo('Added', 'Added institution %s' %inst_name)
-        self.region_dict[self.current_region] = self.inst_dict
+        self.region_dict[self.current_region][inst_name] = inst_array
         self.update_region_status()
         self.add_inst_window.destroy()
 
@@ -230,15 +236,18 @@ class RegionWindow(Frame):
         self.rownum += 1
 
     def update_region_status(self):
+        print(self.region_dict)
         string = '\t\t\t\t\tN_build\tBuild Time\t Lifetime'
-        for key, val in self.region_dict.items():
-            string += '\n' + key + '\n'
-            for key2, val2 in val.items():
-                string += '\t-> ' + key2 + '\t\t\t' + '\t' + '\t' + '\n'
-                for i in val2:
-                    if i[0] not in self.prototypes:
-                        i[0] += ' (x)'
-                    string += '\t\t->> ' + i[0] + '\t\t' + i[1] +'\t' + i[2] + '\t' + i[3] + '\n'
+        for regionname, instdict in self.region_dict.items():
+            string += '\n' + regionname + '\n'
+            for instname, instarray in instdict.items():
+                string += '\t-> ' + instname + '\t\t\t' + '\t' + '\t' + '\n'
+                for instlist in instarray:
+                    if instlist[0] not in self.prototypes:
+                        isit = instlist[0] + ' (x)'
+                    else:
+                        isit = instlist[0]
+                    string += '\t\t->> ' + isit + '\t\t' + instlist[1] +'\t' + instlist[2] + '\t' + instlist[3] + '\n'
         self.status_var.set(string)
 
 
@@ -269,6 +278,7 @@ class RegionWindow(Frame):
         Once done, clikc Done in the region window.
         """
         self.guide_window = Toplevel(self.master)
+        self.guide_window.title('Region guide')
         self.guide_window.geometry('+0+400')
         Label(self.guide_window, text=string).pack(padx=30, pady=30)
 

@@ -17,6 +17,7 @@ class RecipeWindow(Frame):
 
     def __init__(self, master, output_path):
         self.master = Toplevel(master)
+        self.master.title('Define recipes')
         self.output_path = output_path
         self.master.geometry('+0+900')
         self.guide()
@@ -36,6 +37,7 @@ class RecipeWindow(Frame):
             self.read_xml()
 
         self.status_window = Toplevel(self.master)
+        self.status_window.title('Defined Recipes')
         self.status_window.geometry('+250+900')
         Label(self.status_window, text='Loaded recipes:').pack()
         self.status_var = StringVar()
@@ -54,6 +56,7 @@ class RecipeWindow(Frame):
         Button add recipe will prompt user-input recipe name and text
         """
         self.addrecipe_window = Toplevel(self.master)
+        self.addrecipe_window.title('New recipe definition')
         self.addrecipe_window.geometry('+800+400')
 
         Button(self.addrecipe_window, text='Done!',
@@ -178,10 +181,9 @@ class RecipeWindow(Frame):
 
     def guide(self):
         self.guide_window = Toplevel(self.master)
+        self.guide_window.title('Recipe guide')
         self.guide_window.geometry('+0+400')
         guide_string = """
-        ** Currently, you can only add one recipe at a time (future work)
-
         The format of recipes could be comma, space, or tab separated.
         For example:
         92235 0.7
@@ -199,6 +201,8 @@ class RecipeWindow(Frame):
             ZZAAA, ZZAAASSSS, name (e.g. Pu-239, Pu239, pu-239)
 
         When you add recipe from a file, the filename becomes the recipe name.
+        You can also add multiple recipes at a time by selecting a directory
+        that contains multiple recipe files.
         """
         Label(self.guide_window, text=guide_string, justify=LEFT).pack(padx=30, pady=30)
 

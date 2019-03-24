@@ -52,18 +52,22 @@ class Cygui(Frame):
         menu = Menu(self.master)
         self.master.config(menu=menu)
 
+
         self.hash_var = StringVar()
         self.hash_var.set(uniq_id)
+
+        """ menu functions not in use
         file = Menu(menu)
         file.add_command(label='Exit', command=self.client_exit)
         menu.add_cascade(label='File', menu=file)
+
 
         edit = Menu(menu)
         edit.add_command(label='undo')
         edit.add_command(label='copy')
         # this cascade will have all the commands in edit
         menu.add_cascade(label='Edit', menu=edit)
-
+        """
 
         Label(root, text='Cyclus Input generator').pack()
         Label(root, textvariable=self.hash_var).pack()
@@ -99,6 +103,8 @@ class Cygui(Frame):
         done_button = Button(root, text='Combine and Run', command= lambda: self.check_and_run())
         done_button.pack()
 
+        Label(root, text='').pack()
+
 
 
     def client_exit(self):
@@ -133,6 +139,7 @@ class Cygui(Frame):
 
     def load_prev_window(self):
         self.load_window = Toplevel(self.master)
+        self.load_window.title('Load previous with hash')
         Label(self.load_window, text='Enter id:').pack()
         entry = Entry(self.load_window)
         entry.pack()
@@ -145,7 +152,12 @@ class Cygui(Frame):
         hash_ = str(entry.get())
         for i in folders:
             if hash_ in i:
-                messagebox.showinfo('Found!', 'Found folder %s.\n Loading the files in that folder here..' %i)
+                files_in = os.listdir(os.path.join(file_path, 'output_%s'%hash_))
+                info_text = 'Found folder %s.\nLoading input blocks:\n\n' %i
+                for f_ in files_in:
+                    f_ = f_.replace('.xml', '')
+                    info_text += '\t%s\n' %f_
+                messagebox.showinfo('Found!', info_text)
                 global uniq_id
                 global output_path
                 uniq_id = hash_
@@ -215,11 +227,13 @@ class Cygui(Frame):
     def guide(self):
 
         self.guide_window = Toplevel(self.master)
+        self.guide_window.title('Guide')
         self.guide_window.geometry('+500+0')
         guide_text = """
         Welcome!
 
-        A Cyclus input file has 5 major blocks, with explanations:
+        A Cyclus input file has 5 major blocks.
+        It is recommended you fill them out sequentially:
 
         Simulation:
             Here, you define meta simulation parameters like

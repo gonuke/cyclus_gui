@@ -22,6 +22,7 @@ class SimulationWindow():
     """
     def __init__(self, master, output_path):
         self.master = Toplevel(master)
+        self.master.title('Simulation definition')
         self.output_path = output_path
         # self.frame = Frame(self.master)
         self.master.geometry('+0+500')
@@ -94,10 +95,11 @@ class SimulationWindow():
     def guide(self):
 
         self.guide_window = Toplevel(self.master)
+        self.guide_window.title('Simulation guide')
         self.guide_window.geometry('+0+3500')
 
         guide_string = """
-        duration = Duration of the simulation in dt (default is month)
+        duration = Duration of the simulation
 
         startmonth = Starting month of the simulation [1-12]
         
