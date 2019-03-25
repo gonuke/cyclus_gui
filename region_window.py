@@ -49,6 +49,13 @@ class RegionWindow(Frame):
         self.status_window.title('Defined Regions')
         self.status_window.geometry('+500+920')
         Label(self.status_window, text='Current regions:').pack()
+
+        self.proto_window = Toplevel(self.master)
+        self.proto_window.title('Defined Prototypes')
+        self.proto_window.geometry('+700+1000')
+        Label(self.proto_window, text='Defined Prototypes:\n').pack()
+        for i in self.prototypes:
+            Label(self.proto_window, text=i).pack()
         
         self.update_region_status()
         Label(self.status_window, textvariable=self.status_var, justify=LEFT).pack()
@@ -63,7 +70,6 @@ class RegionWindow(Frame):
                     self.prototypes.append(xml_list['name'])
                 else:
                     for facility in xml_list:
-                        print(facility)
                         self.prototypes.append(facility['name']) 
         else:
             return
@@ -236,7 +242,6 @@ class RegionWindow(Frame):
         self.rownum += 1
 
     def update_region_status(self):
-        print(self.region_dict)
         string = '\t\t\t\t\tN_build\tBuild Time\t Lifetime'
         for regionname, instdict in self.region_dict.items():
             string += '\n' + regionname + '\n'
@@ -275,7 +280,7 @@ class RegionWindow(Frame):
         A prototype with a `(x)' next to it means that the prototype has not
         been defined by the prototype definition section.
 
-        Once done, clikc Done in the region window.
+        Once done, click Done in the region window.
         """
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Region guide')

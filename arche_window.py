@@ -10,6 +10,7 @@ import os
 import shutil
 import json
 import copy
+import subprocess
 
 
 class ArchetypeWindow(Frame):
@@ -31,11 +32,14 @@ class ArchetypeWindow(Frame):
                       ['cycamore', 'Storage']]
         try:
             path = os.path.join(self.output_path, 'm.json')
-            command = 'cyclus -m > %s' %path
+            command = 'cyclus -m'
             process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-            with open(path, 'r') as f:
-                jtxt = f.read()
+            jtxt = process.stdout.read()
+            print(jtxt)
+            with open(path, 'wb') as f:
+                f.write(jtxt)
             j = json.loads(jtxt)
+            messagebox.showinfo('Found', 'Found Cyclus, automatically grabbing archetype libraries :)')
             self.arche = j['specs']
             self.arche = [[q[0], q[1]] for q in (i[1:].split(':') for i in self.arche)]
         except:

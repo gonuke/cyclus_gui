@@ -15,6 +15,7 @@ from arche_window import ArchetypeWindow
 from proto_window import PrototypeWindow
 from region_window import RegionWindow
 from recipe_window import RecipeWindow
+import subprocess
 
 uniq_id = str(uuid.uuid4())[:3]
 file_path = os.path.abspath(os.path.dirname(__file__))
@@ -187,7 +188,7 @@ class Cygui(Frame):
             okay = False
 
         if okay:
-            input_file = ''
+            input_file = '<simulation>\n'
             for i in file_list:
                 skipfront = 0
                 skipback = 0
@@ -204,14 +205,22 @@ class Cygui(Frame):
                         lines = x[skipfront:skipback]
                     input_file += ''.join(lines)
                     input_file += '\n\n\n'
+            input_file += '\n</simulation>'
             with open(os.path.join(output_path, 'input.xml'), 'w') as f:
                 f.write(input_file)
             if run:
                 try:
                     input_path = os.path.join(output_path, 'input.xml')
                     output = os.path.join(output_path, 'output.sqlite')
+                    if os.path.isfile(output):
+                        os.remove(output)
                     command = 'cyclus -o %s %s' %(output, input_path)
                     process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+                    msg = process.stdout.read()
+                    if 'successful!' in msg.decode('utf-8'):
+                        messagebox.showinfo('Success', 'Your run is successful. The output sqlite file is in %s' %output)
+                        self.master.destroy()
+
                     # check success
                 except:
                     messagebox.showerror('Error', 'Cannot find Cyclus. Input file is rendered, though.')

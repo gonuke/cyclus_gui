@@ -169,12 +169,14 @@ class PrototypeWindow(Frame):
         if len(self.proto_dict) == 0:
             messagebox.showerror('Nope', 'You have not defined any prototypes yet.')
             return
+        print(self.proto_dict)
         with open(os.path.join(self.output_path, 'prototypes.xml'), 'w') as f:
             for name, config in self.proto_dict.items():
                 facility_dict = {}
                 facility_dict['name'] = name
                 facility_dict['config'] = config['config']
                 new_dict['root']['facility'].append(facility_dict)
+            print(new_dict)
             f.write(xmltodict.unparse(new_dict, pretty=True))
         messagebox.showinfo('Sucess', 'Successfully rendered %i prototypes!' %len(new_dict['root']['facility']))
         self.master.destroy()
@@ -323,20 +325,21 @@ class PrototypeWindow(Frame):
         Label(self.sep_stream_window, text='Efficiency (< 1.0)').grid(row=3, column=1)
         self.sep_row_num = 4
 
+
     def submit_sep_stream(self):
 
         sep_stream_dict = {'commod': self.commod_entry.get(),
                            'info': {'buf_size': self.buf_entry.get(),
                                     'efficiencies': {'item': []}}}
-        self.el_ef_entry_list = [[x[0].get(), x[1].get()] for x in self.el_ef_entry_list]
-        for i in self.el_ef_entry_list:
+        self.el_ef_list = [[x[0].get(), x[1].get()] for x in self.el_ef_entry_list]
+        for i in self.el_ef_list:
             if i[0] == i[1] == '':
                 continue
             elif i[0] == '' or i[1] == '':
                 messagebox.showerror('Error', 'Stream element and efficiency missing')
                 return 
             sep_stream_dict['info']['efficiencies']['item'].append({'comp': i[0], 'eff': i[1]})
-        if len(sep_stream_dict['info']['efficiencies']['item']) != 0:
+        if len(sep_stream_dict['info']['efficiencies']['item']) == 0:
             messagebox.showerror('Error', 'You did not define a single stream')
             return  
         self.entry_dict['streams'][9999]['item'].append(sep_stream_dict)
@@ -389,7 +392,7 @@ class PrototypeWindow(Frame):
             messagebox.showerror('Error', 'You did not define a single commodity')
             return  
         self.entry_dict['in_streams'][9999]['stream'].append(mix_stream_dict)
-        messagebox.showinfo('Success', 'Succesfully added separation stream')
+        messagebox.showinfo('Success', 'Succesfully added mixture stream')
         self.mix_stream_window.destroy()
 
 
@@ -441,7 +444,7 @@ class PrototypeWindow(Frame):
                 facility_name = facility['name']
                 archetype = list(facility['config'].keys())[0]
                 self.proto_dict[facility_name] = {'archetype': archetype,
-                                                  'config': facility['config'][archetype]}
+                                                  'config': {archetype: facility['config'][archetype]}}
 
 
     def guide(self):

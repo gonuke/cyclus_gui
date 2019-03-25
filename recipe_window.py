@@ -159,7 +159,7 @@ class RecipeWindow(Frame):
     def done(self):
         string = '<root>\n'
         if len(self.recipe_dict.keys()) == 0:
-            messagebox.error('Error', 'There are no recipes to output :(')
+            messagebox.showerror('Error', 'There are no recipes to output :(')
             return
         temp = '<recipe>\n\t<name>{name}</name>\n\t<basis>{base}</basis>\n{recipe}</recipe>\n'
         
