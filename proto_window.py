@@ -16,6 +16,13 @@ class PrototypeWindow(Frame):
     def __init__(self, master, output_path):
         """
         proto_dict looks like:
+        key: name
+        val: dict
+            key: archetype, config
+                            key: archetype
+                            val: dict
+                                 key: parameter
+                                 val: list or float
 
         """
         self.master = Toplevel(master)
@@ -84,6 +91,7 @@ class PrototypeWindow(Frame):
                     self.entry_dict[param][rownum][-1].insert(END, v)
             else:
                 self.entry_dict[param][rownum].insert(END, val)
+        self.proto_dict.pop(name, None)
 
 
 
