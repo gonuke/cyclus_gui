@@ -108,7 +108,6 @@ class PrototypeWindow(Frame):
         self.default_dict = {}
         for arche, cat_dict in j['annotations'].items():
             arche = arche[1:]
-            print(arche)
             self.doc_dict[arche] = {}
             self.type_dict[arche] = {}
             self.default_dict[arche] = {}
@@ -209,14 +208,12 @@ class PrototypeWindow(Frame):
         if len(self.proto_dict) == 0:
             messagebox.showerror('Nope', 'You have not defined any facilities yet.')
             return
-        print(self.proto_dict)
         with open(os.path.join(self.output_path, 'prototypes.xml'), 'w') as f:
             for name, config in self.proto_dict.items():
                 facility_dict = {}
                 facility_dict['name'] = name
                 facility_dict['config'] = config['config']
                 new_dict['root']['facility'].append(facility_dict)
-            print(new_dict)
             f.write(xmltodict.unparse(new_dict, pretty=True))
         messagebox.showinfo('Sucess', 'Successfully rendered %i facility prototypes!' %len(new_dict['root']['facility']))
         self.master.destroy()
@@ -320,6 +317,7 @@ class PrototypeWindow(Frame):
 
         if archetype == 'cycamore:Mixer':
             Button(self.def_window, text='Add input Stream', command=lambda:self.add_mix_stream()).grid(row=start_row, columnspan=3)
+            self.update_mixer_status_window()
             self.entry_dict['in_streams'] = {9999: {'stream': []}}
 
     def update_stream_status_window(self):
@@ -344,14 +342,12 @@ class PrototypeWindow(Frame):
 
         self.commod_entry.insert(END, stream_name)
         self.buf_entry.insert(END, self.entry_dict['streams'][9999]['item'][indx]['info']['buf_size'])
-        z = 0
-        for item in self.entry_dict['streams'][9999]['item'][indx]['info']['efficiencies']['item']:
+        for indx, item in enumerate(self.entry_dict['streams'][9999]['item'][indx]['info']['efficiencies']['item']):
             self.add_sep_row()
-            print(item)
-            print(self.el_ef_entry_list[0])
-            self.el_ef_entry_list[z][0].insert(END, item['comp'])
-            self.el_ef_entry_list[z][1].insert(END, item['eff'])
-            z += 1
+            self.el_ef_entry_list[indx][0].insert(END, item['comp'])
+            self.el_ef_entry_list[indx][1].insert(END, item['eff'])
+
+        del self.entry_dict['streams'][9999]['item'][it]
 
     def delete_stream(self, stream_name):
         for indx, val in enumerate(self.entry_dict['streams'][9999]['item']):
@@ -446,6 +442,58 @@ class PrototypeWindow(Frame):
         self.el_ef_entry_list.append([el, ef])
         self.sep_row_num += 1
 
+
+    def update_mixer_status_window(self):
+        try:
+            self.mixer_status_window.destroy()
+        except:
+            z=0
+        self.mixer_status_window = Toplevel(self.def_window)
+        Label(self.mixer_status_window, text='Defined Streams').grid(row=0, columnspan=2)
+        row=1
+        if 'in_streams' in self.entry_dict.keys():
+            for st in self.entry_dict['in_streams'][9999]['stream']:
+                text = ''
+                print(st)
+                for n in st['commodities']['item']:
+                    print(n)
+                    text += n['commodity']
+                    if n != st['commodities']['item'][-1]:
+                        text += '\t'
+                Button(self.mixer_status_window, text=text, command=lambda:self.update_mix_stream(text)).grid(row=row, column=0)
+                Button(self.mixer_status_window, text='x', command=lambda:self.delete_mix_stream(text)).grid(row=row, column=1)
+                row += 1
+
+    def get_commodity_names_from_mix_stream(self, item_list):
+        commodity_list = []
+        for key in item_list:
+            commodity_list.append(key['commodity'])
+        return commodity_list
+
+
+    def update_mix_stream(self, text):
+        commodity_list = text.split()
+        self.add_mix_stream()
+        for indx, val in enumerate(self.entry_dict['in_streams'][9999]['stream']):
+            if self.get_commodity_names_from_mix_stream(val['commodities']['item']) == commodity_list:
+                it = indx
+        self.mix_ratio_entry.insert(END, self.entry_dict['in_streams'][9999]['stream'][it]['info']['mixing_ratio'])
+        self.buf_entry.insert(END, self.entry_dict['in_streams'][9999]['stream'][it]['info']['buf_size'])
+        for indx, item in enumerate(self.entry_dict['in_streams'][9999]['stream'][it]['commodities']['item']):
+            self.add_mix_row()
+            print(self.commod_pref_entry_list)
+            print(item)
+            self.commod_pref_entry_list[indx][0].insert(END, item['commodity']) 
+            self.commod_pref_entry_list[indx][1].insert(END, item['pref'])
+        del self.entry_dict['in_streams'][9999]['stream'][it]
+    
+    def delete_mix_stream(self, text):
+        for indx, val in enumerate(self.entry_dict['in_streams'][9999]['stream']):
+            if text.split() == self.get_commodity_names_from_mix_stream(val['commodities']['item']):
+                kill = indx
+        del self.entry_dict['in_streams'][9999]['stream'][kill]
+        return
+
     def add_mix_stream(self):
         self.mix_stream_window = Toplevel(self.def_window)
         self.mix_stream_window.title('Mixture stream definition')
@@ -482,9 +530,17 @@ class PrototypeWindow(Frame):
         if len(mix_stream_dict['commodities']['item']) == 0:
             messagebox.showerror('Error', 'You did not define a single commodity')
             return  
-        self.entry_dict['in_streams'][9999]['stream'].append(mix_stream_dict)
+        done = False
+        for indx, val in enumerate(self.entry_dict['in_streams'][9999]['stream']):
+            if mix_stream_dict['commodities']['item'] == val['commodities']['item']:
+                set_indx = indx
+                self.entry_dict['in_streams'][9999]['stream'][set_indx] = mix_stream_dict
+                done = True
+        if not done:
+            self.entry_dict['in_streams'][9999]['stream'].append(mix_stream_dict)
         messagebox.showinfo('Success', 'Succesfully added mixture stream')
         self.mix_stream_window.destroy()
+        self.update_mixer_status_window()
 
 
     def add_mix_row(self):
