@@ -76,9 +76,9 @@ class SimulationWindow():
         elif not self.is_it_pos_integer(self.entry_dict['startyear']):
             messagebox.showerror('Error', 'Start Year must be a positive integer')
         elif int(self.entry_dict['startmonth']) not in list(range(1,13)):
-            messagebox.showeeror('Error', 'Month has to be number from 1 to 12')
+            messagebox.showeror('Error', 'Month has to be number from 1 to 12')
         elif self.entry_dict['decay'] not in ['never', 'lazy', 'manual']:
-            messagebox.showeerror('Error', 'Decay must be either never, lazy, or manual')
+            messagebox.showerror('Error', 'Decay must be either never, lazy, or manual')
         elif not self.is_it_pos_integer(self.entry_dict['dt']):
             messagebox.showerror('Error', 'dt must be a positive integer')
         else:

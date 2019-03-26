@@ -19,13 +19,14 @@ class PrototypeWindow(Frame):
 
         """
         self.master = Toplevel(master)
-        self.master.title('Add prototypes')
+        self.master.title('Add Facilities')
         self.output_path = output_path
         self.master.geometry('+0+700')
         self.guide()
         Label(self.master, text='Choose an archetype to add:').grid(row=0)
         self.get_schema()
         self.proto_dict = {}
+        self.arche_dict = {}
         if os.path.isfile(os.path.join(self.output_path, 'prototypes.xml')):
             self.read_xml()
         self.load_archetypes()
@@ -40,14 +41,51 @@ class PrototypeWindow(Frame):
 
         Button(self.master, text='Done', command= lambda : self.submit()).grid(row=2)
 
-        self.status_window = Toplevel(self.master)
-        self.status_window.title('Defined prototypes')
-        self.status_window.geometry('+250+700')
-        Label(self.status_window, text='Defined Prototypes:').pack()
-        self.status_var = StringVar()
-        self.status_var.set('')
         self.update_loaded_modules()
-        Label(self.status_window, textvariable=self.status_var).pack()
+
+
+    def update_status_window(self):
+        self.status_window = Toplevel(self.master)
+        self.status_window.title('Defined facility prototypes')
+        self.status_window.geometry('+250+700')
+        Label(self.status_window, text='Defined Facility Prototypes:\n').grid(row=0, columnspan=2)
+        row=1
+        for name, val in self.proto_dict.items():
+            string = '%s (%s)\n' %(name, val['archetype'])
+            Button(self.status_window, text=string, command = lambda: self.reopen_def_window(name, val['archetype'])).grid(row=row, column=0)
+            Button(self.status_window, text='x', command = lambda: self.delete_fac(name)).grid(row=row, column=1)
+            row += 1
+
+    def delete_fac(self, name):
+        messagebox.showinfo('Deleted', 'Deleted facility prototype %s' %name)
+        self.proto_dict.pop(name, None)
+        self.update_loaded_modules()
+
+    def reopen_def_window(self, name, archetype):
+        self.def_window = Toplevel(self.master)
+        self.def_window.title('Define facility prototype')
+        self.def_window.geometry('+700+1000')
+        Label(self.def_window, text='%s' %archetype).grid(row=0, columnspan=2)
+        proto_name_entry = Entry(self.def_window)
+        proto_name_entry.grid(row=1, column=1)
+        proto_name_entry.insert(END, name)
+
+        arche_long = self.arche_dict[name]
+        Button(self.def_window, text='Done', command=lambda : self.submit_proto(arche_long, proto_name_entry.get())).grid(row=0, column=2)
+        Label(self.def_window, text='Prototype Name:').grid(row=1, column=0)
+
+        self.def_entries(arche_long)
+        for param, val in self.proto_dict[name]['config'][archetype].items():
+            rownum = list(self.entry_dict[param].keys())[0]
+            if isinstance(val, dict):
+                tag = self.tag_dict[arche_long][param]
+                for v in val[tag]:
+                    self.add_entry(param, rownum)
+                    self.entry_dict[param][rownum][-1].insert(END, v)
+            else:
+                self.entry_dict[param][rownum].insert(END, val)
+
+
 
 
     def get_schema(self):
@@ -70,6 +108,7 @@ class PrototypeWindow(Frame):
         self.default_dict = {}
         for arche, cat_dict in j['annotations'].items():
             arche = arche[1:]
+            print(arche)
             self.doc_dict[arche] = {}
             self.type_dict[arche] = {}
             self.default_dict[arche] = {}
@@ -158,16 +197,17 @@ class PrototypeWindow(Frame):
 
 
     def update_loaded_modules(self):
-        string = ''
-        for name, val in self.proto_dict.items():
-            string += '%s (%s)\n' %(name, val['archetype'])
-        self.status_var.set(string)
+        try:
+            self.status_window.destroy()
+        except:
+            z=0
+        self.update_status_window()
 
 
     def submit(self):
         new_dict = {'root': {'facility': []}}
         if len(self.proto_dict) == 0:
-            messagebox.showerror('Nope', 'You have not defined any prototypes yet.')
+            messagebox.showerror('Nope', 'You have not defined any facilities yet.')
             return
         print(self.proto_dict)
         with open(os.path.join(self.output_path, 'prototypes.xml'), 'w') as f:
@@ -178,14 +218,14 @@ class PrototypeWindow(Frame):
                 new_dict['root']['facility'].append(facility_dict)
             print(new_dict)
             f.write(xmltodict.unparse(new_dict, pretty=True))
-        messagebox.showinfo('Sucess', 'Successfully rendered %i prototypes!' %len(new_dict['root']['facility']))
+        messagebox.showinfo('Sucess', 'Successfully rendered %i facility prototypes!' %len(new_dict['root']['facility']))
         self.master.destroy()
 
 
 
     def definition_window(self, *args):
         self.def_window = Toplevel(self.master)
-        self.def_window.title('Define prototype')
+        self.def_window.title('Define facility prototype')
         self.def_window.geometry('+700+1000')
         archetype = self.tkvar.get()
         Label(self.def_window, text='%s' %archetype).grid(row=0, columnspan=2)
@@ -209,6 +249,9 @@ class PrototypeWindow(Frame):
                 if isinstance(val_list, list):
                     val_list = [x.get() for x in val_list]
                     val_list = [x for x in val_list if x != '']
+                    if param not in self.default_dict[archetype].keys() and len(val_list) == 0:
+                        messagebox.showerror('Error', '%s must be filled out' %param)
+                        return
                     if len(val_list) == 0:
                         continue
                     # change tag with param by referencing
@@ -228,9 +271,10 @@ class PrototypeWindow(Frame):
                 # check for empty values    
                 config_dict[archetype_name][param] = val_list
         
+        self.arche_dict[proto_name] = archetype
         self.proto_dict[proto_name] = {'archetype': archetype_name,
                                        'config': config_dict}
-        messagebox.showinfo('Success', 'Successfully created %s prototype %s' %(archetype_name, proto_name))
+        messagebox.showinfo('Success', 'Successfully created %s facility %s' %(archetype_name, proto_name))
         self.update_loaded_modules()
         self.def_window.destroy()
 
@@ -271,11 +315,50 @@ class PrototypeWindow(Frame):
             # special treatment for separations
             # add stream
             Button(self.def_window, text='Add output Stream', command=lambda:self.add_sep_stream()).grid(row=start_row, columnspan=3)
+            self.update_stream_status_window()
             self.entry_dict['streams'] = {9999: {'item': []}}
 
         if archetype == 'cycamore:Mixer':
             Button(self.def_window, text='Add input Stream', command=lambda:self.add_mix_stream()).grid(row=start_row, columnspan=3)
             self.entry_dict['in_streams'] = {9999: {'stream': []}}
+
+    def update_stream_status_window(self):
+        try:
+            self.stream_status_window.destroy()
+        except:
+            z=0
+        self.stream_status_window = Toplevel(self.def_window)
+        Label(self.stream_status_window, text='Defined Streams').grid(row=0, columnspan=2)
+        row=1
+        if 'streams' in self.entry_dict.keys():
+            for st in self.entry_dict['streams'][9999]['item']:
+                Button(self.stream_status_window, text=st['commod'], command=lambda:self.update_stream(st['commod'])).grid(row=row, column=0)
+                Button(self.stream_status_window, text='x', command=lambda:self.delete_stream(st['commod'])).grid(row=row, column=1)
+                row += 1
+
+    def update_stream(self, stream_name):
+        self.add_sep_stream()
+        for indx, val in enumerate(self.entry_dict['streams'][9999]['item']):
+            if stream_name == val['commod']:
+                it = indx
+
+        self.commod_entry.insert(END, stream_name)
+        self.buf_entry.insert(END, self.entry_dict['streams'][9999]['item'][indx]['info']['buf_size'])
+        z = 0
+        for item in self.entry_dict['streams'][9999]['item'][indx]['info']['efficiencies']['item']:
+            self.add_sep_row()
+            print(item)
+            print(self.el_ef_entry_list[0])
+            self.el_ef_entry_list[z][0].insert(END, item['comp'])
+            self.el_ef_entry_list[z][1].insert(END, item['eff'])
+            z += 1
+
+    def delete_stream(self, stream_name):
+        for indx, val in enumerate(self.entry_dict['streams'][9999]['item']):
+            if stream_name == val['commod']:
+                kill = indx
+        del self.entry_dict['streams'][9999]['item'][kill]
+        return
 
 
     def proto_guide_window(self, archetype):
@@ -341,10 +424,18 @@ class PrototypeWindow(Frame):
             sep_stream_dict['info']['efficiencies']['item'].append({'comp': i[0], 'eff': i[1]})
         if len(sep_stream_dict['info']['efficiencies']['item']) == 0:
             messagebox.showerror('Error', 'You did not define a single stream')
-            return  
-        self.entry_dict['streams'][9999]['item'].append(sep_stream_dict)
+            return
+        done = False
+        for indx, val in enumerate(self.entry_dict['streams'][9999]['item']):
+            if val['commod'] == sep_stream_dict['commod']:
+                set_indx = indx
+                self.entry_dict['streams'][9999]['item'][set_indx] = sep_stream_dict
+                done = True
+        if not done:
+            self.entry_dict['streams'][9999]['item'].append(sep_stream_dict)
         messagebox.showinfo('Success', 'Succesfully added separation stream')
         self.sep_stream_window.destroy()
+        self.update_stream_status_window()
 
 
     def add_sep_row(self):
@@ -439,26 +530,30 @@ class PrototypeWindow(Frame):
                     archetype = list(xml_list['config'].keys())[0]
                     self.proto_dict[facility_name] = {'archetype': archetype,
                                                       'config': {archetype: xml_list['config'][archetype]}}
+
+                    # default is cycamore - do something about this
+                    self.arche_dict[facility_name] = 'cycamore:'+archetype
                     break
 
                 facility_name = facility['name']
                 archetype = list(facility['config'].keys())[0]
                 self.proto_dict[facility_name] = {'archetype': archetype,
                                                   'config': {archetype: facility['config'][archetype]}}
-
+                # default is cycamore - do something about this
+                self.arche_dict[facility_name] = 'cycamore:'+archetype
 
     def guide(self):
 
         self.guide_window = Toplevel(self.master)
-        self.guide_window.title('Prototypes guide')
+        self.guide_window.title('Facilities guide')
         self.guide_window.geometry('+0+400')
         guide_text = """
         Here you define archetypes with specific parameters to use in the simulation.
         An archetype is the code (general behavior of facility - e.g. reactor facility )
-        A prototype is an archetype + user-defined parameters 
+        A facility prototype is a facility archetype + user-defined parameters 
         (e.g. reactor with 3 60-assembly batches and 1000MWe power output).
 
-        Here you can add prototypes by taking an archetype template and defining
+        Here you can add facility prototypes by taking an archetype template and defining
         your parameters.
 
         Click on the dropdown to select the archetype you want to add, 
@@ -468,9 +563,9 @@ class PrototypeWindow(Frame):
         documnetation window), thus are optional. The parameters with 'Add'
         button next to it are parameters with (potentially) more than one
         variables. You can add more values by clicking 'Add'. Fill out
-        the prototype name and the parameters, then click 'Done' to
-        save the prototye. The window with 'Defined Archetypes' will update
-        as you define prototypes 
+        the facility name and the parameters, then click 'Done' to
+        save the facility. The window with 'Defined Archetypes' will update
+        as you define facility prototypes 
 
         """
         Label(self.guide_window, text=guide_text, justify=LEFT).pack(padx=30, pady=30)

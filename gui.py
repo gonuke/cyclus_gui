@@ -79,7 +79,7 @@ class Cygui(Frame):
         library_button = Button(root, text='Libraries', command=lambda : self.open_window('archetype', output_path))
         library_button.pack()
 
-        prototype_button = Button(root, text='Prototypes', command=lambda : self.open_window('prototype', output_path))
+        prototype_button = Button(root, text='Facilities', command=lambda : self.open_window('facility', output_path))
         prototype_button.pack()
 
         region_button = Button(root, text='Regions', command=lambda : self.open_window('region', output_path))
@@ -128,7 +128,7 @@ class Cygui(Frame):
             self.app = SimulationWindow(self.master, output_path)
         if name == 'archetype':
             self.app = ArchetypeWindow(self.master, output_path)
-        if name == 'prototype':
+        if name == 'facility':
             if not os.path.isfile(os.path.join(output_path, 'archetypes.xml')):
                 messagebox.showerror('Error', 'You must define the Archetype libraries first!')
                 return
@@ -257,28 +257,28 @@ class Cygui(Frame):
             (A reactor archetype [takes in, depletes, and discharges fuel at a
              predefined cycle length])
 
-        Prototypes:
-            Here, you define the archetypes' parameters.
-            You can define more than one prototype for one archetype.
+        Facilities:
+            Here, you define the facilities' parameters.
+            You can define more than one facility for one archetype.
             For example, you can have:
                 reactor with 3 60-assembly batches with power 1000 MWe.
                 reactor with 1 140-assembly batch with power 500 MWe.
-            They both use the reactor archetype, but are different prototypes.
+            They both use the reactor archetype, but are different facilities.
 
             This block is crucial, since you must set the in-and-out commodities
-            of each prototype to match others' in-and-out commodity.
+            of each facility to match others' in-and-out commodity.
             For example, if you want the reactor to trade with the source,
-            the outcommodity of the source prototype should match the
-            incommodity of the reactor prototype, so they trade.
+            the outcommodity of the source facility should match the
+            incommodity of the reactor facility, so they trade.
 
-            ( The Clinton reactor prototype takes in, depletes and discharges
+            ( The Clinton reactor facility takes in, depletes and discharges
              fuel in [18-month cycles], outputs [1,062 MWe], and uses [UOX] fuel.) 
 
         Regions:
-            Here, you actually set up how the prototypes will be `played'
+            Here, you actually set up how the facility prototypes will be `played'
             - when to enter, when to exit, and how many to play.
 
-            (The Clinton reactor (prototype) is inside the Exelon Institution,
+            (The Clinton reactor (facility prototype) is inside the Exelon Institution,
              which is inside the U.S.A. region, has 1 unit (n_build),
              has a lifetime of 960 months (lifetimes),
              and enters simulation in timestep 100 (build_times).)
