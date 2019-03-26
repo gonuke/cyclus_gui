@@ -362,6 +362,7 @@ class PrototypeWindow(Frame):
             if stream_name == val['commod']:
                 kill = indx
         del self.entry_dict['streams'][9999]['item'][kill]
+        self.update_stream_status_window()
         return
 
 
@@ -496,10 +497,13 @@ class PrototypeWindow(Frame):
         del self.entry_dict['in_streams'][9999]['stream'][it]
     
     def delete_mix_stream(self, text):
+        print(text)
         for indx, val in enumerate(self.entry_dict['in_streams'][9999]['stream']):
+            print(self.get_commodity_names_from_mix_stream(val['commodities']['item']))
             if text.split() == self.get_commodity_names_from_mix_stream(val['commodities']['item']):
                 kill = indx
         del self.entry_dict['in_streams'][9999]['stream'][kill]
+        self.update_mixer_status_window()
         return
 
     def add_mix_stream(self):
