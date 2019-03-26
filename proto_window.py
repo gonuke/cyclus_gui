@@ -91,7 +91,7 @@ class PrototypeWindow(Frame):
                     self.entry_dict[param][rownum][-1].insert(END, v)
             else:
                 self.entry_dict[param][rownum].insert(END, val)
-        self.proto_dict.pop(name, None)
+        
 
 
 
