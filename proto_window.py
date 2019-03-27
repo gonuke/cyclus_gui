@@ -34,9 +34,22 @@ class PrototypeWindow(Frame):
         self.get_schema()
         self.proto_dict = {}
         self.arche_dict = {}
+        self.region_dict = {}
         if os.path.isfile(os.path.join(self.output_path, 'prototypes.xml')):
             self.read_xml()
         self.load_archetypes()
+
+
+        # reading regions
+        if os.path.isfile(os.path.join(self.output_path, 'regions.xml')):
+            self.read_regions()
+        self.region_str = StringVar(self.master)
+        self.region_status_window = Toplevel(self.master)
+        self.region_status_window.geometry('+500+920')
+        Label(self.region_status_window, text='Current Regions:').pack()
+        self.update_region_status()
+        Label(self.region_status_window, textvariable=self.region_str, justify=LEFT).pack()
+
 
         self.tkvar = StringVar(self.master)
         archetypes = [x[0] + ':' + x[1] for x in self.arches]
@@ -49,6 +62,68 @@ class PrototypeWindow(Frame):
         Button(self.master, text='Done', command= lambda : self.submit()).grid(row=2)
 
         self.update_loaded_modules()
+
+    def update_region_status(self):
+        string = '\t\t\t\t\tN_build\tBuild Time\t Lifetime'
+        for regionname, instdict in self.region_dict.items():
+            string += '\n' + regionname + '\n'
+            for instname, instarray in instdict.items():
+                string += '\t-> ' + instname + '\t\t\t' + '\t' + '\t' + '\n'
+                for instlist in instarray:
+                    if instlist[0] not in self.proto_dict.keys():
+                        isit = instlist[0] + ' (x)'
+                    else:
+                        isit = instlist[0]
+                    string += '\t\t->> ' + isit + '\t\t' + instlist[1] +'\t' + instlist[2] + '\t' + instlist[3] + '\n'
+        self.region_str.set(string)
+
+
+    def read_regions(self):
+        """
+        read xml has wayy too many if else statements
+        becasuse xmltodict reads single entries as strings
+        while multiple entries as lists..
+        """
+        with open(os.path.join(self.output_path, 'regions.xml'), 'r') as f:
+            xml_list = xmltodict.parse(f.read())['root']['region']
+            if isinstance(xml_list, dict):
+                xml_list = [xml_list]
+            for region in xml_list:
+                self.region_dict[region['name']] = {}
+                if not isinstance(region['institution'], list):
+                    do_it = 1
+                else:
+                    do_it = len(region['institution'])
+                for i in range(do_it):
+                    inst_array = []
+                    if do_it == 1:
+                        prototypes = region['institution']['config']['DeployInst']['prototypes']['val']
+                        instname = region['institution']['name']
+                    else:
+                        prototypes = region['institution'][i]['config']['DeployInst']['prototypes']['val']
+                        instname = region['institution'][i]['name']
+
+                    if isinstance(prototypes, str):
+                        entry_length = 1
+                    else:
+                        entry_length = len(prototypes)
+
+                    for indx in range(entry_length):
+                        entry_list = []
+                        if do_it == 1:
+                            entry_dict = region['institution']['config']['DeployInst']
+                        else:
+                            entry_dict = region['institution'][i]['config']['DeployInst']
+                        for cat in ['prototypes', 'n_build', 'build_times', 'lifetimes']:
+                            if entry_length == 1:
+                                entry_list.append(entry_dict[cat]['val'])
+                            else:
+                                entry_list.append(entry_dict[cat]['val'][indx])
+                        inst_array.append(entry_list)
+
+
+                    self.region_dict[region['name']][instname] = inst_array
+
 
 
     def update_status_window(self):
@@ -67,6 +142,7 @@ class PrototypeWindow(Frame):
         messagebox.showinfo('Deleted', 'Deleted facility prototype %s' %name)
         self.proto_dict.pop(name, None)
         self.update_loaded_modules()
+        self.update_region_status()
 
     def reopen_def_window(self, name, archetype):
         self.def_window = Toplevel(self.master)
@@ -281,6 +357,7 @@ class PrototypeWindow(Frame):
                                        'config': config_dict}
         messagebox.showinfo('Success', 'Successfully created %s facility %s' %(archetype_name, proto_name))
         self.update_loaded_modules()
+        self.update_region_status()
         self.def_window.destroy()
 
 
