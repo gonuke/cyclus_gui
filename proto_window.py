@@ -59,8 +59,8 @@ class PrototypeWindow(Frame):
         row=1
         for name, val in self.proto_dict.items():
             string = '%s (%s)\n' %(name, val['archetype'])
-            Button(self.status_window, text=string, command = lambda: self.reopen_def_window(name, val['archetype'])).grid(row=row, column=0)
-            Button(self.status_window, text='x', command = lambda: self.delete_fac(name)).grid(row=row, column=1)
+            Button(self.status_window, text=string, command = lambda name=name, val=val: self.reopen_def_window(name, val['archetype'])).grid(row=row, column=0)
+            Button(self.status_window, text='x', command = lambda name=name: self.delete_fac(name)).grid(row=row, column=1)
             row += 1
 
     def delete_fac(self, name):
@@ -338,8 +338,8 @@ class PrototypeWindow(Frame):
         row=1
         if 'streams' in self.entry_dict.keys():
             for st in self.entry_dict['streams'][9999]['item']:
-                Button(self.stream_status_window, text=st['commod'], command=lambda:self.update_stream(st['commod'])).grid(row=row, column=0)
-                Button(self.stream_status_window, text='x', command=lambda:self.delete_stream(st['commod'])).grid(row=row, column=1)
+                Button(self.stream_status_window, text=st['commod'], command=lambda st=st:self.update_stream(st['commod'])).grid(row=row, column=0)
+                Button(self.stream_status_window, text='x', command=lambda st=st:self.delete_stream(st['commod'])).grid(row=row, column=1)
                 row += 1
 
     def update_stream(self, stream_name):
@@ -469,8 +469,8 @@ class PrototypeWindow(Frame):
                     text += n['commodity']
                     if n != st['commodities']['item'][-1]:
                         text += '\t'
-                Button(self.mixer_status_window, text=text, command=lambda:self.update_mix_stream(text)).grid(row=row, column=0)
-                Button(self.mixer_status_window, text='x', command=lambda:self.delete_mix_stream(text)).grid(row=row, column=1)
+                Button(self.mixer_status_window, text=text, command=lambda text=text:self.update_mix_stream(text)).grid(row=row, column=0)
+                Button(self.mixer_status_window, text='x', command=lambda text=text:self.delete_mix_stream(text)).grid(row=row, column=1)
                 row += 1
 
     def get_commodity_names_from_mix_stream(self, item_list):
