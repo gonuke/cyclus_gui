@@ -79,11 +79,12 @@ class Cygui(Frame):
         library_button = Button(root, text='Libraries', command=lambda : self.open_window('archetype', output_path))
         library_button.pack()
 
-        prototype_button = Button(root, text='Facilities', command=lambda : self.open_window('facility', output_path))
-        prototype_button.pack()
 
         region_button = Button(root, text='Regions', command=lambda : self.open_window('region', output_path))
         region_button.pack()
+
+        prototype_button = Button(root, text='Facilities', command=lambda : self.open_window('facility', output_path))
+        prototype_button.pack()
 
         recipe_button = Button(root, text='Recipes', command=lambda : self.open_window('recipe', output_path))
         recipe_button.pack()
@@ -257,6 +258,15 @@ class Cygui(Frame):
             (A reactor archetype [takes in, depletes, and discharges fuel at a
              predefined cycle length])
 
+        Regions:
+            Here, you actually set up how the facility prototypes will be `played'
+            - when to enter, when to exit, and how many to play.
+
+            (The Clinton reactor (facility prototype) is inside the Exelon Institution,
+             which is inside the U.S.A. region, has 1 unit (n_build),
+             has a lifetime of 960 months (lifetimes),
+             and enters simulation in timestep 100 (build_times).)
+
         Facilities:
             Here, you define the facilities' parameters.
             You can define more than one facility for one archetype.
@@ -273,15 +283,6 @@ class Cygui(Frame):
 
             ( The Clinton reactor facility takes in, depletes and discharges
              fuel in [18-month cycles], outputs [1,062 MWe], and uses [UOX] fuel.) 
-
-        Regions:
-            Here, you actually set up how the facility prototypes will be `played'
-            - when to enter, when to exit, and how many to play.
-
-            (The Clinton reactor (facility prototype) is inside the Exelon Institution,
-             which is inside the U.S.A. region, has 1 unit (n_build),
-             has a lifetime of 960 months (lifetimes),
-             and enters simulation in timestep 100 (build_times).)
 
         Recipes:
             Well, recipes, are, well, recipes.

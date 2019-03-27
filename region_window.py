@@ -45,20 +45,71 @@ class RegionWindow(Frame):
         if os.path.isfile(os.path.join(self.output_path, 'regions.xml')):
             self.read_xml()
 
-        self.status_window = Toplevel(self.master)
-        self.status_window.title('Defined Regions')
-        self.status_window.geometry('+500+920')
-        Label(self.status_window, text='Current regions:').pack()
-
+ 
         self.proto_window = Toplevel(self.master)
         self.proto_window.title('Defined Prototypes')
         self.proto_window.geometry('+700+1000')
         Label(self.proto_window, text='Defined Prototypes:\n').pack()
         for i in self.prototypes:
             Label(self.proto_window, text=i).pack()
+
+        self.update_status_window()
+
+    def update_status_window(self):
+        try:
+            self.status_window.destroy()
+        except:
+            z=0
+        self.status_window = Toplevel(self.master)
+        self.status_window.title('Defined Regions')
+        self.status_window.geometry('+500+920')
+        Label(self.status_window, text='Current regions:').grid(row=0, columnspan=7)
+        for indx, val in enumerate(['Region', 'Institution', 'Facility_proto', 'n_build', 'build_time', 'lifetime']):
+            Label(self.status_window, text=val).grid(row=1, column=indx+1)
+        row = 2
+        for regionname, instdict in self.region_dict.items():
+            Button(self.status_window, text='x', command=lambda regionname=regionname: self.del_region(regionname)).grid(row=row, column=0)
+            Label(self.status_window, text=regionname).grid(row=row, column=1)
+            row += 1
+            for instname, instarray in instdict.items():
+                Button(self.status_window, text='x', command=lambda regionname=regionname, instname=instname: self.del_inst(regionname, instname)).grid(row=row, column=0)
+                Button(self.status_window, text=instname, command=lambda regionname=regionname, instname=instname: self.update_inst(regionname, instname)).grid(row=row, column=2)
+                row += 1
+                for instlist in instarray:
+                    fac_name = instlist[0]
+                    Button(self.status_window, text='x', command=lambda regionname=regionname, instname=instname, fac_name=fac_name: self.del_fac(regionname, instname, fac_name)).grid(row=row, column=0)
+                    for indx, v in enumerate(instlist):
+                        Label(self.status_window, text=v).grid(row=row, column=indx+3)
+                    row += 1
+
+
+    def del_region(self, regionname):
+        self.region_dict.pop(regionname, None)
+        self.update_status_window()       
+
+
+    def del_inst(self, regionname, instname):
+        self.region_dict[regionname].pop(instname, None)
+        self.update_status_window()
+
+    def update_inst(self, regionname, instname):
+        # open window
+        self.add_inst(regionname)
+        self.inst_name_entry.insert(END, instname)
+        for indx, val in enumerate(self.region_dict[regionname][instname]):
+            if indx != 0:
+                self.add_inst_row()
+            for indx2, val2 in enumerate(self.cat_list):
+                self.inst_entry_dict[val2][-1].insert(END, val[indx2])
         
-        self.update_region_status()
-        Label(self.status_window, textvariable=self.status_var, justify=LEFT).pack()
+
+    def del_fac(self, regionname, instname, fac_name):
+        for indx, val in enumerate(self.region_dict[regionname][instname]):
+            if val[0] == fac_name:
+                it = indx
+        del self.region_dict[regionname][instname][it]
+        self.update_status_window()
+
 
 
     def load_prototypes(self):
@@ -120,7 +171,7 @@ class RegionWindow(Frame):
 
                     self.region_dict[region['name']][instname] = inst_array
 
-        self.update_region_status()
+        self.update_status_window()
 
         # also get from the prototype file
 
@@ -177,9 +228,9 @@ class RegionWindow(Frame):
             self.region_dict[region_name] = {}
         self.current_region = region_name
         Label(self.add_inst_window, text='Institution Name:').grid(row=0, column=1)
-        inst_name_entry = Entry(self.add_inst_window)
-        inst_name_entry.grid(row=0, column=2)
-        Button(self.add_inst_window, text='Done', command= lambda : self.submit_inst(inst_name_entry.get())).grid(row=1, column=0)
+        self.inst_name_entry = Entry(self.add_inst_window)
+        self.inst_name_entry.grid(row=0, column=2)
+        Button(self.add_inst_window, text='Done', command= lambda : self.submit_inst(self.inst_name_entry.get())).grid(row=1, column=0)
         Label(self.add_inst_window, text='Add new prototypes here:').grid(row=2, columnspan=3)
         Button(self.add_inst_window, text='Add Row', command= lambda: self.add_inst_row()).grid(row=3, column=3)
         self.inst_entry_dict = {'prototypes': [], 'lifetimes': [],
@@ -223,7 +274,7 @@ class RegionWindow(Frame):
             return
         messagebox.showinfo('Added', 'Added institution %s' %inst_name)
         self.region_dict[self.current_region][inst_name] = inst_array
-        self.update_region_status()
+        self.update_status_window()
         self.add_inst_window.destroy()
 
 
@@ -240,20 +291,6 @@ class RegionWindow(Frame):
             self.inst_entry_dict[val].append(Entry(self.add_inst_window))
             self.inst_entry_dict[val][-1].grid(row=self.rownum, column=indx)
         self.rownum += 1
-
-    def update_region_status(self):
-        string = '\t\t\t\t\tN_build\tBuild Time\t Lifetime'
-        for regionname, instdict in self.region_dict.items():
-            string += '\n' + regionname + '\n'
-            for instname, instarray in instdict.items():
-                string += '\t-> ' + instname + '\t\t\t' + '\t' + '\t' + '\n'
-                for instlist in instarray:
-                    if instlist[0] not in self.prototypes:
-                        isit = instlist[0] + ' (x)'
-                    else:
-                        isit = instlist[0]
-                    string += '\t\t->> ' + isit + '\t\t' + instlist[1] +'\t' + instlist[2] + '\t' + instlist[3] + '\n'
-        self.status_var.set(string)
 
 
     def close_window(self):
