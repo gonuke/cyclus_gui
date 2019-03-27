@@ -64,22 +64,39 @@ class ArchetypeWindow(Frame):
         self.rownum = 1
 
         # status window
-        self.status_window = Toplevel(self.master)
-        self.status_window.geometry('+700+1000')
-        Label(self.status_window, text='Loaded modules:').pack()
-        self.status_var = StringVar()
-        self.update_loaded_modules()
-        Label(self.status_window, textvariable=self.status_var).pack()
+        self.update_loaded_modules_window()
 
 
-    def update_loaded_modules(self):
+    def update_loaded_modules_window(self):
         """ this functions updates the label object in the status window
             so the loaded archetypes are updated live"""
-        string = ''
+        try:
+            self.status_window.destroy()
+        except:
+            z=0
 
+        self.status_window = Toplevel(self.master)
+        self.status_window.geometry('+700+1000')
+        Label(self.status_window, text='Loaded modules:').grid(row=0, columnspan=2)
+        row = 1
         for i in self.arche:
-            string += i[0]+ ' :: ' + i[1] + '\n'
-        self.status_var.set(string)
+            Label(self.status_window, text=i[0] + '::' + i[1]).grid(row=row, column=0)
+            # lib_name = [copy.deepcopy(i[0]), copy.deepcopy(i[1])]
+            Button(self.status_window, text='x', command=lambda i=i: self.delete_arche([i[0], i[1]])).grid(row=row, column=1)
+            row += 1
+
+
+    def delete_arche(self, lib_name):
+        print(self.arche)
+        print(lib_name)
+        for indx, val in enumerate(self.arche):
+            if val == lib_name:
+                it = indx
+                print('IT', it)
+        del self.arche[it]
+        print(self.arche)
+        self.update_loaded_modules_window()
+
 
     def read_xml(self):
         new_arche = []
