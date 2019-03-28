@@ -170,7 +170,10 @@ class ArchetypeWindow(Frame):
         guide_string = """
         All Cyclus and Cycamore archetypes are already added. If there are additional archetypes
         you would like to add, click the `Add Row' button, type in the library and archetype,
-        and press `Add!'. 
+        and press `Add!'.
+
+        Try not to delete cycamore::DeployInst and agents::NullRegion, since they are the
+        default for this gui.
 
         If you made a mistake, you can go back to the default Cyclus + Cycamore
         archetypes by clicking `Default'.
