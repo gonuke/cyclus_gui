@@ -35,9 +35,9 @@ class PrototypeWindow(Frame):
         self.proto_dict = {}
         self.arche_dict = {}
         self.region_dict = {}
+        self.load_archetypes()
         if os.path.isfile(os.path.join(self.output_path, 'prototypes.xml')):
             self.read_xml()
-        self.load_archetypes()
 
 
         # reading regions
@@ -159,7 +159,12 @@ class PrototypeWindow(Frame):
         Button(self.def_window, text='Done', command=lambda : self.submit_proto(arche_long, proto_name_entry.get())).grid(row=0, column=2)
         Label(self.def_window, text='Prototype Name:').grid(row=1, column=0)
 
-        self.def_entries(arche_long)
+        if arche_long in self.param_dict.keys():
+            self.def_entries(arche_long)
+        else:
+            self.def_entries_unknown(arche_long)
+        print(self.proto_dict)
+        print(self.entry_dict)
         for param, val in self.proto_dict[name]['config'][archetype].items():
             rownum = list(self.entry_dict[param].keys())[0]
             if isinstance(val, dict):
@@ -450,7 +455,7 @@ class PrototypeWindow(Frame):
             self.entry_dict['in_streams'] = {9999: {'stream': []}}
 
 
-    def def_entries_unknown(self,archetype):
+    def def_entries_unknown(self,archetype, reopen=False):
         """
         entry_dict:
         key: number - positive for scalar, negative for vector
@@ -469,6 +474,12 @@ class PrototypeWindow(Frame):
         Label(self.def_window, text='tag').grid(row=self.start_row, column=2)
         Label(self.def_window, text='Value').grid(row=self.start_row, column=3)
         self.start_row += 1
+
+        if reopen:
+            for param, val in self.proto_dict[archetype]['config'][archetype].items():
+                # populate entry objects
+                # fill entry_dict
+                z=0
 
         # button one for value and another for one or more
 
@@ -779,7 +790,7 @@ class PrototypeWindow(Frame):
                                                       'config': {archetype: xml_list['config'][archetype]}}
 
                     # default is cycamore - do something about this
-                    self.arche_dict[facility_name] = 'cycamore:'+archetype
+                    self.arche_dict[facility_name] = archetype
                     break
 
                 facility_name = facility['name']
@@ -787,7 +798,28 @@ class PrototypeWindow(Frame):
                 self.proto_dict[facility_name] = {'archetype': archetype,
                                                   'config': {archetype: facility['config'][archetype]}}
                 # default is cycamore - do something about this
-                self.arche_dict[facility_name] = 'cycamore:'+archetype
+                self.arche_dict[facility_name] = archetype
+
+            # facility name add library
+            new_dict = {}
+            for facname, archename in self.arche_dict.items():
+                matcher = []
+                for i in self.arches:
+                    if archename in i[1]:
+                        matcher.append(i[0])
+
+                if len(matcher) == 1:
+                    libname = matcher[0]
+                elif len(matcher) != 1 and 'cycamore' in matcher:
+                    libname = 'cycamore'
+                else:
+                    raise ValueError('duplicate names?')
+
+                new_dict[facname] = libname + ':' + archename
+
+            self.arche_dict = new_dict
+
+
 
     def guide(self):
 
