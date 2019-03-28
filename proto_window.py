@@ -338,7 +338,7 @@ class PrototypeWindow(Frame):
         config_dict = {archetype_name: {}}
         # if from unknown, parse it through before
         new_entry_dict = {}
-        if str(list(self.entry_dict.keys())[0]).isdigit():
+        if str(list(self.entry_dict.keys())[0]).replace('-','').isdigit():
             for key, val in self.entry_dict.items():
                 # positive is scalar value:
                 # [0] parameter name
@@ -353,31 +353,39 @@ class PrototypeWindow(Frame):
                 else:
                     for rownum, val_list in val.items():
                         name = val_list[0].get()
-                        new_entry_dict[name] = []
-                        for i in val_list[2]:
-                            new_entry_dict[name].append(i)
+                        new_entry_dict[name] = {rownum: []}
+                        for i in val_list[2:]:
+                            new_entry_dict[name][rownum].append(i)
                         try:
                             self.tag_dict[archetype][name] = val_list[1].get()
                         except:
                             self.tag_dict[archetype] = {name: val_list[1].get()}
-
+        self.entry_dict = new_entry_dict
+        print(self.tag_dict)
         # .get() all the entries
         for param, row_val_dict in self.entry_dict.items():
             for rownum, val_list in row_val_dict.items():
                 if isinstance(val_list, list):
                     val_list = [x.get() for x in val_list]
                     val_list = [x for x in val_list if x != '']
-                    if param not in self.default_dict[archetype].keys() and len(val_list) == 0:
-                        messagebox.showerror('Error', '%s must be filled out' %param)
-                        return
+                    if archetype in self.default_dict.keys():                    
+                        if param not in self.default_dict[archetype].keys() and len(val_list) == 0:
+                            messagebox.showerror('Error', '%s must be filled out' %param)
+                            return
                     if len(val_list) == 0:
                         continue
                     # change tag with param by referencing
                     # tag_dict
+                    print(self.tag_dict)
+                    print(archetype)
+                    print(param)
                     try:
                         tag = self.tag_dict[archetype][param]
                     except:
-                        tag = self.tag_dict[archetype][param + '*']
+                        try:
+                            tag = self.tag_dict[archetype][param + '*']
+                        except:
+                            qq=0
                     val_list = {tag: val_list} 
                 if isinstance(val_list, dict):
                     val_list = val_list
@@ -739,6 +747,7 @@ class PrototypeWindow(Frame):
             self.entry_dict[label][rownum][0].grid(row=rownum, column=1)
             self.entry_dict[label][rownum][1].grid(row=rownum, column=2)
             Button(master, text='Add', command=lambda label=label, rownum=rownum: self.add_entry(label, rownum)).grid(row=rownum, column=0)
+            self.start_row += 1
             return
         label = label.replace('*', '')
         Label(master, text=label, fg=color).grid(row=rownum, column=1)
@@ -748,7 +757,10 @@ class PrototypeWindow(Frame):
 
 
     def add_entry(self, label, rownum):
-        if str(label).isdigit():
+        print(label)
+        print(type(label))
+        # did you know that a negative sign messes up the isdigit
+        if str(label).replace('-' ,'').isdigit():
             col = len(self.entry_dict[label][rownum]) + 1
         else:
             col = len(self.entry_dict[label][rownum]) + 2
