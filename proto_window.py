@@ -324,7 +324,11 @@ class PrototypeWindow(Frame):
         Button(self.def_window, text='Done', command=lambda : self.submit_proto(archetype, proto_name_entry.get())).grid(row=0, column=2)
         Label(self.def_window, text='Prototype Name:').grid(row=1, column=0)
         
-        self.def_entries(archetype)
+        if archetype in self.param_dict.keys():
+            self.def_entries(archetype)
+        else:
+            self.def_entries_unknown(archetype)
+
 
     def submit_proto(self, archetype, proto_name):
         if proto_name == '':
@@ -332,6 +336,31 @@ class PrototypeWindow(Frame):
             return
         archetype_name = archetype.split(':')[-1]
         config_dict = {archetype_name: {}}
+        # if from unknown, parse it through before
+        new_entry_dict = {}
+        if str(list(self.entry_dict.keys())[0]).isdigit():
+            for key, val in self.entry_dict.items():
+                # positive is scalar value:
+                # [0] parameter name
+                # [1] value
+                if key > 0:
+                    for rownum, val_list in val.items():
+                        new_entry_dict[val_list[0].get()] = {rownum: val_list[1]}
+                # negative is one or more value:
+                # [0] parameter name
+                # [1] tag
+                # [2 - ] values
+                else:
+                    for rownum, val_list in val.items():
+                        name = val_list[0].get()
+                        new_entry_dict[name] = []
+                        for i in val_list[2]:
+                            new_entry_dict[name].append(i)
+                        try:
+                            self.tag_dict[archetype][name] = val_list[1].get()
+                        except:
+                            self.tag_dict[archetype] = {name: val_list[1].get()}
+
         # .get() all the entries
         for param, row_val_dict in self.entry_dict.items():
             for rownum, val_list in row_val_dict.items():
@@ -382,13 +411,12 @@ class PrototypeWindow(Frame):
         self.entry_dict = {}
 
         self.proto_guide_window(archetype)
-        if archetype in self.param_dict.keys():
-            oneormore = self.param_dict[archetype]['oneormore']
-            if 'streams' in oneormore:
-                oneormore.remove('streams')
-            if 'in_streams' in oneormore:
-                oneormore.remove('in_streams')
-            one = self.param_dict[archetype]['one']
+        oneormore = self.param_dict[archetype]['oneormore']
+        if 'streams' in oneormore:
+            oneormore.remove('streams')
+        if 'in_streams' in oneormore:
+            oneormore.remove('in_streams')
+        one = self.param_dict[archetype]['one']
 
         for val in oneormore:
             start_row += 1
@@ -412,6 +440,39 @@ class PrototypeWindow(Frame):
             Button(self.def_window, text='Add input Stream', command=lambda:self.add_mix_stream()).grid(row=start_row, columnspan=3)
             self.update_mixer_status_window()
             self.entry_dict['in_streams'] = {9999: {'stream': []}}
+
+
+    def def_entries_unknown(self,archetype):
+        """
+        entry_dict:
+        key: number - positive for scalar, negative for vector
+        value: dict
+                key: rownum
+                val: list of Entry objects
+        """
+        self.start_row = 2
+        self.entry_dict = {}
+        self.unknown_window()
+        self.unknown_entry = 0
+        Button(self.def_window, text='Add scalar', command=lambda:self.add_row('', self.def_window, self.start_row)).grid(row=self.start_row, column=0)
+        Button(self.def_window, text='Add vector', command=lambda:self.add_row_oneormore('', self.def_window, self.start_row)).grid(row=self.start_row, column=1)
+        self.start_row += 1
+        Label(self.def_window, text='Parameter').grid(row=self.start_row, column=1)
+        Label(self.def_window, text='tag').grid(row=self.start_row, column=2)
+        Label(self.def_window, text='Value').grid(row=self.start_row, column=3)
+        self.start_row += 1
+
+        # button one for value and another for one or more
+
+
+
+    def unknown_window(self):
+        string = """
+        The archetype you are adding is unknown to the schema,
+        so it is up to you to know the parameters you need.
+
+        """
+
 
     def update_stream_status_window(self):
         try:
@@ -653,6 +714,15 @@ class PrototypeWindow(Frame):
     def add_row(self, label, master, rownum, color='black'):
         if '*' in label:
             color = 'red'
+        if label == '':
+            self.unknown_entry += 1
+            label = self.unknown_entry
+            self.entry_dict[label] = {rownum: [Entry(self.def_window), Entry(self.def_window)]}
+            # input output
+            self.entry_dict[label][rownum][0].grid(row=rownum, column=1)
+            self.entry_dict[label][rownum][1].grid(row=rownum, column=3)
+            self.start_row += 1
+            return
         label = label.replace('*', '')
         Label(master, text=label, fg=color).grid(row=rownum, column=1)
         self.entry_dict[label] = {rownum: Entry(self.def_window)}
@@ -662,14 +732,26 @@ class PrototypeWindow(Frame):
     def add_row_oneormore(self, label, master, rownum, color='black'):
         if '*' in label:
             color = 'red'
+        if label == '':
+            self.unknown_entry += 1
+            label = self.unknown_entry * -1
+            self.entry_dict[label] = {rownum: [Entry(self.def_window), Entry(self.def_window)]}
+            self.entry_dict[label][rownum][0].grid(row=rownum, column=1)
+            self.entry_dict[label][rownum][1].grid(row=rownum, column=2)
+            Button(master, text='Add', command=lambda label=label, rownum=rownum: self.add_entry(label, rownum)).grid(row=rownum, column=0)
+            return
         label = label.replace('*', '')
         Label(master, text=label, fg=color).grid(row=rownum, column=1)
         self.entry_dict[label] = {rownum : []}
-        Button(master, text='Add', command=lambda : self.add_entry(label, rownum)).grid(row=rownum, column=0)
+        Button(master, text='Add', command=lambda label=label, rownum=rownum: self.add_entry(label, rownum)).grid(row=rownum, column=0)
+
 
 
     def add_entry(self, label, rownum):
-        col = len(self.entry_dict[label][rownum]) + 2
+        if str(label).isdigit():
+            col = len(self.entry_dict[label][rownum]) + 1
+        else:
+            col = len(self.entry_dict[label][rownum]) + 2
         self.entry_dict[label][rownum].append(Entry(self.def_window))
         self.entry_dict[label][rownum][-1].grid(row=rownum, column=col)
 

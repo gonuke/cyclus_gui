@@ -118,7 +118,7 @@ class ArchetypeWindow(Frame):
 
     def to_default(self):
         self.arche = self.default_arche
-        self.update_loaded_modules()
+        self.update_loaded_modules_window()
 
     def add(self):
         enter = [[x[0].get(), x[1].get()] for x in self.entry_list]
@@ -151,7 +151,7 @@ class ArchetypeWindow(Frame):
                 if indx in dont_add_indx:
                     continue
                 self.arche.append(val)
-            self.update_loaded_modules()
+            self.update_loaded_modules_window()
 
 
     def done(self):
