@@ -62,6 +62,7 @@ class SimulationWindow():
         with open(os.path.join(self.output_path, 'simulation.xml'), 'r') as f:
             xml_dict = xmltodict.parse(f.read())['control']
         for key, val in xml_dict.items():
+            self.entry_dict[key].delete(0, END)
             self.entry_dict[key].insert(END, val)
 
 
@@ -85,6 +86,10 @@ class SimulationWindow():
             messagebox.showinfo('Success', 'Rendered Simulation definition into xml! :)')
             xml_string = '<control>\n'
             for key, val in self.entry_dict.items():
+                if key=='dt' and int(val)==2629846:
+                    continue
+                if (key=='explicit_inventory' or key=='explicit_inventory_compact') and int(val)==0:
+                    continue
                 xml_string+='\t<%s>%s</%s>\n' %(key, val, key)
             xml_string += '</control>\n'
             with open(os.path.join(self.output_path, 'simulation.xml'), 'w') as f:
