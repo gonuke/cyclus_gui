@@ -13,7 +13,16 @@ import copy
 
 
 class RecipeWindow(Frame):
-    """ Note: Recipes are generated with <root> parent node for xml for parsing reasons"""
+    """ Note: Recipes are generated with <root> parent node for xml for parsing reasons
+
+        recipe_dict:
+        key: recipe name
+        val: dict
+             key: 'base', 'composition'
+             val: str(base), dict(composition)
+                             key: isotope name
+                             val: frac (base-frac)
+    """
 
     def __init__(self, master, output_path):
         self.master = Toplevel(master)
@@ -36,19 +45,37 @@ class RecipeWindow(Frame):
         if os.path.isfile(os.path.join(self.output_path, 'recipes.xml')):
             self.read_xml()
 
+        self.update_loaded_recipes()
+
+
+    def update_loaded_recipes(self):
+        try:
+            self.status_window.destroy()
+        except:
+            z=0
+
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined Recipes')
         self.status_window.geometry('+250+900')
-        Label(self.status_window, text='Loaded recipes:').pack()
-        self.status_var = StringVar()
-        self.update_loaded_recipes()
-        Label(self.status_window, textvariable=self.status_var).pack()
-
-    def update_loaded_recipes(self):
-        string = ''
+        Label(self.status_window, text='Loaded recipes:').grid(row=0, columnspan=2)
+        row=1
         for key in self.recipe_dict:
-            string += key + '\n'
-        self.status_var.set(string)
+            Button(self.status_window, text='x', command=lambda key=key: self.del_recipe(key)).grid(row=row, column=0)
+            Button(self.status_window, text=key, command=lambda key=key: self.edit_recipe(key)).grid(row=row, column=1)
+            row += 1
+
+
+    def del_recipe(self, recipename):
+        self.recipe_dict.pop(recipename, None)
+        self.update_loaded_recipes()
+
+    def edit_recipe(self, recipename):
+        self.add_recipe(self.recipe_dict[recipename]['base'])
+        self.name_entry.insert(END, recipename)
+        string = ''
+        for iso, val in self.recipe_dict[recipename]['composition'].items():
+            string += '%s\t%s\n' %(iso,val)
+        self.textfield.insert(INSERT, string)
 
 
     def add_recipe(self, atom_or_mass):
@@ -56,17 +83,17 @@ class RecipeWindow(Frame):
         Button add recipe will prompt user-input recipe name and text
         """
         self.addrecipe_window = Toplevel(self.master)
-        self.addrecipe_window.title('New recipe definition')
+        self.addrecipe_window.title('New recipe definition (%s)' %atom_or_mass)
         self.addrecipe_window.geometry('+800+400')
 
         Button(self.addrecipe_window, text='Done!',
-               command= lambda : self.send_input(name_entry, textfield, self.addrecipe_window, atom_or_mass)).grid(row=0, columnspan=2)
+               command= lambda : self.send_input(self.name_entry, self.textfield, self.addrecipe_window, atom_or_mass)).grid(row=0, columnspan=2)
         Label(self.addrecipe_window, text='Recipe name').grid(row=1, column=0)
-        name_entry = Entry(self.addrecipe_window)
-        name_entry.grid(row=1, column=1)
+        self.name_entry = Entry(self.addrecipe_window)
+        self.name_entry.grid(row=1, column=1)
         Label(self.addrecipe_window, text='Recipe:').grid(row=2, columnspan=2)
-        textfield = ScrolledText(self.addrecipe_window, wrap=WORD)
-        textfield.grid(row=3, columnspan=2)
+        self.textfield = ScrolledText(self.addrecipe_window, wrap=WORD)
+        self.textfield.grid(row=3, columnspan=2)
 
 
     def send_input(self, name, text, window, atom_or_mass):
@@ -146,12 +173,12 @@ class RecipeWindow(Frame):
     def askopendir(self, base):
         file = filedialog.askdirectory()
         files = os.listdir(file)
+        print(files)
         for filename in files:
-            filename_base = filename+'_'+base
             f = open(os.path.join(file, filename), 'r')
             data = f.read()
-            print(filename)
-            print(data)
+            filename = filename.split('.')[0]
+            filename_base = filename+'_'+base
             self.recipe_input(filename_base, data, None)
 
 

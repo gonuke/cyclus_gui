@@ -64,6 +64,7 @@ class PrototypeWindow(Frame):
         self.update_loaded_modules()
 
     def update_region_status(self):
+        self.not_defined = []
         string = '\t\t\t\t\tN_build\tBuild Time\t Lifetime'
         for regionname, instdict in self.region_dict.items():
             string += '\n' + regionname + '\n'
@@ -72,6 +73,7 @@ class PrototypeWindow(Frame):
                 for instlist in instarray:
                     if instlist[0] not in self.proto_dict.keys():
                         isit = instlist[0] + ' (x)'
+                        self.not_defined.append(instlist[0])
                     else:
                         isit = instlist[0]
                     string += '\t\t->> ' + isit + '\t\t' + instlist[1] +'\t' + instlist[2] + '\t' + instlist[3] + '\n'
@@ -291,6 +293,12 @@ class PrototypeWindow(Frame):
         new_dict = {'root': {'facility': []}}
         if len(self.proto_dict) == 0:
             messagebox.showerror('Nope', 'You have not defined any facilities yet.')
+            return
+        if len(self.not_defined) != 0:
+            string = 'You have not defined:\n'
+            for i in self.not_defined:
+                string += '%s\n' %i
+            messagebox.showerror('Nope', string)
             return
         with open(os.path.join(self.output_path, 'prototypes.xml'), 'w') as f:
             for name, config in self.proto_dict.items():
