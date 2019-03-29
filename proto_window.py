@@ -161,19 +161,19 @@ class PrototypeWindow(Frame):
 
         if arche_long in self.param_dict.keys():
             self.def_entries(arche_long)
+            for param, val in self.proto_dict[name]['config'][archetype].items():
+                rownum = list(self.entry_dict[param].keys())[0]
+                if isinstance(val, dict):
+                    tag = self.tag_dict[arche_long][param]
+                    for v in val[tag]:
+                        self.add_entry(param, rownum)
+                        self.entry_dict[param][rownum][-1].insert(END, v)
+                else:
+                    self.entry_dict[param][rownum].insert(END, val)
         else:
-            self.def_entries_unknown(arche_long)
-        print(self.proto_dict)
-        print(self.entry_dict)
-        for param, val in self.proto_dict[name]['config'][archetype].items():
-            rownum = list(self.entry_dict[param].keys())[0]
-            if isinstance(val, dict):
-                tag = self.tag_dict[arche_long][param]
-                for v in val[tag]:
-                    self.add_entry(param, rownum)
-                    self.entry_dict[param][rownum][-1].insert(END, v)
-            else:
-                self.entry_dict[param][rownum].insert(END, val)
+            self.def_entries_unknown(archetype, name=name, reopen=True)
+       
+            
         
 
 
@@ -366,7 +366,6 @@ class PrototypeWindow(Frame):
                         except:
                             self.tag_dict[archetype] = {name: val_list[1].get()}
         self.entry_dict = new_entry_dict
-        print(self.tag_dict)
         # .get() all the entries
         for param, row_val_dict in self.entry_dict.items():
             for rownum, val_list in row_val_dict.items():
@@ -381,9 +380,6 @@ class PrototypeWindow(Frame):
                         continue
                     # change tag with param by referencing
                     # tag_dict
-                    print(self.tag_dict)
-                    print(archetype)
-                    print(param)
                     try:
                         tag = self.tag_dict[archetype][param]
                     except:
@@ -455,7 +451,7 @@ class PrototypeWindow(Frame):
             self.entry_dict['in_streams'] = {9999: {'stream': []}}
 
 
-    def def_entries_unknown(self,archetype, reopen=False):
+    def def_entries_unknown(self,archetype, name='', reopen=False):
         """
         entry_dict:
         key: number - positive for scalar, negative for vector
@@ -475,12 +471,30 @@ class PrototypeWindow(Frame):
         Label(self.def_window, text='Value').grid(row=self.start_row, column=3)
         self.start_row += 1
 
+        print(self.proto_dict)
+        print(self.entry_dict)
         if reopen:
-            for param, val in self.proto_dict[archetype]['config'][archetype].items():
-                # populate entry objects
-                # fill entry_dict
-                z=0
+            for param, val in self.proto_dict[name]['config'][archetype].items():
+                if isinstance(val, dict):
+                    # dict = one or more
+                    # populate entry blanks
+                    self.add_row_oneormore('', self.def_window, self.start_row)
+                    for tag, vallist in val.items():
+                        label = self.unknown_entry * -1
+                        for i in range(len(vallist)):
+                            self.add_entry(label, self.start_row-1)
+                    self.entry_dict[label][self.start_row-1][0].insert(END, param)
+                    self.entry_dict[label][self.start_row-1][1].insert(END, tag)
+                    for indx, i in enumerate(vallist):
+                        self.entry_dict[label][self.start_row-1][indx+2].insert(END, i)
 
+                else:
+                    # populate entry objects
+                    self.add_row('', self.def_window, self.start_row)
+                    label = self.unknown_entry
+                    self.entry_dict[label][self.start_row-1][0].insert(END, param)
+                    self.entry_dict[label][self.start_row-1][1].insert(END, val)
+                
         # button one for value and another for one or more
 
 
@@ -628,9 +642,7 @@ class PrototypeWindow(Frame):
         if 'in_streams' in self.entry_dict.keys():
             for st in self.entry_dict['in_streams'][9999]['stream']:
                 text = ''
-                print(st)
                 for n in st['commodities']['item']:
-                    print(n)
                     text += n['commodity']
                     if n != st['commodities']['item'][-1]:
                         text += '\t'
@@ -655,16 +667,12 @@ class PrototypeWindow(Frame):
         self.buf_entry.insert(END, self.entry_dict['in_streams'][9999]['stream'][it]['info']['buf_size'])
         for indx, item in enumerate(self.entry_dict['in_streams'][9999]['stream'][it]['commodities']['item']):
             self.add_mix_row()
-            print(self.commod_pref_entry_list)
-            print(item)
             self.commod_pref_entry_list[indx][0].insert(END, item['commodity']) 
             self.commod_pref_entry_list[indx][1].insert(END, item['pref'])
         del self.entry_dict['in_streams'][9999]['stream'][it]
     
     def delete_mix_stream(self, text):
-        print(text)
         for indx, val in enumerate(self.entry_dict['in_streams'][9999]['stream']):
-            print(self.get_commodity_names_from_mix_stream(val['commodities']['item']))
             if text.split() == self.get_commodity_names_from_mix_stream(val['commodities']['item']):
                 kill = indx
         del self.entry_dict['in_streams'][9999]['stream'][kill]
@@ -768,8 +776,6 @@ class PrototypeWindow(Frame):
 
 
     def add_entry(self, label, rownum):
-        print(label)
-        print(type(label))
         # did you know that a negative sign messes up the isdigit
         if str(label).replace('-' ,'').isdigit():
             col = len(self.entry_dict[label][rownum]) + 1
