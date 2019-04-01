@@ -221,6 +221,9 @@ class Cygui(Frame):
                     if 'successful!' in msg.decode('utf-8'):
                         messagebox.showinfo('Success', 'Your run is successful. The output sqlite file is in %s' %output)
                         self.master.destroy()
+                    else:
+                        messagebox.showerror('Something went wrong. Check terminal output.')
+                        return
 
                     # check success
                 except:
