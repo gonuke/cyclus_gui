@@ -252,7 +252,7 @@ class Cygui(Frame):
             Here, you define meta simulation parameters like
             startyear, timesteps, and decay methods.
 
-        Archetypes:
+        Libraries:
             Since Cyclus is a modular framework, here you
             decide what libraries and what archetypes to use.
             An archetype is a self-contained code that defines
