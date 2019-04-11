@@ -79,12 +79,12 @@ class Cygui(Frame):
         library_button = Button(root, text='Libraries', command=lambda : self.open_window('archetype', output_path))
         library_button.pack()
 
+        prototype_button = Button(root, text='Facilities', command=lambda : self.open_window('facility', output_path))
+        prototype_button.pack()
 
         region_button = Button(root, text='Regions', command=lambda : self.open_window('region', output_path))
         region_button.pack()
 
-        prototype_button = Button(root, text='Facilities', command=lambda : self.open_window('facility', output_path))
-        prototype_button.pack()
 
         recipe_button = Button(root, text='Recipes', command=lambda : self.open_window('recipe', output_path))
         recipe_button.pack()
