@@ -89,8 +89,8 @@ CONFIGURE_CFLAGS_NODIST=  -Wl,-export_dynamic -g -std=c99 -Wextra -Wno-unused-re
 # Use it when a linker flag should _not_ be part of the distutils LDFLAGS
 # once Python is installed (bpo-35257)
 CONFIGURE_LDFLAGS_NODIST=  -Wl,-export_dynamic -g
-CONFIGURE_CPPFLAGS=	-isysroot /opt/MacOSX10.9.sdk -D_FORTIFY_SOURCE=2 -mmacosx-version-min=10.9 -I/Users/4ib/anaconda3/include
-CONFIGURE_LDFLAGS=	-isysroot /opt/MacOSX10.9.sdk -Wl,-pie -Wl,-headerpad_max_install_names -Wl,-dead_strip_dylibs -Wl,-rpath,/Users/4ib/anaconda3/lib -L/Users/4ib/anaconda3/lib
+CONFIGURE_CPPFLAGS=	-isysroot /opt/MacOSX10.9.sdk -D_FORTIFY_SOURCE=2 -mmacosx-version-min=10.9 -I/anaconda3/include
+CONFIGURE_LDFLAGS=	-isysroot /opt/MacOSX10.9.sdk -Wl,-pie -Wl,-headerpad_max_install_names -Wl,-dead_strip_dylibs -Wl,-rpath,/anaconda3/lib -L/anaconda3/lib
 # Avoid assigning CFLAGS, LDFLAGS, etc. so users can use them on the
 # command line to append to these values without stomping the pre-set
 # values.
@@ -126,7 +126,7 @@ MULTIARCH=	darwin
 MULTIARCH_CPPFLAGS = -DMULTIARCH=\"darwin\"
 
 # Install prefix for architecture-independent files
-prefix=		/Users/4ib/anaconda3
+prefix=		/anaconda3
 
 # Install prefix for architecture-dependent files
 exec_prefix=	${prefix}
@@ -195,7 +195,7 @@ EXEMODE=	755
 FILEMODE=	644
 
 # configure script arguments
-CONFIG_ARGS=	 '--prefix=/Users/4ib/anaconda3' '--build=x86_64-apple-darwin13.4.0' '--host=x86_64-apple-darwin13.4.0' '--enable-ipv6' '--with-ensurepip=no' '--with-computed-gotos' '--with-system-ffi' '--enable-loadable-sqlite-extensions' '--with-tcltk-includes=-I/Users/4ib/anaconda3/include' '--with-tcltk-libs=-L/Users/4ib/anaconda3/lib -ltcl8.6 -ltk8.6' '--enable-optimizations' '--with-lto' '--disable-shared' 'build_alias=x86_64-apple-darwin13.4.0' 'host_alias=x86_64-apple-darwin13.4.0' 'CC=x86_64-apple-darwin13.4.0-clang' 'CFLAGS=-isysroot /opt/MacOSX10.9.sdk -march=core2 -mtune=haswell -mssse3 -ftree-vectorize -fPIC -fPIE -fstack-protector-strong -O2 -pipe  -fdebug-prefix-map=${SRC_DIR}=/usr/local/src/conda/${PKG_NAME}-${PKG_VERSION} -fdebug-prefix-map=${PREFIX}=/usr/local/src/conda-prefix ' 'LDFLAGS=-isysroot /opt/MacOSX10.9.sdk -Wl,-pie -Wl,-headerpad_max_install_names -Wl,-dead_strip_dylibs -Wl,-rpath,/Users/4ib/anaconda3/lib -L/Users/4ib/anaconda3/lib' 'CPPFLAGS=-isysroot /opt/MacOSX10.9.sdk -D_FORTIFY_SOURCE=2 -mmacosx-version-min=10.9 -I/Users/4ib/anaconda3/include' 'PKG_CONFIG_PATH=/Users/4ib/anaconda3/lib/pkgconfig'
+CONFIG_ARGS=	 '--prefix=/anaconda3' '--build=x86_64-apple-darwin13.4.0' '--host=x86_64-apple-darwin13.4.0' '--enable-ipv6' '--with-ensurepip=no' '--with-computed-gotos' '--with-system-ffi' '--enable-loadable-sqlite-extensions' '--with-tcltk-includes=-I/anaconda3/include' '--with-tcltk-libs=-L/anaconda3/lib -ltcl8.6 -ltk8.6' '--enable-optimizations' '--with-lto' '--disable-shared' 'build_alias=x86_64-apple-darwin13.4.0' 'host_alias=x86_64-apple-darwin13.4.0' 'CC=x86_64-apple-darwin13.4.0-clang' 'CFLAGS=-isysroot /opt/MacOSX10.9.sdk -march=core2 -mtune=haswell -mssse3 -ftree-vectorize -fPIC -fPIE -fstack-protector-strong -O2 -pipe  -fdebug-prefix-map=${SRC_DIR}=/usr/local/src/conda/${PKG_NAME}-${PKG_VERSION} -fdebug-prefix-map=${PREFIX}=/usr/local/src/conda-prefix ' 'LDFLAGS=-isysroot /opt/MacOSX10.9.sdk -Wl,-pie -Wl,-headerpad_max_install_names -Wl,-dead_strip_dylibs -Wl,-rpath,/anaconda3/lib -L/anaconda3/lib' 'CPPFLAGS=-isysroot /opt/MacOSX10.9.sdk -D_FORTIFY_SOURCE=2 -mmacosx-version-min=10.9 -I/anaconda3/include' 'PKG_CONFIG_PATH=/anaconda3/lib/pkgconfig'
 
 
 # Subdirectories with code
@@ -245,8 +245,8 @@ BUILD_GNU_TYPE=	x86_64-apple-darwin13.4.0
 HOST_GNU_TYPE=	x86_64-apple-darwin13.4.0
 
 # Tcl and Tk config info from --with-tcltk-includes and -libs options
-TCLTK_INCLUDES=	-I/Users/4ib/anaconda3/include
-TCLTK_LIBS=	-L/Users/4ib/anaconda3/lib -ltcl8.6 -ltk8.6
+TCLTK_INCLUDES=	-I/anaconda3/include
+TCLTK_LIBS=	-L/anaconda3/lib -ltcl8.6 -ltk8.6
 
 # The task to run while instrumented when building the profile-opt target.
 # We exclude unittests with -x that take a rediculious amount of time to
@@ -295,7 +295,7 @@ IO_OBJS=	\
 
 ##########################################################################
 
-LIBFFI_INCLUDEDIR=	/Users/4ib/anaconda3/include
+LIBFFI_INCLUDEDIR=	/anaconda3/include
 
 ##########################################################################
 # Parser

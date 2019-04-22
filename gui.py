@@ -249,7 +249,7 @@ class Cygui(Frame):
         It is recommended you fill them out sequentially:
 
         Simulation:
-            Here, you define meta simulation parameters like
+            Here, you define simulation parameters like
             startyear, timesteps, and decay methods.
 
         Libraries:
@@ -281,8 +281,8 @@ class Cygui(Frame):
             This block is crucial, since you must set the in-and-out commodities
             of each facility to match others' in-and-out commodity.
             For example, if you want the reactor to trade with the source,
-            the outcommodity of the source facility should match the
-            incommodity of the reactor facility, so they trade.
+            the out-commodity of the source facility should match the
+            in-commodity of the reactor facility, so they trade.
 
             ( The Clinton reactor facility takes in, depletes and discharges
              fuel in [18-month cycles], outputs [1,062 MWe], and uses [UOX] fuel.) 
