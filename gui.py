@@ -79,12 +79,12 @@ class Cygui(Frame):
         library_button = Button(root, text='Libraries', command=lambda : self.open_window('archetype', output_path))
         library_button.pack()
 
+        prototype_button = Button(root, text='Facilities', command=lambda : self.open_window('facility', output_path))
+        prototype_button.pack()
 
         region_button = Button(root, text='Regions', command=lambda : self.open_window('region', output_path))
         region_button.pack()
 
-        prototype_button = Button(root, text='Facilities', command=lambda : self.open_window('facility', output_path))
-        prototype_button.pack()
 
         recipe_button = Button(root, text='Recipes', command=lambda : self.open_window('recipe', output_path))
         recipe_button.pack()
@@ -221,6 +221,9 @@ class Cygui(Frame):
                     if 'successful!' in msg.decode('utf-8'):
                         messagebox.showinfo('Success', 'Your run is successful. The output sqlite file is in %s' %output)
                         self.master.destroy()
+                    else:
+                        messagebox.showerror('Something went wrong. Check terminal output.')
+                        return
 
                     # check success
                 except:
@@ -249,7 +252,7 @@ class Cygui(Frame):
             Here, you define meta simulation parameters like
             startyear, timesteps, and decay methods.
 
-        Archetypes:
+        Libraries:
             Since Cyclus is a modular framework, here you
             decide what libraries and what archetypes to use.
             An archetype is a self-contained code that defines
