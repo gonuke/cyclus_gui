@@ -373,7 +373,7 @@ class PrototypeWindow(Frame):
                     val_list = [x.get() for x in val_list]
                     val_list = [x for x in val_list if x != '']
                     if archetype in self.default_dict.keys():                    
-                        if param in self.default_dict[archetype].keys() and len(val_list) == 0:
+                        if param not in self.default_dict[archetype].keys() and len(val_list) == 0:
                             messagebox.showerror('Error', '%s must be filled out' %param)
                             return
                     if len(val_list) == 0:
