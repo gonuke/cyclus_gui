@@ -16,6 +16,7 @@ from proto_window import PrototypeWindow
 from region_window import RegionWindow
 from recipe_window import RecipeWindow
 import subprocess
+from run_cyclus import cyclus_run
 
 uniq_id = str(uuid.uuid4())[:3]
 file_path = os.path.abspath(os.path.dirname(__file__))
@@ -213,28 +214,19 @@ class Cygui(Frame):
                 try:
                     input_path = os.path.join(output_path, 'input.xml')
                     output = os.path.join(output_path, 'output.sqlite')
-                    if os.path.isfile(output):
-                        os.remove(output)
-                    command = 'cyclus -o %s %s' %(output, input_path)
-                    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-                    msg = process.stdout.read()
-                    if 'successful!' in msg.decode('utf-8'):
-                        messagebox.showinfo('Success', 'Your run is successful. The output sqlite file is in %s' %output)
-                        self.master.destroy()
-                    else:
-                        messagebox.showerror('Something went wrong. Check terminal output.')
+                    run = cyclus_run(input_path, output)
+                    if run.return_code == -1:
+                        messagebox.showinfo('Connection Error', run.err_message)
                         return
-
-                    # check success
-                except:
-                    messagebox.showerror('Error', 'Cannot find Cyclus. Input file is rendered, though.')
-            else:
-                messagebox.showinfo('Success', 'Complete Cyclus input file rendered in %s' %os.path.join(output_path, 'input.xml'))
-                self.master.destroy()
-
-            # compile into one big file
-            # run it
-            # see if it turns successfully
+                    elif run.return_code == -2:
+                        messagebox.showinfo('Cyclus Error', run.err_message)
+                        return
+                    else:
+                        messagebox.showinfo('Run Successful!', 'Output file in: %s' %output)
+                        self.master.destroy()
+                except Exception as e:
+                    print('Something Went Wrong:')
+                    print(e)
 
 
     def guide(self):
