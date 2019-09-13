@@ -1,0 +1,15 @@
+<archetypes>
+	<spec>	<lib>agents</lib>	<name>NullInst</name></spec>
+	<spec>	<lib>agents</lib>	<name>NullRegion</name></spec>
+	<spec>	<lib>cycamore</lib>	<name>Source</name></spec>
+	<spec>	<lib>cycamore</lib>	<name>Sink</name></spec>
+	<spec>	<lib>cycamore</lib>	<name>DeployInst</name></spec>
+	<spec>	<lib>cycamore</lib>	<name>Enrichment</name></spec>
+	<spec>	<lib>cycamore</lib>	<name>FuelFab</name></spec>
+	<spec>	<lib>cycamore</lib>	<name>GrowthRegion</name></spec>
+	<spec>	<lib>cycamore</lib>	<name>ManagerInst</name></spec>
+	<spec>	<lib>cycamore</lib>	<name>Mixer</name></spec>
+	<spec>	<lib>cycamore</lib>	<name>Reactor</name></spec>
+	<spec>	<lib>cycamore</lib>	<name>Separations</name></spec>
+	<spec>	<lib>cycamore</lib>	<name>Storage</name></spec>
+</archetypes>

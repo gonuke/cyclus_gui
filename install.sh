@@ -1,0 +1,1 @@
+pyinstaller --add-data "./src/*:./src/" gui.py

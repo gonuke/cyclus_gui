@@ -847,7 +847,7 @@ class PrototypeWindow(Frame):
         and two windows will pop up. One is the documentation for the
         archetype and the parameters, and the other is the one you should
         fill out. The red parameters have default values (specified in 
-        documnetation window), thus are optional. The parameters with 'Add'
+        documentation window), thus are optional. The parameters with 'Add'
         button next to it are parameters with (potentially) more than one
         variables. You can add more values by clicking 'Add'. Fill out
         the facility name and the parameters, then click 'Done' to

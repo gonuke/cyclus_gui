@@ -301,8 +301,7 @@ class RegionWindow(Frame):
         This is where you define how the prototypes you defined will be played
         in the simulation - when they enter, how many enters, and when they exit.
 
-        The region definition in this GUI by default uses 
-        NullInst and DeployInst. A region has one or many institutions.
+        A region has one or many institutions.
         Click on `Add Region', specify a Region Name, and click 'Add Institution'
         to define a single institution. The institution will be part of the region
         you specified.
