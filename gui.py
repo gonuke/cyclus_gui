@@ -15,6 +15,7 @@ from arche_window import ArchetypeWindow
 from proto_window import PrototypeWindow
 from region_window import RegionWindow
 from recipe_window import RecipeWindow
+from backend_window import BackendWindow
 import subprocess
 from run_cyclus import cyclus_run
 
@@ -106,6 +107,9 @@ class Cygui(Frame):
         done_button = Button(root, text='Combine and Run', command= lambda: self.check_and_run())
         done_button.pack()
 
+        backend_button = Button(root, text='Backend Analysis', command= lambda: self.open_window('backend', output_path))
+        backend_button.pack()
+
         Label(root, text='').pack()
 
 
@@ -139,6 +143,10 @@ class Cygui(Frame):
             self.app = RegionWindow(self.master, output_path)
         if name == 'recipe':
             self.app = RecipeWindow(self.master, output_path)
+        if name == 'backend':
+            if not os.path.isfile(os.path.join(output_path, 'cyclus.sqlite')):
+                messagebox.showerror('Error', 'You must have the output file first!')
+            self.app = BackendWindow(self.master, output_path)
 
     def load_prev_window(self):
         self.load_window = Toplevel(self.master)
