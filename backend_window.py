@@ -10,12 +10,14 @@ import os
 import shutil
 import json
 import copy
-# import analysis as an
+import analysis as an
 import sqlite3 as lite
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-class BackendWindow(Frame):
+
+
+class BakendWindow(Frame):
     def __init__(self, master, output_path):
         """
         does backend analysis
@@ -47,7 +49,7 @@ class BackendWindow(Frame):
 
 
     def get_cursor(self):
-        con = lite.connect(os.path.join(self.output_path, 'cyclus.sqlite'))
+        con = lite.connect(os.path.join(output_path, 'cyclus.sqlite'))
         con.row_factory = lite.Row
         self.cur = con.cursor()
 
@@ -57,7 +59,7 @@ class BackendWindow(Frame):
         self.raw_table_window.title('View Raw Tables')
         self.raw_table_window.geometry('+0+3500')
         # just like a sql query with ability to export and stuff
-        self.guide_text = ''
+        self.guide_text = 
 
 
 
@@ -67,62 +69,9 @@ class BackendWindow(Frame):
         self.guide_text = ''
         # show material trade between facilities
 
-        self.material_flow_window = Toplevel(self.master)
-        self.material_flow_window.title('List of transactions to view')
-        self.material_flow_window.geometry('+700+1000')
+
 
         traders = self.cur.execute('SELECT DISTINCT senderid, receiverid FROM transactions').fetchall()
-        table_dict = {'sender': [],
-                      'receiver': [],
-                      'commodity': []}
-
-        # create table of sender - receiverid - commodity set like:
-        # sender / receiver / begin / end
-        for i in traders:
-            table_dict['sender'].append(self.id_proto_dict[i['senderid']] + '(%s)' %str(i['senderid']))
-            table_dict['receiver'].append(self.id_proto_dict[i['receiverid']] + '(%s)' %str(i['receiverid']))
-            table_dict['commodity'].append(i['commodity'])
-
-        # have an `organize alphabetically / ascending order' for each column
-
-        
-        # prototype (agentid) / prototype (agentid) / commodity / min(date) / max(date)
-        Label(self.material_flow_window, text='List of transactions:').grid(row=0, columnspan=4)
-        row = 1
-        for indx, val in enumerate(table_dict['sender']):
-            Label(self.material_flow_window, text=val).grid(row=row, column=0)
-            Label(self.material_flow_window, text=table_dict['receiver'][indx]).grid(row=row, column=1)
-            Label(self.material_flow_window, text=table_dict['commodity'][indx]).grid(row=row, column=2)
-            Button(self.material_flow_window, text='view', command=lambda : self.show_sender_receiver_plot(val, table_dict['receiver'][indx], table_dict['commodity'][indx])).grid(row=row, column=3)
-            row += 1
-
-        def show_sender_reciver_plot(self, sender, receiver, commodity):
-            sender_name = sender[:sender.index('(')]
-            receiver_name = receiver[:receiver.index('(')]
-            sender_id = sender[sender.index('(')+1:sender.index(')')]
-            receiver_id = receiver[receiver.index('(')+1:receiver.index(')')]
-            self.sender_receiver_plot_window = Toplevel(self.material_flow_window)
-            self.sender_receiver_plot_window.title('%s sending %s to %s' %(sender_name, receiver_name, commodity))
-            t = self.cur.execute('SELECT sum(quantity), time FROM transactions INNER JOIN resources where senderid=%s and receiverid=%s and commodity=%s GROUP BY transactions.time' %(sender_id, receiver_id, commodity)).fetchall()
-            qt = []
-            time = []
-            for i in t:
-                qt.append(i['sum(quantity)'])
-                time.append(i['time'])
-            x = []
-            y = []
-            for i in range(max(time)):
-                x.append(i)
-                if i in time:
-                    indx = time.index(i)
-                    y.append(qt[indx])
-                else:
-                    y.append(0)
-            # return a plot
-
-                
-
-        """
         # sort by agentid (literally unique agentid)
         uniq_agentid = []
         # sort by prototype name (aggregate same prototypes)
@@ -145,7 +94,16 @@ class BackendWindow(Frame):
 
         traders = self.cur.execute('SELECT DISTINCT prototype FROM agententry').fetchall()
         prototypes = list(traders)
-        """
+
+
+
+
+        # create table of sender - receiverid - commodity set like:
+        # sender / receiver / begin / end
+        # prototype (agentid) / prototype (agentid) / commodity / min(date) / max(date)
+
+        # have an `organize alphabetically / ascending order' for each column
+
 
 
     def plot_material_flow(self, sender_list, receiver_list):
@@ -153,23 +111,28 @@ class BackendWindow(Frame):
 
 
 
-    def timestep_to_date(self, timestep): 
+
+
+
+    def timestep_to_date(self, timestep):
+        startyear = 
+        startmonth = 
+        startday = 
+        dt = 
         if dt != 2629846:
             # change with month / day / week scale?
             # how?
-            z=0
-        #startyear = 
-        #startmonth = 
-        #startday = 
-        #dt =
         else:
             month = startmonth + timestep
             year = startyear + month//12
             month = month%12
             return '%s-%s' %(str(year), str(month))
+
+
     
     
-    def guide(self):
+     def guide(self):
+
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Backend Analysis Guide')
         self.guide_window.geometry('+0+400')
