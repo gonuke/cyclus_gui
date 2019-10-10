@@ -44,6 +44,9 @@ class BackendWindow(Frame):
         deployment_of_agents_button = Button(self.master, text='Get Agent Deployment', command=lambda : self.agent_deployment_window())
         deployment_of_agents_button.pack()
 
+        facility_inventory_button = Button(self.master, text='Get Facility Inventory', command=lambda : self.facility_inventory_button())
+        facility_inventory_button.pack()
+
         timeseries_button = Button(self.master, text='Get Timeseries', command=lambda : self.timeseries_window())
         timeseries_button.pack()
 
@@ -53,8 +56,8 @@ class BackendWindow(Frame):
         self.init_year = i['InitialYear']
         self.init_month = i['InitialMonth']
         self.duration = i['Duration']
-        # I guess no dt 
-        # self.
+        i = self.cur.execute('SELECT * FROM TimeStepDur').fetchone()
+        self.dt = i['DurationSecs']
 
 
     def get_id_proto_dict(self):
@@ -203,6 +206,7 @@ class BackendWindow(Frame):
         names = []
         for i in commods:
             names.append(i['commodity'])
+        names.sort()
         if len(commods) > 30:
             canvas = Canvas(self.commodity_tr_window, width=800, height=1000)
             frame = Frame(canvas)
@@ -291,13 +295,11 @@ class BackendWindow(Frame):
         # f = bwidget.ScrollableFrame(s, constrainedwidth=True)
         # g = f.getframe()
 
-
-
-
         entry = self.cur.execute('SELECT DISTINCT prototype FROM agententry WHERE kind="Facility"').fetchall()
         proto_list = []
         for i in entry:
             proto_list.append(i['prototype'])
+        proto_list.sort()
         if len(entry) > 30:
             canvas = Canvas(self.agent_dep_window, width=800, height=1000)
             frame = Frame(canvas)
@@ -394,13 +396,135 @@ class BackendWindow(Frame):
 
 
     def timeseries_window(self):
-        z =0 
+        self.guide_text = ''
+        self.ts_window = Toplevel(self.master)
+        self.ts_window.title('Timeseries Window')
+        self.ts_window.geometry('+700+1000')
+        parent = self.ts_window
 
+        tables = self.cur.execute('SELECT name FROM sqlite_master WHERE type="table"').fetchall()
+        timeseries_tables_list = []
+        for i in tables:
+            if 'TimeSeries' in i['name']:
+                timeseries_tables_list.append(i['name'].replace('TimeSeries', ''))
+        timeseries_tables_list.sort()
+        if len(tables) > 30:
+            canvas = Canvas(self.ts_window, width=800, height=1000)
+            frame = Frame(canvas)
+            scrollbar = Scrollbar(self.ts_window, command=canvas.yview)
+            scrollbar.pack(side=RIGHT, fill='y')
+            canvas.pack(side=LEFT, fill='both', expand=True)        
+            def on_configure(event):
+                canvas.configure(scrollregion=canvas.bbox('all'))
+            canvas.configure(yscrollcommand=scrollbar.set)
+            frame.bind('<Configure>', on_configure)
+        
+            canvas.create_window((4,4), window=frame, anchor='nw')
+            parent = frame
 
+        columnspan = 2
+        Label(parent, text='List of Timeseries').grid(row=0, columnspan=columnspan)
+        Label(parent, text='======================').grid(row=1, columns=columnspan)
+        row = 2
+
+        for i in timeseries_tables_list:
+            Label(parent, text=i).grid(row=row, column=0)
+            Button(parent, text='more', command=lambda timeseries=i: self.timeseries_action(timeseries)).grid(row=row, column=1)
+            row += 1
+
+    def timeseries_action(self, timeseries):
+        agentid_list_q = self.cur.execute('SELECT distinct agentid FROM TimeSeries%s' %timeseries).fetchall()
+        agentid_list = [i['agentid'] for i in agentid_list_q]
+        agentname_list = [self.id_proto_dict[i] for i in agentid_list]
+        self.ta_window = Toplevel(self.ts_window)
+        self.ta_window.title('%s Timeseries Window' %timeseries.capitalize())
+        self.ta_window.geometry('+1000+1000')
+        parent = self.ta_window
+
+        if len(agentname_list) > 30:
+            canvas = Canvas(self.ta_window, width=800, height=1000)
+            frame = Frame(canvas)
+            scrollbar = Scrollbar(self.ta_window, command=canvas.yview)
+            scrollbar.pack(side=RIGHT, fill='y')
+            canvas.pack(side=LEFT, fill='both', expand=True)        
+            def on_configure(event):
+                canvas.configure(scrollregion=canvas.bbox('all'))
+            canvas.configure(yscrollcommand=scrollbar.set)
+            frame.bind('<Configure>', on_configure)
+        
+            canvas.create_window((4,4), window=frame, anchor='nw')
+            parent = frame
+        
+        columnspan = 3
+        Label(parent, text='Agents that reported %s' %timeseries).grid(row=0, columnspan=columnspan)
+        Label(parent, text='======================').grid(row=1, columns=columnspan)
+        row = 2
+        Label(parent, text='Aggregate sum').grid(row=row, column=0)
+        Button(parent, text='plot', command=lambda timeseries=timeseries, agentid='agg', action='plot': self.timeseries_action_action(timeseries, agentid, action)).grid(row=row, column=1)
+        Button(parent, text='export', command=lambda timeseries=timeseries, agentid='agg', action='export': self.timeseries_action_action(timeseries, agentid, action)).grid(row=row, column=2)
+        row = 3
+        for indx, i in enumerate(agentname_list):
+            Label(parent, text='%s (%s)' %(i, agentid_list[indx])).grid(row=row, column=0)
+            Button(parent, text='plot', command=lambda timeseries=timeseries, agentid=agentid_list[indx], action='plot': self.timeseries_action_action(timeseries, agentid, action)).grid(row=row, column=1)
+            Button(parent, text='export', command=lambda timeseries=timeseries, agentid=agentid_list[indx], action='export': self.timeseries_action_action(timeseries, agentid, action)).grid(row=row, column=2)
+            row += 1
+            
+       
+
+    def timeseries_action_action(self, timeseries, agentid, action):
+        if agentid == 'agg':
+            series_q = self.cur.execute('SELECT time, sum(value) FROM TimeSeries%s GROUP BY time' %timeseries).fetchall()
+        else:
+            series_q = self.cur.execute('SELECT time, sum(value) FROM TimeSeries%s WHERE agentid=%s GROUP BY time' %(timeseries, str(agentid))).fetchall()
+        val = [i['sum(value)'] for i in series_q]
+        time = [i['time'] for i in series_q]
+
+        x = []
+        y = []
+        for i in range(self.duration):
+            x.append(i)
+            if i in time:
+                indx = time.index(i)
+                y.append(val[indx])
+            else:
+                y.append(0)
+
+        if action == 'plot':
+            fig = plt.figure()
+            ax1 = fig.add_subplot(111)
+            ax2 = ax1.twiny()
+            ax1.plot(self.timestep_to_date(x), y)
+            ax1.set_xlabel('Date')
+            new_tick_locations = np.array([.1, .3, .5, .7, .9])
+            ax2.set_xticks(new_tick_locations)
+            l = new_tick_locations * max(x)
+            l = ['%.0f' %z for z in l]
+            print(l)
+            ax2.set_xticklabels(l)
+            ax2.set_xlabel('Timesteps')
+            plt.ylabel('%s Timeseries' %timeseries)
+            plt.grid()
+            plt.tight_layout()
+            plt.show()
+        elif action == 'export':
+            export_dir = os.path.join(self.output_path, 'exported_csv')
+            if not os.path.exists(export_dir):
+                os.mkdir(export_dir)
+            if agentid == 'agg':
+                filename = os.path.join(export_dir, '%s_aggregate_timeseries.csv' %timeseries)
+            else:   
+                filename = os.path.join(export_dir, '%s_%s_timeseries.csv' %(self.id_proto_dict[agentid], timeseries))
+            s = 'time, value\n'
+            for indx, val in enumerate(x):
+                s += '%s, %s\n' %(str(x[indx]), str(y[indx]))
+            with open(filename, 'w') as f:
+                f.write(s)
+            print('Exported %s' %filename)
+            messagebox.showinfo('Success', 'Exported %s' %filename)
 
     def timestep_to_date(self, timestep):
         timestep = np.array(timestep) 
-        month = self.init_month + timestep
+        month = self.init_month + (timestep * (self.dt / 2629846))
         year = self.init_year + month//12
         month = month%12
         dates = [x+(y/12) for x, y in zip(year, month)]
