@@ -33,12 +33,14 @@ class BackendWindow(Frame):
         self.guide()
         self.view_hard_limit = 100
         self.scroll_limit = 30
+        self.el_z_dict = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10, 'Na': 11, 'Mg': 12, 'Al': 13, 'Si': 14, 'P': 15, 'S': 16, 'Cl': 17, 'Ar': 18, 'K': 19, 'Ca': 20, 'Sc': 21, 'Ti': 22, 'V': 23, 'Cr': 24, 'Mn': 25, 'Fe': 26, 'Co': 27, 'Ni': 28, 'Cu': 29, 'Zn': 30, 'Ga': 31, 'Ge': 32, 'As': 33, 'Se': 34, 'Br': 35, 'Kr': 36, 'Rb': 37, 'Sr': 38, 'Y': 39, 'Zr': 40, 'Nb': 41, 'Mo': 42, 'Tc': 43, 'Ru': 44, 'Rh': 45, 'Pd': 46, 'Ag': 47, 'Cd': 48, 'In': 49, 'Sn': 50, 'Sb': 51, 'Te': 52, 'I': 53, 'Xe': 54, 'Cs': 55, 'Ba': 56, 'La': 57, 'Ce': 58, 'Pr': 59, 'Nd': 60, 'Pm': 61, 'Sm': 62, 'Eu': 63, 'Gd': 64, 'Tb': 65, 'Dy': 66, 'Ho': 67, 'Er': 68, 'Tm': 69, 'Yb': 70, 'Lu': 71, 'Hf': 72, 'Ta': 73, 'W': 74, 'Re': 75, 'Os': 76, 'Ir': 77, 'Pt': 78, 'Au': 79, 'Hg': 80, 'Tl': 81, 'Pb': 82, 'Bi': 83, 'Po': 84, 'At': 85, 'Rn': 86, 'Fr': 87, 'Ra': 88, 'Ac': 89, 'Th': 90, 'Pa': 91, 'U': 92, 'Np': 93, 'Pu': 94, 'Am': 95, 'Cm': 96, 'Bk': 97, 'Cf': 98, 'Es': 99, 'Fm': 100, 'Md': 101, 'No': 102, 'Lr': 103}
+
         Label(self.master, text='Choose backend analysis type:').pack()
 
         raw_table_button = Button(self.master, text='Navigate Raw Tables', command=lambda : self.view_raw_tables())
         raw_table_button.pack()
 
-        material_flow_button = Button(self.master, text='Get Material Flow', command=lambda : self.view_material_flow())
+        material_flow_button = Button(self.master, text='Get Material Flow', command=lambda : self.material_flow_selection())
         material_flow_button.pack()
 
         commodity_transfer_button = Button(self.master, text='Get Commodity Flow', command=lambda : self.commodity_transfer_window())
@@ -85,7 +87,19 @@ class BackendWindow(Frame):
         self.guide_text = ''
 
 
-    def view_material_flow(self):
+    def material_flow_selection(self):
+        self.guide_text = ''
+        self.mat_selec_window = Toplevel(self.master)
+        self.mat_selec_window.title('Which Selection')
+        self.mat_selec_window.geometry('+700+1000')
+        parent = self.mat_selec_window
+        Label(parent, text='Group by agent or prototype').pack()
+        Button(parent, text='Group by agent', command=lambda: self.view_material_flow(groupby='agent')).pack()
+        Button(parent, text='Group by prototype', command=lambda: self.view_material_flow(groupby='prototype')).pack() 
+
+
+
+    def view_material_flow(self, groupby):
         self.guide_text = ''
         # show material trade between prototypes
         self.material_flow_window = Toplevel(self.master)
@@ -94,60 +108,100 @@ class BackendWindow(Frame):
         parent = self.material_flow_window
 
         traders = self.cur.execute('SELECT DISTINCT senderid, receiverid, commodity FROM transactions').fetchall()
-        table_dict = {'sender': [],
-                      'receiver': [],
-                      'commodity': []}
-        parent = self.assess_scroll_deny(self, len(traders), self.material_flow_window)
-        if parent == -1:
-            return
-        if len(traders) > self.view_hard_limit:
-            messagebox.showinfo('Too much', 'You have %s distinct transaction sets.. Too much for me to show here' %str(len(traders)))
-            self.material_flow_window.destroy()
-            return
-        if len(traders) > self.scroll_limit:
-            parent = self.add_scrollbar(self.material_flow_window)
+        if groupby == 'agent':
+            table_dict = {'sender': [],
+                          'receiver': [],
+                          'commodity': []}
 
-        # create table of sender - receiverid - commodity set like:
-        for i in traders:
-            table_dict['sender'].append(self.id_proto_dict[i['senderid']] + '(%s)' %str(i['senderid']))
-            table_dict['receiver'].append(self.id_proto_dict[i['receiverid']] + '(%s)' %str(i['receiverid']))
-            table_dict['commodity'].append(i['commodity'])
+            parent = self.assess_scroll_deny(len(traders), self.material_flow_window)
+            if parent == -1:
+                return
+
+            # create table of sender - receiverid - commodity set like:
+            for i in traders:
+                table_dict['sender'].append(self.id_proto_dict[i['senderid']] + '(%s)' %str(i['senderid']))
+                table_dict['receiver'].append(self.id_proto_dict[i['receiverid']] + '(%s)' %str(i['receiverid']))
+                table_dict['commodity'].append(i['commodity'])
+        elif groupby == 'prototype':
+            already = []
+            table_dict = {'sender': [], 'receiver': [], 'commodity': []}
+            for i in traders:
+                checker = [self.id_proto_dict[i['senderid']], self.id_proto_dict[i['receiverid']], i['commodity']]
+                if checker in already:
+                    continue
+                else:
+                    already.append(checker)
+                    table_dict['sender'].append(checker[0])
+                    table_dict['receiver'].append(checker[1])
+                    table_dict['commodity'].append(checker[2])
+            parent = self.assess_scroll_deny(len(table_dict['sender']), self.material_flow_window)
+            if parent == -1:
+                return
 
         columnspan = 7
         Label(parent, text='List of transactions:').grid(row=0, columnspan=columnspan)
-        Label(parent, text='Sender (id)').grid(row=1, column=0)
-        Label(parent, text='').grid(row=1, column=1)
-        Label(parent, text='Commodity').grid(row=1, column=2)
-        Label(parent, text='').grid(row=1, column=3)
-        Label(parent, text='Receiver (id)').grid(row=1, column=4)
-        Label(parent, text=' ').grid(row=1, column=5)
-        Label(parent, text='======================').grid(row=2, columnspan=columnspan)
+        Label(parent, text='Get top ').grid(row=1, column=0)
+        self.n_isos = Entry(parent)
+        self.n_isos.grid(row=1, column=1)
+        Label(parent, text='Isotopes').grid(row=1, column=2)
+        if groupby == 'agent':
+            Label(parent, text='Sender (id)').grid(row=2, column=0)
+            Label(parent, text='Receiver (id)').grid(row=2, column=4)
+        else:
+            Label(parent, text='Sender').grid(row=2, column=0)
+            Label(parent, text='Receiver').grid(row=2, column=4)
+        Label(parent, text='').grid(row=2, column=1)
+        Label(parent, text='Commodity').grid(row=2, column=2)
+        Label(parent, text='').grid(row=2, column=3)
+        Label(parent, text=' ').grid(row=2, column=5)
+        Label(parent, text='======================').grid(row=3, columnspan=columnspan)
              
-        row = 3
+        row = 4
         for indx, val in enumerate(table_dict['sender']):
             Label(parent, text=val).grid(row=row, column=0)
             Label(parent, text='->').grid(row=row, column=1)
             Label(parent, text=table_dict['commodity'][indx]).grid(row=row, column=2)
             Label(parent, text='->').grid(row=row, column=3)            
             Label(parent, text=table_dict['receiver'][indx]).grid(row=row, column=4)
-            Button(parent, text='plot', command=lambda sender=val, receiver=table_dict['receiver'][indx], commodity=table_dict['commodity'][indx]: self.sender_receiver_action(sender, receiver, commodity, 'plot')).grid(row=row, column=5)
-            Button(parent, text='export', command=lambda sender=val, receiver=table_dict['receiver'][indx], commodity=table_dict['commodity'][indx]: self.sender_receiver_action(sender, receiver, commodity, 'export')).grid(row=row, column=6)
+            Button(parent, text='plot', command=lambda sender=val, receiver=table_dict['receiver'][indx], commodity=table_dict['commodity'][indx], groupby=groupby: self.sender_receiver_action(sender, receiver, commodity, 'plot', groupby)).grid(row=row, column=5)
+            Button(parent, text='export', command=lambda sender=val, receiver=table_dict['receiver'][indx], commodity=table_dict['commodity'][indx], groupby=groupby: self.sender_receiver_action(sender, receiver, commodity, 'export', groupby)).grid(row=row, column=6)
             row += 1
 
 
 
-    def sender_receiver_action(self, sender, receiver, commodity, action):
-        sender_name = sender[:sender.index('(')]
-        receiver_name = receiver[:receiver.index('(')]
-        sender_id = sender[sender.index('(')+1:sender.index(')')]
-        receiver_id = receiver[receiver.index('(')+1:receiver.index(')')]
-        t = self.cur.execute('SELECT sum(quantity), time FROM transactions INNER JOIN resources ON transactions.resourceid == resources.resourceid where senderid=%s and receiverid=%s and commodity="%s" GROUP BY transactions.time' %(sender_id, receiver_id, commodity)).fetchall()
-        x, y = self.query_result_to_timeseries(t, 'sum(quantity)')
+    def sender_receiver_action(self, sender, receiver, commodity, action, groupby):
+        n_isos = self.check_n_isos()
+        if n_isos == -1:
+            return
+
+        if groupby == 'prototype':
+            receiver_id = [k for k,v in self.id_proto_dict.items() if v == receiver] 
+            sender_id = [k for k,v in self.id_proto_dict.items() if v == sender]
+        else:
+            sender_name = sender[:sender.index('(')]
+            receiver_name = receiver[:receiver.index('(')]
+            sender_id = [sender[sender.index('(')+1:sender.index(')')]]
+            receiver_id = [receiver[receiver.index('(')+1:receiver.index(')')]]
+        
+        #!#!#!#!
+        str_sender_id = [str(q) for q in sender_id]
+        str_receiver_id = [str(q) for q in receiver_id]
+        if n_isos == 0:
+            query = 'SELECT sum(quantity), time FROM transactions INNER JOIN resources ON transactions.resourceid == resources.resourceid WHERE (senderid = ' + ' OR senderid = '.join(str_sender_id) + ') AND (receiverid = ' + ' OR receiverid = '.join(str_receiver_id) + ') GROUP BY time'
+            q = self.cur.execute(query).fetchall()
+            x, y = self.query_result_to_timeseries(q, 'sum(quantity)')
+        else:
+            query = 'SELECT sum(quantity)*massfrac, nucid, time FROM transactions INNER JOIN resources ON transactions.resourceid == resources.resourceid LEFT OUTER JOIN compositions ON compositions.qualid = resources.qualid WHERE (senderid = ' + ' OR senderid = '.join(str_sender_id) + ') AND (receiverid = ' + ' OR receiverid = '.join(str_receiver_id) + ') GROUP BY time, nucid'
+            q = self.cur.execute(query).fetchall()
+            x, y = self.query_result_to_dict(q, 'nucid', 'sum(quantity)*massfrac', n_isos)
 
         if action == 'plot':
             self.plot(x, y, '%s Sent' %commodity)
         elif action == 'export':
-            self.export(x, y, '%s_%s_%s.csv' %(sender_name, receiver_name, commodity))
+            if groupby == 'prototype':
+                self.export(x, y, '%s_%s_%s.csv' %(sender, receiver, commodity))
+            else:
+                self.export(x, y, '%s_%s_%s.csv' %(sender_name, receiver_name, commodity))
             
 
     def commodity_transfer_window(self):
@@ -162,14 +216,19 @@ class BackendWindow(Frame):
         for i in commods:
             names.append(i['commodity'])
         names.sort(key=str.lower)
-        if len(commods) > self.scroll_limit:
-            parent = self.add_scrollbar(self.commodity_tr_window)
+        parent = self.assess_scroll_deny(len(commods), self.commodity_tr_window)
+        if parent == -1:
+            return
 
         columnspan = 3
         
         Label(parent, text='List of Commodities').grid(row=0, columnspan=columnspan)
         Label(parent, text='======================').grid(row=1, columns=columnspan)
-        row = 2
+        Label(parent, text='Get top ').grid(row=2, column=0)
+        self.n_isos = Entry(parent)
+        self.n_isos.grid(row=2, column=1)
+        Label(parent, text='Isotopes').grid(row=2, column=2)
+        row = 3
         for i in names:
             Label(parent, text=i).grid(row=row, column=0)
             Button(parent, text='plot', command=lambda commod=i: self.commodity_transfer_action(commod, 'plot')).grid(row=row, column=1)
@@ -203,8 +262,9 @@ class BackendWindow(Frame):
         entry = self.cur.execute('SELECT DISTINCT prototype FROM agententry WHERE kind="Facility"').fetchall()
         proto_list = [i['prototype'] for i in entry]
         proto_list.sort(key=str.lower)
-        if len(entry) > self.scroll_limit:
-            parent = self.add_scrollbar(self.agent_dep_window)
+        parent = self.assess_scroll_deny(len(entry), self.agent_dep_window)
+        if parent == -1:
+            return
 
         columnspan = 7
         
@@ -277,8 +337,9 @@ class BackendWindow(Frame):
             if 'TimeSeries' in i['name']:
                 timeseries_tables_list.append(i['name'].replace('TimeSeries', ''))
         timeseries_tables_list.sort()
-        if len(tables) > self.scroll_limit:
-            parent = self.add_scrollbar(self.ts_window)
+        parent = self.assess_scroll_deny(len(tables), self.ts_window)
+        if parent == -1:
+            return
 
         columnspan = 2
         Label(parent, text='List of Timeseries').grid(row=0, columnspan=columnspan)
@@ -299,8 +360,9 @@ class BackendWindow(Frame):
         self.ta_window.geometry('+1000+1000')
         parent = self.ta_window
 
-        if len(agentname_list) > self.scroll_limit:
-            parent = self.add_scrollbar(self.ta_window)
+        parent = self.assess_scroll_deny(len(agentname_list), self.ta_window)
+        if parent == -1:
+            return
         
         columnspan = 3
         Label(parent, text='Agents that reported %s' %timeseries).grid(row=0, columnspan=columnspan)
@@ -360,43 +422,56 @@ class BackendWindow(Frame):
         self.inv_inv_window.geometry('+1000+1000')
         parent = self.inv_inv_window
         if groupby == 'agent':
-            # show the list of all agents to display
-            if len(self.id_proto_dict.keys()) > self.view_hard_limit:
-                messagebox.showinfo('Too much', 'You have %s distinct agents.. Too much for me to display' %str(len(self.id_proto_dict.keys())))
-                self.inv_inv_window.destroy()
+            parent = self.assess_scroll_deny(len(self.id_proto_dict.keys()), self.inv_inv_window)
+            if parent == -1:
                 return
-            if len(self.id_proto_dict.keys()) > self.scroll_limit:
-                parent = self.add_scrollbar(self.inv_inv_window)
-            row = 0
+
+            # show the list of all agents to display
+            columnspan = 3
+            Label(parent, text='List of Agents').grid(row=0, columnspan=columnspan)
+            Label(parent, text='Agent (id)').grid(row=1, column=0)
+            Label(parent, text='======================').grid(row=2, columnspan=columnspan)
+            Label(parent, text='Get top ').grid(row=3, column=0)
+            self.n_isos = Entry(parent)
+            self.n_isos.grid(row=3, column=1)
+            Label(parent, text='Isotopes').grid(row=3, column=2)
+            row = 4
             for id_, proto_ in self.id_proto_dict.items():
                 Label(parent, text= '%s (%s)' %(proto_, id_)).grid(row=row, column=0)
                 Button(parent, text='plot', command=lambda id_list=[id_]: self.inv_action(id_list, 'plot')).grid(row=row, column=1)
                 Button(parent, text='export', command=lambda id_list=[id_]: self.inv_action(id_list, 'export')).grid(row=row, column=2)
+                row += 1 
         
         elif groupby == 'prototype':
             # show the list of prototypes to display
             entry = self.cur.execute('SELECT DISTINCT prototype FROM agententry WHERE kind="Facility"').fetchall()
             proto_list = [i['prototype'] for i in entry]
             proto_list.sort(key=str.lower)
-            if len(self.id_proto_dict.keys()) > self.view_hard_limit:
-                messagebox.showinfo('Too much', 'You have %s distinct agents.. Too much for me to display' %str(len(proto_list)))
-                self.inv_inv_window.destroy()
+
+            parent = self.assess_scroll_deny(len(self.id_proto_dict.keys()), self.inv_inv_window)
+            if parent == -1:
                 return
-            if len(proto_list) > self.scroll_limit:
-                parent = self.add_scrollbar(self.inv_inv_window)
+            
             row = 0
             for i in proto_list:
                 id_list = [k for k,v in self.id_proto_dict.items() if v == i]
                 Label(parent, text= '%s' %i).grid(row=row, column=0)
-                Button(parent, text='plot', command=lambda id_list=[id_list]: self.inv_action(id_list, 'plot')).grid(row=row, column=1)
-                Button(parent, text='export', command=lambda id_list=[id_list]: self.inv_action(id_list, 'export')).grid(row=row, column=2)
+                Button(parent, text='plot', command=lambda id_list=id_list: self.inv_action(id_list, 'plot')).grid(row=row, column=1)
+                Button(parent, text='export', command=lambda id_list=id_list: self.inv_action(id_list, 'export')).grid(row=row, column=2)
+                row += 1
 
 
     def inv_action(self, id_list, action):
         str_id_list = [str(q) for q in id_list]
         query = 'SELECT sum(quantity), time FROM ExplicitInventory WHERE (agentid = ' + ' OR agentid = '.join(str_id_list) + ') GROUP BY time'
-        x, y = self.query_result_to_timeseries(query, 'sum(quantity)')
-
+        q = self.cur.execute(query).fetchall()
+        x, y = self.query_result_to_timeseries(q, 'sum(quantity)')
+        name = self.id_proto_dict[id_list[0]]
+        if action == 'plot':
+            self.plot(x, y, '%s Inventory' %name)
+        elif action == 'export':
+            self.export(x, y, '%s_inv.csv' %name)
+        
 
     # helper functions
 
@@ -404,16 +479,27 @@ class BackendWindow(Frame):
         fig = plt.figure()
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twiny()
+        lines = []
         if type(y) is dict:
             for key, val in y.items():
-                ax1.plot(self.timestep_to_date(x), val, label=key)
-            plt.legend()
+                try: # if nucid, turn to nameAAA
+                    e = int(key) // 10000
+                    a = e % 1000
+                    z = e // 1000
+                    for k, v in self.el_z_dict.items():
+                        if v == z:
+                            name = k
+                    key = name + str(a)
+                except:
+                    z = 0
+                l, = ax1.plot(self.timestep_to_date(x), val, label=key)
+                lines.append(l)
             if sum(sum(y[k]) for k in y) > 1e3:
                 ax1 = plt.gca()
                 ax1.get_yaxis().set_major_formatter(
                     plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
         else:
-            ax1.plot(self.timestep_to_date(x), y)
+            ax1.plot(self.timestep_to_date(x), y, label=ylabel)
             if max(y) > 1e3:
                 ax1 = plt.gca()
                 ax1.get_yaxis().set_major_formatter(
@@ -426,6 +512,7 @@ class BackendWindow(Frame):
         print(l)
         ax2.set_xticklabels(l)
         ax2.set_xlabel('Timesteps')
+        ax1.legend(handles=lines)
         plt.ylabel(ylabel)
         plt.grid()
         plt.tight_layout()
@@ -460,22 +547,27 @@ class BackendWindow(Frame):
         return dates
 
 
-    def query_result_to_timeseries(self, query_result, col_name, time_col_name='time'):
+    def query_result_to_timeseries(self, query_result, col_name,
+                                   time_col_name='time'):
         x = np.arange(self.duration)
         y = np.zeros(self.duration)
         for i in query_result:
             y[int(i[time_col_name])] += i[col_name]
         return x, y
 
-    def query_result_to_dict(self, query_result, col_name_list, time_col_name='time'):
+    def query_result_to_dict(self, query_result, vary_col_name, val_col,
+                             time_col_name='time', topn=10):
         x = np.arange(self.duration)
         y = {}
-        for i in col_name_list:
+        keys = list(set([q[vary_col_name] for q in query_result]))
+        for i in keys:
             y[i] = np.zeros(self.duration)
         for i in query_result:
-            for j in col_name_list:
-                y[int(i[time_col_name])] += i[j]
-        return x, y
+            y[i[vary_col_name]] += i[val_col]
+        y1 = {k:np.mean(v) for k, v in y.items()}
+        keys = sorted(y1, key=y1.__getitem__, reverse=True)[:topn]
+        new_y = {k:v for k, v in y.items() if k in keys}
+        return x, new_y
 
 
     def aggregate_dates(self, x, y, agg_dt):
@@ -490,12 +582,13 @@ class BackendWindow(Frame):
             messagebox.showinfo('Too much', 'You have %s distinct values. Too much to show here.' %length)
             window_obj.destroy()
             return -1
-        if length > self.scroll_limit:
+        elif length > self.scroll_limit:
             return self.add_scrollbar(window_obj)
-
+        else:
+            return window_obj
 
     def add_scrollbar(self, window_obj):
-        canvas = Canvas(window_obj, width=600, height=1000)
+        canvas = Canvas(window_obj, width=800, height=1000)
         frame = Frame(canvas)
         scrollbar = Scrollbar(window_obj, command=canvas.yview)
         scrollbar.pack(side=RIGHT, fill='y')
@@ -506,6 +599,15 @@ class BackendWindow(Frame):
         frame.bind('<Configure>', on_configure)
         canvas.create_window((4,4), window=frame, anchor='nw')
         return frame
+
+    def check_n_isos(self):
+        if self.n_isos.get() == '':
+            return 0
+        try:
+            return(int(self.n_isos.get()))
+        except:
+            messagebox.showerror('You put in %s for the number of isotopes\n It should be an integer' %self.n_isos)
+            return -1
 
     
     def guide(self):
