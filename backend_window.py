@@ -7,6 +7,7 @@ import xml.etree.ElementTree as et
 import xmltodict
 import uuid
 import os
+import seaborn as sns
 import shutil
 import json
 import copy
@@ -30,9 +31,11 @@ class BackendWindow(Frame):
         self.get_start_times()
 
         self.guide()
+        self.view_hard_limit = 100
+        self.scroll_limit = 30
         Label(self.master, text='Choose backend analysis type:').pack()
 
-        raw_table_button = Button(self.master, text='View Raw Tables', command=lambda : self.view_raw_tables())
+        raw_table_button = Button(self.master, text='Navigate Raw Tables', command=lambda : self.view_raw_tables())
         raw_table_button.pack()
 
         material_flow_button = Button(self.master, text='Get Material Flow', command=lambda : self.view_material_flow())
@@ -76,7 +79,7 @@ class BackendWindow(Frame):
 
     def view_raw_tables(self):
         self.raw_table_window = Toplevel(self.master)
-        self.raw_table_window.title('View Raw Tables')
+        self.raw_table_window.title('Navigate Raw Tables')
         self.raw_table_window.geometry('+0+3500')
         # just like a sql query with ability to export and stuff
         self.guide_text = ''
@@ -94,11 +97,14 @@ class BackendWindow(Frame):
         table_dict = {'sender': [],
                       'receiver': [],
                       'commodity': []}
-        if len(traders) > 100:
+        parent = self.assess_scroll_deny(self, len(traders), self.material_flow_window)
+        if parent == -1:
+            return
+        if len(traders) > self.view_hard_limit:
             messagebox.showinfo('Too much', 'You have %s distinct transaction sets.. Too much for me to show here' %str(len(traders)))
             self.material_flow_window.destroy()
             return
-        if len(traders) > 30:
+        if len(traders) > self.scroll_limit:
             parent = self.add_scrollbar(self.material_flow_window)
 
         # create table of sender - receiverid - commodity set like:
@@ -156,7 +162,7 @@ class BackendWindow(Frame):
         for i in commods:
             names.append(i['commodity'])
         names.sort(key=str.lower)
-        if len(commods) > 30:
+        if len(commods) > self.scroll_limit:
             parent = self.add_scrollbar(self.commodity_tr_window)
 
         columnspan = 3
@@ -172,51 +178,12 @@ class BackendWindow(Frame):
 
     def commodity_transfer_action(self, commod, action):
         movement = self.cur.execute('SELECT time, sum(quantity) FROM transactions INNER JOIN resources on transactions.resourceid==resources.resourceid WHERE commodity="%s" GROUP BY time' %commod).fetchall()
-        qt = []
-        time = []
-        for i in movement:
-            qt.append(i['sum(quantity)'])
-            time.append(i['time'])
-        x = []
-        y = []
-        for i in range(self.duration):
-            x.append(i)
-            if i in time:
-                indx = time.index(i)
-                y.append(qt[indx])
-            else:
-                y.append(0)
+        x, y = self.query_result_to_timeseries(movement, 'sum(quantity)')
 
         if action == 'plot':
-            fig = plt.figure()
-            ax1 = fig.add_subplot(111)
-            ax2 = ax1.twiny()
-            ax1.plot(self.timestep_to_date(x), y)
-            ax1.set_xlabel('Date')
-            new_tick_locations = np.array([.1, .3, .5, .7, .9])
-            ax2.set_xticks(new_tick_locations)
-            l = new_tick_locations * max(x)
-            l = ['%.0f' %z for z in l]
-            print(l)
-            ax2.set_xticklabels(l)
-            ax2.set_xlabel('Timesteps')
-            plt.ylabel('%s sent' %commod)
-            plt.grid()
-            plt.tight_layout()
-            plt.show()
+            self.plot(x, y, '%s Sent' %commod)
         elif action == 'export':
-            export_dir = os.path.join(self.output_path, 'exported_csv')
-            if not os.path.exists(export_dir):
-                os.mkdir(export_dir)
-            filename = os.path.join(export_dir, '%s.csv' %(commod))
-            s = 'time, quantity\n'
-            for indx, val in enumerate(x):
-                s += '%s, %s\n' %(str(x[indx]), str(y[indx]))
-            with open(filename, 'w') as f:
-                f.write(s)
-            print('Exported %s' %filename)
-            messagebox.showinfo('Success', 'Exported %s' %filename)
-
+            self.export(x, y, '%s.csv' %commod)
 
 
     def agent_deployment_window(self):
@@ -234,11 +201,9 @@ class BackendWindow(Frame):
         # g = f.getframe()
 
         entry = self.cur.execute('SELECT DISTINCT prototype FROM agententry WHERE kind="Facility"').fetchall()
-        proto_list = []
-        for i in entry:
-            proto_list.append(i['prototype'])
+        proto_list = [i['prototype'] for i in entry]
         proto_list.sort(key=str.lower)
-        if len(entry) > 30:
+        if len(entry) > self.scroll_limit:
             parent = self.add_scrollbar(self.agent_dep_window)
 
         columnspan = 7
@@ -294,34 +259,9 @@ class BackendWindow(Frame):
                 y.append(deployed)
 
         if action == 'plot':
-            fig = plt.figure()
-            ax1 = fig.add_subplot(111)
-            ax2 = ax1.twiny()
-            ax1.plot(self.timestep_to_date(x), y)
-            ax1.set_xlabel('Date')
-            new_tick_locations = np.array([.1, .3, .5, .7, .9])
-            ax2.set_xticks(new_tick_locations)
-            l = new_tick_locations * max(x)
-            l = ['%.0f' %z for z in l]
-            print(l)
-            ax2.set_xticklabels(l)
-            ax2.set_xlabel('Timesteps')
-            plt.ylabel('Number of %s (%s)' %(prototype, which))
-            plt.grid()
-            plt.tight_layout()
-            plt.show()
+            self.plot(x, y, 'Number of %s (%s)' %(prototype, which))
         elif action == 'export':
-            export_dir = os.path.join(self.output_path, 'exported_csv')
-            if not os.path.exists(export_dir):
-                os.mkdir(export_dir)
-            filename = os.path.join(export_dir, '%s_%s.csv' %(prototype, which))
-            s = 'time, %s\n' %which
-            for indx, val in enumerate(x):
-                s += '%s, %s\n' %(str(x[indx]), str(y[indx]))
-            with open(filename, 'w') as f:
-                f.write(s)
-            print('Exported %s' %filename)
-            messagebox.showinfo('Success', 'Exported %s' %filename)
+            self.export(x, y, '%s_%s.csv' %(prototype, which))
 
 
     def timeseries_window(self):
@@ -337,7 +277,7 @@ class BackendWindow(Frame):
             if 'TimeSeries' in i['name']:
                 timeseries_tables_list.append(i['name'].replace('TimeSeries', ''))
         timeseries_tables_list.sort()
-        if len(tables) > 30:
+        if len(tables) > self.scroll_limit:
             parent = self.add_scrollbar(self.ts_window)
 
         columnspan = 2
@@ -359,7 +299,7 @@ class BackendWindow(Frame):
         self.ta_window.geometry('+1000+1000')
         parent = self.ta_window
 
-        if len(agentname_list) > 30:
+        if len(agentname_list) > self.scroll_limit:
             parent = self.add_scrollbar(self.ta_window)
         
         columnspan = 3
@@ -377,68 +317,90 @@ class BackendWindow(Frame):
             row += 1
             
        
-
     def timeseries_action_action(self, timeseries, agentid, action):
         if agentid == 'agg':
             series_q = self.cur.execute('SELECT time, sum(value) FROM TimeSeries%s GROUP BY time' %timeseries).fetchall()
         else:
             series_q = self.cur.execute('SELECT time, sum(value) FROM TimeSeries%s WHERE agentid=%s GROUP BY time' %(timeseries, str(agentid))).fetchall()
-        val = [i['sum(value)'] for i in series_q]
-        time = [i['time'] for i in series_q]
-
-        x = []
-        y = []
-        for i in range(self.duration):
-            x.append(i)
-            if i in time:
-                indx = time.index(i)
-                y.append(val[indx])
-            else:
-                y.append(0)
+        x, y = self.query_result_to_timeseries(series_q, 'sum(value)')
 
         if action == 'plot':
-            fig = plt.figure()
-            ax1 = fig.add_subplot(111)
-            ax2 = ax1.twiny()
-            ax1.plot(self.timestep_to_date(x), y)
-            ax1.set_xlabel('Date')
-            new_tick_locations = np.array([.1, .3, .5, .7, .9])
-            ax2.set_xticks(new_tick_locations)
-            l = new_tick_locations * max(x)
-            l = ['%.0f' %z for z in l]
-            print(l)
-            ax2.set_xticklabels(l)
-            ax2.set_xlabel('Timesteps')
-            plt.ylabel('%s Timeseries' %timeseries)
-            plt.grid()
-            plt.tight_layout()
-            plt.show()
+            self.plot(x, y, '%s Timeseries' %timeseries)
         elif action == 'export':
-            export_dir = os.path.join(self.output_path, 'exported_csv')
-            if not os.path.exists(export_dir):
-                os.mkdir(export_dir)
             if agentid == 'agg':
-                filename = os.path.join(export_dir, '%s_aggregate_timeseries.csv' %timeseries)
-            else:   
-                filename = os.path.join(export_dir, '%s_%s_timeseries.csv' %(self.id_proto_dict[agentid], timeseries))
-            s = 'time, value\n'
-            for indx, val in enumerate(x):
-                s += '%s, %s\n' %(str(x[indx]), str(y[indx]))
-            with open(filename, 'w') as f:
-                f.write(s)
-            print('Exported %s' %filename)
-            messagebox.showinfo('Success', 'Exported %s' %filename)
+                name = '%s_aggregate_timeseries.csv' % timeseries
+            else:
+                name = '%s_%s_timeseries.csv' %(self.id_proto_dict[agentid], timeseries)
+            self.export(x, y, name)
+
 
     def facility_inventory_window(self):
-        x = 0
+        # check if explicit inventory is okay
+
+        isit = self.cur.execute('SELECT * FROM InfoExplicitInv').fetchone()
+        if not isit['RecordInventory']:
+            messagebox.showerror('Dont have it', 'This simulation was run without `explicit_inventory` turned on in the simulation definition. Turn that on and run the simulation again to view the inventory.')
+            return
+
+        self.guide_text = ''
+        # show material trade between prototypes
+        self.inv_window = Toplevel(self.master)
+        self.inv_window.title('Which Selection')
+        self.inv_window.geometry('+700+1000')
+        parent = self.inv_window
+        Label(parent, text='Group by agent or prototype:').pack()
+        Button(parent, text='Group by agent', command=lambda: self.inv_inv_window(groupby='agent')).pack()
+        Button(parent, text='Group by prototype', command=lambda: self.inv_inv_window(groupby='prototype')).pack()
+
+    def inv_inv_window(self, groupby):
+        self.guide_text = ''
+        # show material trade between prototypes
+        self.inv_inv_window = Toplevel(self.inv_window)
+        self.inv_inv_window.title('Groupby %s' %groupby)
+        self.inv_inv_window.geometry('+1000+1000')
+        parent = self.inv_inv_window
+        if groupby == 'agent':
+            # show the list of all agents to display
+            if len(self.id_proto_dict.keys()) > self.view_hard_limit:
+                messagebox.showinfo('Too much', 'You have %s distinct agents.. Too much for me to display' %str(len(self.id_proto_dict.keys())))
+                self.inv_inv_window.destroy()
+                return
+            if len(self.id_proto_dict.keys()) > self.scroll_limit:
+                parent = self.add_scrollbar(self.inv_inv_window)
+            row = 0
+            for id_, proto_ in self.id_proto_dict.items():
+                Label(parent, text= '%s (%s)' %(proto_, id_)).grid(row=row, column=0)
+                Button(parent, text='plot', command=lambda id_list=[id_]: self.inv_action(id_list, 'plot')).grid(row=row, column=1)
+                Button(parent, text='export', command=lambda id_list=[id_]: self.inv_action(id_list, 'export')).grid(row=row, column=2)
+        
+        elif groupby == 'prototype':
+            # show the list of prototypes to display
+            entry = self.cur.execute('SELECT DISTINCT prototype FROM agententry WHERE kind="Facility"').fetchall()
+            proto_list = [i['prototype'] for i in entry]
+            proto_list.sort(key=str.lower)
+            if len(self.id_proto_dict.keys()) > self.view_hard_limit:
+                messagebox.showinfo('Too much', 'You have %s distinct agents.. Too much for me to display' %str(len(proto_list)))
+                self.inv_inv_window.destroy()
+                return
+            if len(proto_list) > self.scroll_limit:
+                parent = self.add_scrollbar(self.inv_inv_window)
+            row = 0
+            for i in proto_list:
+                id_list = [k for k,v in self.id_proto_dict.items() if v == i]
+                Label(parent, text= '%s' %i).grid(row=row, column=0)
+                Button(parent, text='plot', command=lambda id_list=[id_list]: self.inv_action(id_list, 'plot')).grid(row=row, column=1)
+                Button(parent, text='export', command=lambda id_list=[id_list]: self.inv_action(id_list, 'export')).grid(row=row, column=2)
 
 
+    def inv_action(self, id_list, action):
+        str_id_list = [str(q) for q in id_list]
+        query = 'SELECT sum(quantity), time FROM ExplicitInventory WHERE (agentid = ' + ' OR agentid = '.join(str_id_list) + ') GROUP BY time'
+        x, y = self.query_result_to_timeseries(query, 'sum(quantity)')
 
 
     # helper functions
 
-
-    def plot(self, x, y, ylabel):
+    def plot(self, x, y, ylabel, xlabel='Date'):
         fig = plt.figure()
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twiny()
@@ -446,8 +408,17 @@ class BackendWindow(Frame):
             for key, val in y.items():
                 ax1.plot(self.timestep_to_date(x), val, label=key)
             plt.legend()
+            if sum(sum(y[k]) for k in y) > 1e3:
+                ax1 = plt.gca()
+                ax1.get_yaxis().set_major_formatter(
+                    plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
         else:
             ax1.plot(self.timestep_to_date(x), y)
+            if max(y) > 1e3:
+                ax1 = plt.gca()
+                ax1.get_yaxis().set_major_formatter(
+                    plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
+        ax1.set_xlabel(xlabel)
         new_tick_locations = np.array([.1, .3, .5, .7, .9])
         ax2.set_xticks(new_tick_locations)
         l = new_tick_locations * max(x)
@@ -479,6 +450,7 @@ class BackendWindow(Frame):
         print('Exported %s' %filename)
         messagebox.showinfo('Success', 'Exported %s' %filename)
 
+
     def timestep_to_date(self, timestep):
         timestep = np.array(timestep) 
         month = self.init_month + (timestep * (self.dt / 2629846))
@@ -487,22 +459,40 @@ class BackendWindow(Frame):
         dates = [x+(y/12) for x, y in zip(year, month)]
         return dates
 
-    def query_result_to_timeseries(self, query_result, col_name):
-        qt = []
-        time = []
+
+    def query_result_to_timeseries(self, query_result, col_name, time_col_name='time'):
+        x = np.arange(self.duration)
+        y = np.zeros(self.duration)
         for i in query_result:
-            qt.append(i[col_name])
-            time.append(i['time'])
-        x = []
-        y = []
-        for i in range(self.duration):
-            x.append(i)
-            if i in time:
-                indx = time.index(i)
-                y.append(qt[indx])
-            else:
-                y.append(0)
+            y[int(i[time_col_name])] += i[col_name]
         return x, y
+
+    def query_result_to_dict(self, query_result, col_name_list, time_col_name='time'):
+        x = np.arange(self.duration)
+        y = {}
+        for i in col_name_list:
+            y[i] = np.zeros(self.duration)
+        for i in query_result:
+            for j in col_name_list:
+                y[int(i[time_col_name])] += i[j]
+        return x, y
+
+
+    def aggregate_dates(self, x, y, agg_dt):
+        # roughly aggregates
+        groups = int(self.agg_dt / self.dt)
+        new_x = np.arange(self.duration / groups)
+        new_y = []
+
+
+    def assess_scroll_deny(self, length, window_obj):
+        if length > self.view_hard_limit:
+            messagebox.showinfo('Too much', 'You have %s distinct values. Too much to show here.' %length)
+            window_obj.destroy()
+            return -1
+        if length > self.scroll_limit:
+            return self.add_scrollbar(window_obj)
+
 
     def add_scrollbar(self, window_obj):
         canvas = Canvas(window_obj, width=600, height=1000)
@@ -517,7 +507,6 @@ class BackendWindow(Frame):
         canvas.create_window((4,4), window=frame, anchor='nw')
         return frame
 
-    
     
     def guide(self):
         self.guide_window = Toplevel(self.master)
