@@ -28,8 +28,7 @@ class SimulationWindow():
         self.master.geometry('+0+500')
         self.guide()
         inputs = ['duration', 'startmonth', 'startyear', 'decay',
-                  'explicit_inventory', 'explicit_inventory_compact',
-                  'dt']
+                  'explicit_inventory', 'dt']
         for i, txt in enumerate(inputs):
             Label(self.master, text=txt).grid(row=(i))
 
@@ -43,7 +42,6 @@ class SimulationWindow():
         self.entry_dict['decay'].insert(END, 'lazy')
         self.entry_dict['dt'].insert(END, 2629846)
         self.entry_dict['explicit_inventory'].insert(END, 0)
-        self.entry_dict['explicit_inventory_compact'].insert(END, 0)
 
         if os.path.isfile(os.path.join(self.output_path, 'simulation.xml')):
             self.read_xml()
@@ -113,9 +111,9 @@ class SimulationWindow():
         decay = Decay solver [never, lazy, manual]
         
         explicit_inventory =  Create ExplicitInventory table [0,1]
-       
-        explicit_inventory_compact = Create ExplicitInventoryCompact table [0,1]
-       
+        If you want to get the inventory of each facility at each timestep,
+        write 1
+             
         dt = Duration of single timestep in seconds (default is a month -> 2,629,846)
 
         FOR MORE INFORMATION:
