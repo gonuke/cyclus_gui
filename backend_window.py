@@ -41,10 +41,10 @@ class BackendWindow(Frame):
         commodity_transfer_button = Button(self.master, text='Get Commodity Flow', command=lambda : self.commodity_transfer_window())
         commodity_transfer_button.pack()
 
-        deployment_of_agents_button = Button(self.master, text='Get Agent Deployment', command=lambda : self.agent_deployment_window())
+        deployment_of_agents_button = Button(self.master, text='Get Prototype Deployment', command=lambda : self.agent_deployment_window())
         deployment_of_agents_button.pack()
 
-        facility_inventory_button = Button(self.master, text='Get Facility Inventory', command=lambda : self.facility_inventory_button())
+        facility_inventory_button = Button(self.master, text='Get Facility Inventory', command=lambda : self.facility_inventory_window())
         facility_inventory_button.pack()
 
         timeseries_button = Button(self.master, text='Get Timeseries', command=lambda : self.timeseries_window())
@@ -99,17 +99,7 @@ class BackendWindow(Frame):
             self.material_flow_window.destroy()
             return
         if len(traders) > 30:
-            canvas = Canvas(self.material_flow_window, width=800, height=1000)
-            frame = Frame(canvas)
-            scrollbar = Scrollbar(self.material_flow_window, command=canvas.yview)
-            scrollbar.pack(side=RIGHT, fill='y')
-            canvas.pack(side=LEFT, fill='both', expand=True)        
-            def on_configure(event):
-                canvas.configure(scrollregion=canvas.bbox('all'))
-            canvas.configure(yscrollcommand=scrollbar.set)
-            frame.bind('<Configure>', on_configure)
-            canvas.create_window((4,4), window=frame, anchor='nw')
-            parent = frame 
+            parent = self.add_scrollbar(self.material_flow_window)
 
         # create table of sender - receiverid - commodity set like:
         for i in traders:
@@ -138,62 +128,21 @@ class BackendWindow(Frame):
             Button(parent, text='export', command=lambda sender=val, receiver=table_dict['receiver'][indx], commodity=table_dict['commodity'][indx]: self.sender_receiver_action(sender, receiver, commodity, 'export')).grid(row=row, column=6)
             row += 1
 
-    def get_transaction_sr(self, sender, receiver, commodity):
-        sender_id = sender[sender.index('(')+1:sender.index(')')]
-        receiver_id = receiver[receiver.index('(')+1:receiver.index(')')]
-        t = self.cur.execute('SELECT sum(quantity), time FROM transactions INNER JOIN resources ON transactions.resourceid == resources.resourceid where senderid=%s and receiverid=%s and commodity="%s" GROUP BY transactions.time' %(sender_id, receiver_id, commodity)).fetchall()
-        qt = []
-        time = []
-        for i in t:
-            qt.append(i['sum(quantity)'])
-            time.append(i['time'])
-        x = []
-        y = []
-        for i in range(self.duration):
-            x.append(i)
-            if i in time:
-                indx = time.index(i)
-                y.append(qt[indx])
-            else:
-                y.append(0)
-        return x, y
+
 
     def sender_receiver_action(self, sender, receiver, commodity, action):
         sender_name = sender[:sender.index('(')]
         receiver_name = receiver[:receiver.index('(')]
-        x, y = self.get_transaction_sr(sender, receiver, commodity)
-        #! maybe combine these two later on
+        sender_id = sender[sender.index('(')+1:sender.index(')')]
+        receiver_id = receiver[receiver.index('(')+1:receiver.index(')')]
+        t = self.cur.execute('SELECT sum(quantity), time FROM transactions INNER JOIN resources ON transactions.resourceid == resources.resourceid where senderid=%s and receiverid=%s and commodity="%s" GROUP BY transactions.time' %(sender_id, receiver_id, commodity)).fetchall()
+        x, y = self.query_result_to_timeseries(t, 'sum(quantity)')
 
         if action == 'plot':
-            fig = plt.figure()
-            ax1 = fig.add_subplot(111)
-            ax2 = ax1.twiny()
-            ax1.plot(self.timestep_to_date(x), y)
-            ax1.set_xlabel('Date')
-            new_tick_locations = np.array([.1, .3, .5, .7, .9])
-            ax2.set_xticks(new_tick_locations)
-            l = new_tick_locations * max(x)
-            l = ['%.0f' %z for z in l]
-            print(l)
-            ax2.set_xticklabels(l)
-            ax2.set_xlabel('Timesteps')
-            plt.ylabel('%s sent' %commodity)
-            plt.grid()
-            plt.tight_layout()
-            plt.show()
+            self.plot(x, y, '%s Sent' %commodity)
         elif action == 'export':
-            export_dir = os.path.join(self.output_path, 'exported_csv')
-            if not os.path.exists(export_dir):
-                os.mkdir(export_dir)
-            filename = os.path.join(export_dir, '%s_%s_%s.csv' %(sender_name, receiver_name, commodity))
-            s = 'time, quantity\n'
-            for indx, val in enumerate(x):
-                s += '%s, %s\n' %(str(x[indx]), str(y[indx]))
-            with open(filename, 'w') as f:
-                f.write(s)
-            print('Exported %s' %filename)
-            messagebox.showinfo('Success', 'Exported %s' %filename)
-
+            self.export(x, y, '%s_%s_%s.csv' %(sender_name, receiver_name, commodity))
+            
 
     def commodity_transfer_window(self):
         self.guide_text = ''
@@ -206,20 +155,9 @@ class BackendWindow(Frame):
         names = []
         for i in commods:
             names.append(i['commodity'])
-        names.sort()
+        names.sort(key=str.lower)
         if len(commods) > 30:
-            canvas = Canvas(self.commodity_tr_window, width=800, height=1000)
-            frame = Frame(canvas)
-            scrollbar = Scrollbar(self.commodity_tr_window, command=canvas.yview)
-            scrollbar.pack(side=RIGHT, fill='y')
-            canvas.pack(side=LEFT, fill='both', expand=True)        
-            def on_configure(event):
-                canvas.configure(scrollregion=canvas.bbox('all'))
-            canvas.configure(yscrollcommand=scrollbar.set)
-            frame.bind('<Configure>', on_configure)
-        
-            canvas.create_window((4,4), window=frame, anchor='nw')
-            parent = frame
+            parent = self.add_scrollbar(self.commodity_tr_window)
 
         columnspan = 3
         
@@ -288,7 +226,7 @@ class BackendWindow(Frame):
         self.guide_text = ''
 
         self.agent_dep_window = Toplevel(self.master)
-        self.agent_dep_window.title('Agent Deployment / Exit Window')
+        self.agent_dep_window.title('Prototype Deployment / Exit Window')
         self.agent_dep_window.geometry('+700+1000')
         parent = self.agent_dep_window
         # s = bwidget.ScrolledWindow(self.agent_dep_window, auto='vertical', scrollbar='vertical')
@@ -299,35 +237,26 @@ class BackendWindow(Frame):
         proto_list = []
         for i in entry:
             proto_list.append(i['prototype'])
-        proto_list.sort()
+        proto_list.sort(key=str.lower)
         if len(entry) > 30:
-            canvas = Canvas(self.agent_dep_window, width=800, height=1000)
-            frame = Frame(canvas)
-            scrollbar = Scrollbar(self.agent_dep_window, command=canvas.yview)
-            scrollbar.pack(side=RIGHT, fill='y')
-            canvas.pack(side=LEFT, fill='both', expand=True)        
-            def on_configure(event):
-                canvas.configure(scrollregion=canvas.bbox('all'))
-            canvas.configure(yscrollcommand=scrollbar.set)
-            frame.bind('<Configure>', on_configure)
-            
-            canvas.create_window((4,4), window=frame, anchor='nw')
-            parent = frame
+            parent = self.add_scrollbar(self.agent_dep_window)
 
         columnspan = 7
         
 
         Label(parent, text='List of Agents').grid(row=0, columnspan=columnspan)
         Label(parent, text='======================').grid(row=1, columnspan=columnspan)
-        row = 2
+        Label(parent, text='=====Plot=====').grid(row=2, columnspan=3)
+        Label(parent, text='=====Export=====').grid(row=2, column=4, columnspan=3)
+        row = 3
         for i in proto_list:
-            Label(parent, text=i).grid(row=row, column=0)
-            Button(parent, text='plot enter', command=lambda prototype=i : self.agent_deployment_action(prototype, 'plot', 'enter')).grid(row=row, column=1)
-            Button(parent, text='plot exit', command=lambda prototype=i : self.agent_deployment_action(prototype, 'plot', 'exit')).grid(row=row, column=2)
-            Button(parent, text='plot deployed', command=lambda prototype=i : self.agent_deployment_action(prototype, 'plot', 'deployed')).grid(row=row, column=3)
-            Button(parent, text='export enter', command=lambda prototype=i: self.agent_deployment_action(prototype, 'export', 'enter')).grid(row=row, column=4)
-            Button(parent, text='export exit', command=lambda prototype=i: self.agent_deployment_action(prototype, 'export', 'exit')).grid(row=row, column=5)
-            Button(parent, text='export deployed', command=lambda prototype=i: self.agent_deployment_action(prototype, 'export', 'deployed')).grid(row=row, column=6)
+            Label(parent, text=i).grid(row=row, column=3)
+            Button(parent, text='enter', command=lambda prototype=i : self.agent_deployment_action(prototype, 'plot', 'enter')).grid(row=row, column=0)
+            Button(parent, text='exit', command=lambda prototype=i : self.agent_deployment_action(prototype, 'plot', 'exit')).grid(row=row, column=1)
+            Button(parent, text='deployed', command=lambda prototype=i : self.agent_deployment_action(prototype, 'plot', 'deployed')).grid(row=row, column=2)
+            Button(parent, text='enter', command=lambda prototype=i: self.agent_deployment_action(prototype, 'export', 'enter')).grid(row=row, column=4)
+            Button(parent, text='exit', command=lambda prototype=i: self.agent_deployment_action(prototype, 'export', 'exit')).grid(row=row, column=5)
+            Button(parent, text='deployed', command=lambda prototype=i: self.agent_deployment_action(prototype, 'export', 'deployed')).grid(row=row, column=6)
             row += 1
 
 
@@ -409,18 +338,7 @@ class BackendWindow(Frame):
                 timeseries_tables_list.append(i['name'].replace('TimeSeries', ''))
         timeseries_tables_list.sort()
         if len(tables) > 30:
-            canvas = Canvas(self.ts_window, width=800, height=1000)
-            frame = Frame(canvas)
-            scrollbar = Scrollbar(self.ts_window, command=canvas.yview)
-            scrollbar.pack(side=RIGHT, fill='y')
-            canvas.pack(side=LEFT, fill='both', expand=True)        
-            def on_configure(event):
-                canvas.configure(scrollregion=canvas.bbox('all'))
-            canvas.configure(yscrollcommand=scrollbar.set)
-            frame.bind('<Configure>', on_configure)
-        
-            canvas.create_window((4,4), window=frame, anchor='nw')
-            parent = frame
+            parent = self.add_scrollbar(self.ts_window)
 
         columnspan = 2
         Label(parent, text='List of Timeseries').grid(row=0, columnspan=columnspan)
@@ -442,18 +360,7 @@ class BackendWindow(Frame):
         parent = self.ta_window
 
         if len(agentname_list) > 30:
-            canvas = Canvas(self.ta_window, width=800, height=1000)
-            frame = Frame(canvas)
-            scrollbar = Scrollbar(self.ta_window, command=canvas.yview)
-            scrollbar.pack(side=RIGHT, fill='y')
-            canvas.pack(side=LEFT, fill='both', expand=True)        
-            def on_configure(event):
-                canvas.configure(scrollregion=canvas.bbox('all'))
-            canvas.configure(yscrollcommand=scrollbar.set)
-            frame.bind('<Configure>', on_configure)
-        
-            canvas.create_window((4,4), window=frame, anchor='nw')
-            parent = frame
+            parent = self.add_scrollbar(self.ta_window)
         
         columnspan = 3
         Label(parent, text='Agents that reported %s' %timeseries).grid(row=0, columnspan=columnspan)
@@ -522,6 +429,56 @@ class BackendWindow(Frame):
             print('Exported %s' %filename)
             messagebox.showinfo('Success', 'Exported %s' %filename)
 
+    def facility_inventory_window(self):
+        x = 0
+
+
+
+
+    # helper functions
+
+
+    def plot(self, x, y, ylabel):
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111)
+        ax2 = ax1.twiny()
+        if type(y) is dict:
+            for key, val in y.items():
+                ax1.plot(self.timestep_to_date(x), val, label=key)
+            plt.legend()
+        else:
+            ax1.plot(self.timestep_to_date(x), y)
+        new_tick_locations = np.array([.1, .3, .5, .7, .9])
+        ax2.set_xticks(new_tick_locations)
+        l = new_tick_locations * max(x)
+        l = ['%.0f' %z for z in l]
+        print(l)
+        ax2.set_xticklabels(l)
+        ax2.set_xlabel('Timesteps')
+        plt.ylabel(ylabel)
+        plt.grid()
+        plt.tight_layout()
+        plt.show()
+
+
+    def export(self, x, y, filename):
+        export_dir = os.path.join(self.output_path, 'exported_csv')
+        if not os.path.exists(export_dir):
+            os.mkdir(export_dir)
+        filename = os.path.join(export_dir, filename)
+        if type(y) is dict:
+            s = 'time, %s\n' %', '.join(list(y.keys()))
+            for indx, val in enumerate(x):
+                s += '%s, %s\n' %(str(x[indx]), ', '.join([q[indx] for q in list(y.values())]))
+        else:
+            s = 'time, quantity\n'
+            for indx, val in enumerate(x):
+                s += '%s, %s\n' %(str(x[indx]), str(y[indx]))
+        with open(filename, 'w') as f:
+            f.write(s)
+        print('Exported %s' %filename)
+        messagebox.showinfo('Success', 'Exported %s' %filename)
+
     def timestep_to_date(self, timestep):
         timestep = np.array(timestep) 
         month = self.init_month + (timestep * (self.dt / 2629846))
@@ -529,6 +486,37 @@ class BackendWindow(Frame):
         month = month%12
         dates = [x+(y/12) for x, y in zip(year, month)]
         return dates
+
+    def query_result_to_timeseries(self, query_result, col_name):
+        qt = []
+        time = []
+        for i in query_result:
+            qt.append(i[col_name])
+            time.append(i['time'])
+        x = []
+        y = []
+        for i in range(self.duration):
+            x.append(i)
+            if i in time:
+                indx = time.index(i)
+                y.append(qt[indx])
+            else:
+                y.append(0)
+        return x, y
+
+    def add_scrollbar(self, window_obj):
+        canvas = Canvas(window_obj, width=600, height=1000)
+        frame = Frame(canvas)
+        scrollbar = Scrollbar(window_obj, command=canvas.yview)
+        scrollbar.pack(side=RIGHT, fill='y')
+        canvas.pack(side=LEFT, fill='both', expand=True)        
+        def on_configure(event):
+            canvas.configure(scrollregion=canvas.bbox('all'))
+        canvas.configure(yscrollcommand=scrollbar.set)
+        frame.bind('<Configure>', on_configure)
+        canvas.create_window((4,4), window=frame, anchor='nw')
+        return frame
+
     
     
     def guide(self):
