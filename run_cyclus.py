@@ -73,15 +73,7 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
 
     def run_locally(self):
         # check if output exists, and if it does, change its name to temp_whatever
-        self.output_pipe.insert(END, '\nChecking if output `cyclus.sqlite` already exists...')
-        if os.path.isfile(self.output_path):
-            i = 1
-            self.outdir = os.path.dirname(self.output_path)
-            while os.path.isfile(os.path.join(self.outdir, 'temp_%s.sqlite' %str(i))):
-                i += 1
-            self.output_pipe.insert(END, '\n`cyclus.sqlite` already exists! Changing the previous filename to temp_%s.sqlite\n' %str(i))
-            os.rename(os.path.join(self.outdir, 'temp_%s.sqlite' %str(i)))
-
+        self.check_existing_output()
         # run cyclus 
         self.output_pipe.insert(END, '\nAttempting to run Cyclus locally:')
         cyclus_cmd = self.cyclus_cmd.get()
@@ -96,6 +88,15 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
         if 'success' in out.decode('utf-8'):
             self.output_pipe.insert(END, '\n\nGreat! move on to the backend analysis!')
 
+    def check_existing_output(self):
+        self.output_pipe.insert(END, '\nChecking if output `cyclus.sqlite` already exists...')
+        if os.path.isfile(self.output_path):
+            i = 1
+            self.outdir = os.path.dirname(self.output_path)
+            while os.path.isfile(os.path.join(self.outdir, 'temp_%s.sqlite' %str(i))):
+                i += 1
+            self.output_pipe.insert(END, '\n`cyclus.sqlite` already exists! Changing the previous filename to temp_%s.sqlite\n' %str(i))
+            os.rename(self.output_path, os.path.join(self.outdir, 'temp_%s.sqlite' %str(i)))
 
     def run_on_cloud(self):
         # microsoft azure account
@@ -117,11 +118,13 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
                 http_con.connect()
                 sock = http_con.sock
                 self.ssh.connect(ip, username=self.username,
-                                 password=' ', sock=sock)
+                                 password=' ', sock=sock,
+                                 allow_agent=False, look_for_keys=False)
 
             else:
                 self.ssh.connect(ip, username=self.username,
-                                 password=' ')
+                                 password=' ',
+                                 allow_agent=False, look_for_keys=False)
             self.output_pipe.insert(END, '\n\n CONNECTED. Now uploading generated input file, running the file on the VM, and downloading the file:\n\n')
             self.upload_run_download(self.input_path, self.output_path)
             self.return_code = 0
@@ -129,7 +132,7 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
         except Exception as e:
             self.err_message = """Did not connect! Check Internet connection or contact baej@ornl.gov
 If you are using this in a secure network, that might be the reason as well.
-Try using a tunneling application (ex. Corkscrew) to use a proxy, by defining the `ProxyCommand' block.
+Try using a tunneling application (ex. Corkscrew) to use a proxy, by defining the `hostname' and `port' blocks.
 https://wiki.archlinux.org/index.php/HTTP_tunneling
 
 
@@ -179,11 +182,13 @@ Error message:\n""" + str(e)
         # run Cyclus
         remote_output_path = remote_input_path.replace('input.xml',
                                                        'cyclus.sqlite')
+        
         c = self.run_and_print('/home/baej/.local/bin/cyclus %s -o %s --warn-limit 0' %(remote_input_path,
                                                                          remote_output_path), p=True)
         if c == 0 or ('error' not in c and 'Abort' not in c and 'fatal' not in c):
             # download yo
             self.output_pipe.insert(END, '\n Run Successful. Now downloading output back into local drive:\n')
+            self.check_existing_output()
             ftp.get(remote_output_path, output_path)
             time.sleep(5)
             self.output_pipe.insert(END, '\n All done! Now proceed to backend analysis for some plots and data\n')
