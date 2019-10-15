@@ -76,7 +76,7 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
         self.output_pipe.insert(END, '\nChecking if output `cyclus.sqlite` already exists...')
         if os.path.isfile(self.output_path):
             i = 1
-            self.outdir = os.path.dirnmae(self.output_path)
+            self.outdir = os.path.dirname(self.output_path)
             while os.path.isfile(os.path.join(self.outdir, 'temp_%s.sqlite' %str(i))):
                 i += 1
             self.output_pipe.insert(END, '\n`cyclus.sqlite` already exists! Changing the previous filename to temp_%s.sqlite\n' %str(i))
