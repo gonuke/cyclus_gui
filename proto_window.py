@@ -1,3 +1,4 @@
+from pprint import pprint
 from tkinter import *
 from PIL import Image, ImageTk
 from tkinter import messagebox
@@ -180,19 +181,19 @@ class PrototypeWindow(Frame):
         if os.path.isfile(path):
             with open(path, 'r') as f:
                 jtxt = f.read()
-            j = json.loads(jtxt)
+            self.j = json.loads(jtxt)
 
         else:
             messagebox.showinfo('Cyclus not found', 'Cyclus is not found, Using documentation from packaged json.')
             with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'src/metadata.json'), 'r') as f:
                 jtxt = f.read()
-            j = json.loads(jtxt)
+            self.j = json.loads(jtxt)
 
         # get documentation for variable and archetype
         self.doc_dict = {}
         self.type_dict = {}
         self.default_dict = {}
-        for arche, cat_dict in j['annotations'].items():
+        for arche, cat_dict in self.j['annotations'].items():
             arche = arche[1:]
             self.doc_dict[arche] = {}
             self.type_dict[arche] = {}
@@ -219,9 +220,9 @@ class PrototypeWindow(Frame):
 
         self.tag_dict = {}
         self.param_dict = {}
-        j['schema'] = {k:v for k,v in j['schema'].items() if 'region' not in k.lower()}
-        j['schema'] = {k:v for k,v in j['schema'].items() if 'inst' not in k.lower()}
-        for arche, xml in j['schema'].items():
+        self.j['schema'] = {k:v for k,v in self.j['schema'].items() if 'region' not in k.lower()}
+        self.j['schema'] = {k:v for k,v in self.j['schema'].items() if 'inst' not in k.lower()}
+        for arche, xml in self.j['schema'].items():
             arche = arche[1:]
             schema_dict = xmltodict.parse(xml)
             self.tag_dict[arche] = {}
@@ -428,13 +429,14 @@ class PrototypeWindow(Frame):
             oneormore.remove('in_streams')
         one = self.param_dict[archetype]['one']
 
+        pprint(self.param_dict[archetype])
         for val in oneormore:
             start_row += 1
-            self.add_row_oneormore(val, self.def_window, start_row)
+            self.add_row_oneormore(val, self.def_window, start_row, archetype)
 
         for  val in one:
             start_row += 1
-            self.add_row(val, self.def_window, start_row)   
+            self.add_row(val, self.def_window, start_row, archetype)   
             # add color for non-essential parameters
 
 
@@ -465,8 +467,8 @@ class PrototypeWindow(Frame):
         self.entry_dict = {}
         self.unknown_window()
         self.unknown_entry = 0
-        Button(self.def_window, text='Add scalar', command=lambda:self.add_row('', self.def_window, self.start_row)).grid(row=self.start_row, column=0)
-        Button(self.def_window, text='Add vector', command=lambda:self.add_row_oneormore('', self.def_window, self.start_row)).grid(row=self.start_row, column=1)
+        Button(self.def_window, text='Add scalar', command=lambda:self.add_row('', self.def_window, self.start_row, archetype)).grid(row=self.start_row, column=0)
+        Button(self.def_window, text='Add vector', command=lambda:self.add_row_oneormore('', self.def_window, self.start_row, archetype)).grid(row=self.start_row, column=1)
         self.start_row += 1
         Label(self.def_window, text='Parameter').grid(row=self.start_row, column=1)
         Label(self.def_window, text='tag').grid(row=self.start_row, column=2)
@@ -480,7 +482,7 @@ class PrototypeWindow(Frame):
                 if isinstance(val, dict):
                     # dict = one or more
                     # populate entry blanks
-                    self.add_row_oneormore('', self.def_window, self.start_row)
+                    self.add_row_oneormore('', self.def_window, self.start_row, archetype)
                     for tag, vallist in val.items():
                         label = self.unknown_entry * -1
                         for i in range(len(vallist)):
@@ -492,7 +494,7 @@ class PrototypeWindow(Frame):
 
                 else:
                     # populate entry objects
-                    self.add_row('', self.def_window, self.start_row)
+                    self.add_row('', self.def_window, self.start_row, archetype)
                     label = self.unknown_entry
                     self.entry_dict[label][self.start_row-1][0].insert(END, param)
                     self.entry_dict[label][self.start_row-1][1].insert(END, val)
@@ -740,7 +742,8 @@ class PrototypeWindow(Frame):
         
 
 
-    def add_row(self, label, master, rownum, color='black'):
+    def add_row(self, label, master, rownum, archetype):
+        color = 'black'
         if '*' in label:
             color = 'red'
         if label == '':
@@ -755,10 +758,14 @@ class PrototypeWindow(Frame):
         label = label.replace('*', '')
         Label(master, text=label, fg=color).grid(row=rownum, column=1)
         self.entry_dict[label] = {rownum: Entry(self.def_window)}
+        if color == 'red':
+            default_val = str(self.j['annotations'][':'+archetype]['vars'][label]['default'])
+            self.entry_dict[label][rownum].insert(END, default_val)
         self.entry_dict[label][rownum].grid(row=rownum, column=2)
 
 
-    def add_row_oneormore(self, label, master, rownum, color='black'):
+    def add_row_oneormore(self, label, master, rownum, archetype):
+        color = 'black'
         if '*' in label:
             color = 'red'
         if label == '':
