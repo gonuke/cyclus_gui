@@ -7,14 +7,15 @@ import xml.etree.ElementTree as et
 import xmltodict
 import uuid
 import os
-import seaborn as sns
 import shutil
 import json
 import copy
-# import analysis as an
 import sqlite3 as lite
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+
 
 
 class BackendWindow(Frame):
@@ -623,8 +624,8 @@ class BackendWindow(Frame):
         if not os.path.exists(export_dir):
             os.mkdir(export_dir)
         filename = os.path.join(export_dir, filename)
-        columns = [self.nucid_convert(q) for q in list(y.keys())]
         if type(y) is dict:
+            columns = [self.nucid_convert(q) for q in list(y.keys())]
             s = 'time, %s\n' %', '.join(columns)
             for indx, val in enumerate(x):
                 s += '%s, %s\n' %(str(x[indx]), ', '.join([str(q[indx]) for q in list(y.values())]))
