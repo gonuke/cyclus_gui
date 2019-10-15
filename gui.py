@@ -146,7 +146,8 @@ class Cygui(Frame):
         if name == 'backend':
             if not os.path.isfile(os.path.join(output_path, 'cyclus.sqlite')):
                 messagebox.showerror('Error', 'You must have the output file first!')
-            self.app = BackendWindow(self.master, output_path)
+            else:
+                self.app = BackendWindow(self.master, output_path)
 
     def load_prev_window(self):
         self.load_window = Toplevel(self.master)
@@ -218,23 +219,10 @@ class Cygui(Frame):
             input_file += '\n</simulation>'
             with open(os.path.join(output_path, 'input.xml'), 'w') as f:
                 f.write(input_file)
-            if run:
-                try:
-                    input_path = os.path.join(output_path, 'input.xml')
-                    output = os.path.join(output_path, 'output.sqlite')
-                    run = cyclus_run(input_path, output)
-                    if run.return_code == -1:
-                        messagebox.showinfo('Connection Error', run.err_message)
-                        return
-                    elif run.return_code == -2:
-                        messagebox.showinfo('Cyclus Error', run.err_message)
-                        return
-                    else:
-                        messagebox.showinfo('Run Successful!', 'Output file in: %s' %output)
-                        self.master.destroy()
-                except Exception as e:
-                    print('Something Went Wrong:')
-                    print(e)
+            if run:                
+                input_path = os.path.join(output_path, 'input.xml')
+                output = os.path.join(output_path, 'cyclus.sqlite')
+                run = cyclus_run(self.master, input_path, output)
 
 
     def guide(self):
