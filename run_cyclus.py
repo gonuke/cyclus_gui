@@ -59,7 +59,15 @@ class cyclus_run:
         s.config(command=self.output_pipe.yview)
         self.output_pipe.pack(side=LEFT, fill=Y)
         self.output_pipe.config(yscrollcommand=s.set)
-        self.output_pipe.insert(END, 'This is where the outputs of Cyclus run will be displayed\n\n')
+        guide = """This is where you run Cyclus with the generated input file!
+You have the choice to run locally or run on the cloud (Azure VM). If you do not
+have Cyclus installed in your local drive, you'd have to run on the cloud. 
+
+Locally: define the Cyclus command/path for the run (default `cyclus')
+
+Cloud: if you're connected to an open network, leave the proxy hostname/port blank. However, if you are in a secured network (like in a national lab) and might need to tunnel your ssh, list the proxy hostname and port in the blanks. For ORNL, the hostname is `snowman.ornl.gov' and port is `3128'."""
+
+        self.output_pipe.insert(END, guide+'\n\n')
 
 
     def run_locally(self):
@@ -86,7 +94,6 @@ class cyclus_run:
         self.output_pipe.insert(END, '\n\n'+out.decode('utf-8'))
         if 'success' in out.decode('utf-8'):
             self.output_pipe.insert(END, '\n\nGreat! move on to the backend analysis!')
-
 
 
     def run_on_cloud(self):
@@ -178,13 +185,13 @@ Error message:\n""" + str(e)
             ftp.get(remote_output_path, output_path)
             time.sleep(5)
             self.output_pipe.insert(END, '\n All done! Now proceed to backend analysis for some plots and data\n')
-            # delete file
-            #self.run_and_print('rm -rf %s' %rnd_dir)
-
+                        
         else:
             self.err_message = 'Cyclus run failed! Check terminal output'
             self.output_pipe.insert(END, '\n\n')
             self.output_pipe.insert(END, self.err_message)
             self.return_code = -2
+        # delete file
+        self.run_and_print('rm -rf %s' %rnd_dir)
 
 
