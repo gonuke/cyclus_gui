@@ -16,6 +16,7 @@ import sqlite3 as lite
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class BackendWindow(Frame):
     def __init__(self, master, output_path):
         """
@@ -47,7 +48,7 @@ class BackendWindow(Frame):
         commodity_transfer_button = Button(self.master, text='Get Commodity Flow', command=lambda : self.commodity_transfer_window())
         commodity_transfer_button.pack()
 
-        deployment_of_agents_button = Button(self.master, text='Get Prototype Deployment', command=lambda : self.agent_deployment_window())
+        deployment_of_agents_button = Button(self.master, text='Get Facility Deployment', command=lambda : self.agent_deployment_window())
         deployment_of_agents_button.pack()
 
         facility_inventory_button = Button(self.master, text='Get Facility Inventory', command=lambda : self.facility_inventory_window())
@@ -124,11 +125,20 @@ class BackendWindow(Frame):
         self.raw_table_window.title('Navigate Raw Tables')
         self.raw_table_window.geometry('+0+3500')
         # just like a sql query with ability to export and stuff
-        self.guide_text = ''
+        self.guide_text.set('This not ready yet')
 
 
     def material_flow_selection(self):
-        self.guide_text = ''
+        self.guide_text.set("""
+            Material Flow:
+            
+            Material flow can be plotted/exported by agent or prototype
+            
+            agent: for each unique agent(id), you can select which
+                transaction to plot / export
+            prototype: for each unique prototype (agents with same
+                prototypes are aggregated), you can select
+                which transaction to plot / export""")
         self.mat_selec_window = Toplevel(self.master)
         self.mat_selec_window.title('Which Selection')
         self.mat_selec_window.geometry('+700+1000')
@@ -140,7 +150,6 @@ class BackendWindow(Frame):
 
 
     def view_material_flow(self, groupby):
-        self.guide_text = ''
         # show material trade between prototypes
         self.material_flow_window = Toplevel(self.master)
         self.material_flow_window.title('List of transactions to view')
@@ -241,7 +250,12 @@ class BackendWindow(Frame):
             
 
     def commodity_transfer_window(self):
-        self.guide_text = ''
+        self.guide_text.set("""
+            Commodity transfer:
+            
+            You can plot/export the aggregated transaction
+            of all unique commodities. The direction of the movement
+            is not taken into account.""")
         self.commodity_tr_window = Toplevel(self.master)
         self.commodity_tr_window.title('Commodity Movement Window')
         self.commodity_tr_window.geometry('+700+1000')
@@ -290,10 +304,17 @@ class BackendWindow(Frame):
         """
         plots / exports prototype entry and exit
         """
-        self.guide_text = ''
+        self.guide_text.set("""
+            Facility Prototype Deployment:
+            
+            You can plot / export different facility prototype deployment:
+            
+            1. [enter]: number of facilities entered (commissioned) at each timestep
+            2. [exit]: number of facilities exited (decommissioned) at each timestep
+            3. [deployed]: number of facilities `at play' at each timestep""")
 
         self.agent_dep_window = Toplevel(self.master)
-        self.agent_dep_window.title('Prototype Deployment / Exit Window')
+        self.agent_dep_window.title('Facility Prototype Deployment / Exit Window')
         self.agent_dep_window.geometry('+700+1000')
         parent = self.agent_dep_window
         # s = bwidget.ScrolledWindow(self.agent_dep_window, auto='vertical', scrollbar='vertical')
@@ -308,7 +329,7 @@ class BackendWindow(Frame):
             return
 
         columnspan = 7
-        
+
 
         Label(parent, text='List of Agents').grid(row=0, columnspan=columnspan)
         Label(parent, text='======================').grid(row=1, columnspan=columnspan)
@@ -366,7 +387,19 @@ class BackendWindow(Frame):
 
 
     def timeseries_window(self):
-        self.guide_text = ''
+        self.guide_text.set("""
+            Timeseries
+            
+            Cyclus has a useful tool of `timeseries', where
+            any agent can `report' to the timeseries,
+            and any agent can `listen' to the timeseries.
+            
+            This is to record significant data (e.g. operating
+            history, inventory etc.) or communicate to other
+            agents (e.g. commodity demand / supply). Here you
+            can plot / export the different timeseries
+            that were written in the simulation.
+            """)
         self.ts_window = Toplevel(self.master)
         self.ts_window.title('Timeseries Window')
         self.ts_window.geometry('+700+1000')
@@ -378,7 +411,7 @@ class BackendWindow(Frame):
             if 'TimeSeries' in i['name']:
                 timeseries_tables_list.append(i['name'].replace('TimeSeries', ''))
         timeseries_tables_list.sort()
-        parent = self.assess_scroll_deny(len(tables), self.ts_window)
+        parent = self.assess_scroll_deny(len(timeseries_tables_list), self.ts_window)
         if parent == -1:
             return
 
@@ -445,7 +478,19 @@ class BackendWindow(Frame):
             messagebox.showerror('Dont have it', 'This simulation was run without `explicit_inventory` turned on in the simulation definition. Turn that on and run the simulation again to view the inventory.')
             return
 
-        self.guide_text = ''
+        self.guide_text.set("""
+            Inventory
+            
+            If you have `explicit_inventory' on when running the
+            simulation, you can plot / export the inventory of each
+            facility agent at each timestep. 
+
+            agent: For each unique agent(id), its explicit inventory
+                     timeseries is exported / plotted.
+            prototype: For each unique prototype (agents with same 
+                        prototype name is aggregated), the explicit
+                        inventory timeseries is exported / plotted.
+            """)
         # show material trade between prototypes
         self.inv_window = Toplevel(self.master)
         self.inv_window.title('Which Selection')
@@ -456,7 +501,7 @@ class BackendWindow(Frame):
         Button(parent, text='Group by prototype', command=lambda: self.inv_inv_window(groupby='prototype')).pack()
 
     def inv_inv_window(self, groupby):
-        self.guide_text = ''
+
         # show material trade between prototypes
         self.inv_inv_window = Toplevel(self.inv_window)
         self.inv_inv_window.title('Groupby %s' %groupby)
@@ -667,12 +712,12 @@ class BackendWindow(Frame):
             messagebox.showerror('You put in %s for the number of isotopes\n It should be an integer' %n_isos)
             return -1
 
-    
+
     def guide(self):
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Backend Analysis Guide')
         self.guide_window.geometry('+0+400')
-        self.guide_text = """
+        txt = """
         Here you can perform backend analysis of the Cyclus run.
 
         For more advanced users, you can navigate the tables yourself,
@@ -682,6 +727,12 @@ class BackendWindow(Frame):
         flow to obtain material flow, composition, etc for between
         facilities.
 
+        The configure window has variables you can set for plot/export
+        settings. If you leave `plot top n isos' blank, it will plot/export
+        the total mass flow.
+
         """
+        self.guide_text = StringVar()
+        self.guide_text.set(txt)
 
         Label(self.guide_window, textvariable=self.guide_text, justify=LEFT).pack(padx=30, pady=30)

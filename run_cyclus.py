@@ -18,6 +18,7 @@ import subprocess
 import time
 import os
 
+
 class cyclus_run:
     def __init__(self, master, input_path, output_path):
 
@@ -158,6 +159,7 @@ Error message:\n""" + str(e)
             self.output_pipe.insert(END, '============================\n')
             self.output_pipe.insert(END, 'Finish\n')
         return 0
+
 
     def upload_run_download(self, input_path, output_path):
         ftp = self.ssh.open_sftp()
