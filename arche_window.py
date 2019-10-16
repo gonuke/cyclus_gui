@@ -52,7 +52,7 @@ class ArchetypeWindow(Frame):
                     self.arche = self.read_metafile(meta_file_path)
                     messagebox.showinfo('Downloaded', 'Did not find Cyclus, downloaded metadata from https://code.ornl.gov/4ib/cyclus_gui/')                    
                 except:
-                    messagebox.showinfo('Cyclus not found', 'Cyclus is not found. Using all cyclus/cycamore arcehtypes as default.')
+                    messagebox.showinfo('Cyclus not found', 'Cyclus is not found, and failed to download metadata from repo. Using all cyclus/cycamore arcehtypes as default.')
         self.default_arche = copy.deepcopy(self.arche)
         
 
