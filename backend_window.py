@@ -605,7 +605,7 @@ class BackendWindow(Frame):
                     z = 0
                 l, = ax1.plot(self.timestep_to_date(x), val, label=key)
                 lines.append(l)
-            if sum(sum(y[k]) for k in y) > 1e3:
+            if sum([sum(y[k]) for k in y]) > 1e3:
                 ax1 = plt.gca()
                 ax1.get_yaxis().set_major_formatter(
                     plt.FuncFormatter(lambda x, loc: "{:,}".format(int(x))))
