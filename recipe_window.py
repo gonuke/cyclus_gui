@@ -42,9 +42,6 @@ class RecipeWindow(Frame):
         Button(self.master, text='Finish', command=lambda: self.done()).grid(row=8)
         self.recipe_dict = {}
 
-        if os.path.isfile(os.path.join(self.output_path, 'prototypes.xml')):
-            self.show_defined_protos()
-
         if os.path.isfile(os.path.join(self.output_path, 'recipes.xml')):
             self.read_xml()
 
