@@ -187,7 +187,7 @@ class Cygui(Frame):
         okay = True
         absentee = []
         file_list = ['simulation.xml', 'archetypes.xml', 'prototypes.xml',
-                     'regions.xml']
+                     'regions.xml', 'recipes.xml']
         for i in file_list:
             if i not in files:
                 absentee.append(i.replace('.xml', ''))
