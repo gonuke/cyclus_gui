@@ -94,6 +94,13 @@ class BackendWindow(Frame):
         self.config_dict['suffix'].grid(row=4, column=1)
         Label(parent, text='Append to filename for overlap prevention').grid(row=4, column=2)
 
+        Label(parent, text='Cumulative').grid(row=5, column=0)
+        self.config_dict['cumulative'] = StringVar(self.config_window)
+        choices = ['True', 'False']
+        self.config_dict['cumulative'].set('False')
+        OptionMenu(self.config_window, self.config_dict['cumulative'], *choices).grid(row=5, column=1)
+        Label(parent, text='Plot/Export cumulative values').grid(row=5, column=2)
+
 
     def print_choice(self):
         print(self.self.config_dict['y_scale'].get())
@@ -241,13 +248,15 @@ class BackendWindow(Frame):
             q = self.cur.execute(query).fetchall()
             x, y = self.query_result_to_dict(q, 'nucid', 'sum(quantity)*massfrac')
 
+        if groupby == 'prototype':
+            name = '%s_%s_%s.csv' %(sender, receiver, commodity)
+        else:
+            name = '%s_%s_%s.csv' %(sender_name, receiver_name, commodity)
+
         if action == 'plot':
-            self.plot(x, y, '%s Sent' %commodity)
+            self.plot(x, y, '%s Sent' %commodity, name.replace('.csv', ''))
         elif action == 'export':
-            if groupby == 'prototype':
-                self.export(x, y, '%s_%s_%s.csv' %(sender, receiver, commodity))
-            else:
-                self.export(x, y, '%s_%s_%s.csv' %(sender_name, receiver_name, commodity))
+            self.export(x, y, name)
             
 
     def commodity_transfer_window(self):
@@ -296,7 +305,7 @@ class BackendWindow(Frame):
 
 
         if action == 'plot':
-            self.plot(x, y, '%s Sent' %commod)
+            self.plot(x, y, '%s Sent', commod)
         elif action == 'export':
             self.export(x, y, '%s.csv' %commod)
 
@@ -382,7 +391,7 @@ class BackendWindow(Frame):
                 y.append(deployed)
 
         if action == 'plot':
-            self.plot(x, y, 'Number of %s (%s)' %(prototype, which))
+            self.plot(x, y, 'Number of %s (%s)' %(prototype, which), '%s_%s' %(prototype, which))
         elif action == 'export':
             self.export(x, y, '%s_%s.csv' %(prototype, which))
 
@@ -461,13 +470,15 @@ class BackendWindow(Frame):
             series_q = self.cur.execute('SELECT time, sum(value) FROM TimeSeries%s WHERE agentid=%s GROUP BY time' %(timeseries, str(agentid))).fetchall()
         x, y = self.query_result_to_timeseries(series_q, 'sum(value)')
 
+
+        if agentid == 'agg':
+            name = '%s_aggregate_timeseries.csv' % timeseries
+        else:
+            name = '%s_%s_timeseries.csv' %(self.id_proto_dict[agentid], timeseries)
+
         if action == 'plot':
-            self.plot(x, y, '%s Timeseries' %timeseries)
+            self.plot(x, y, '%s Timeseries' %timeseries, name.replace('.csv', ''))
         elif action == 'export':
-            if agentid == 'agg':
-                name = '%s_aggregate_timeseries.csv' % timeseries
-            else:
-                name = '%s_%s_timeseries.csv' %(self.id_proto_dict[agentid], timeseries)
             self.export(x, y, name)
 
 
@@ -559,14 +570,20 @@ class BackendWindow(Frame):
             x, y = self.query_result_to_timeseries(q, 'nucid', 'sum(quantity)')
         name = self.id_proto_dict[id_list[0]]
         if action == 'plot':
-            self.plot(x, y, '%s Inventory' %name)
+            self.plot(x, y, '%s Inventory' %name, '%s_inv' %name)
         elif action == 'export':
             self.export(x, y, '%s_inv.csv' %name)
         
 
     # helper functions
 
-    def plot(self, x, y, ylabel, xlabel='Date'):
+    def plot(self, x, y, ylabel, title='', xlabel='Date'):
+        if self.config_dict['cumulative'].get() == 'True':
+            if type(y) is dict:
+                new_y = {k: np.cumsum(v) for k, v in y.items()}
+                y = new_y
+            else:
+                y = np.cumsum(y)
         fig = plt.figure()
         ax1 = fig.add_subplot(111)
         ax2 = ax1.twiny()
@@ -600,6 +617,8 @@ class BackendWindow(Frame):
         ax1.legend(handles=lines)
         plt.yscale(self.config_dict['y_scale'].get())
         plt.ylabel(ylabel)
+        title = title + '_' + self.config_dict['suffix'].get()
+        plt.title(title.replace('_', ' '))
         plt.grid()
         plt.tight_layout()
         plt.show()
@@ -618,6 +637,12 @@ class BackendWindow(Frame):
 
 
     def export(self, x, y, filename):
+        if self.config_dict['cumulative'].get() == 'True':
+            if type(y) is dict:
+                new_y = {k: np.cumsum(v) for k, v in y.items()}
+                y = new_y
+            else:
+                y = np.cumsum(y)
         indx = filename.index('.')
         filename = filename[:indx] + '_' + self.config_dict['suffix'].get() + filename[indx:]
         export_dir = os.path.join(self.output_path, 'exported_csv')

@@ -75,7 +75,6 @@ class Cygui(Frame):
         Label(root, text='Cyclus Input generator').pack()
         Label(root, textvariable=self.hash_var).pack()
 
-        Label(root, text='').pack()
 
         sim_button = Button(root, text='Simulation', command=lambda : self.open_window('simulation', output_path))
         sim_button.pack()
