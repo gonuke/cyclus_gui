@@ -141,8 +141,7 @@ class RecipeWindow(Frame):
         if ',' in text:
             text = text.replace(',', ' ')    
         composition_dict = self.parse_plaintext(text)
-        print(composition_dict)
-
+        
 
         if composition_dict == None:
             messagebox.showerror('Error', 'The recipe text (%s) is malformed! :( ' %name)
@@ -151,7 +150,6 @@ class RecipeWindow(Frame):
 
         self.recipe_dict[name] = {'base': base,
                                   'composition': composition_dict}
-        print(self.recipe_dict)
         # if not good, error message
         # if good, kill window
         messagebox.showinfo('Recipe Saved', 'Recipe %s is saved!' %name)
@@ -180,7 +178,6 @@ class RecipeWindow(Frame):
     def askopendir(self, base):
         file = filedialog.askdirectory()
         files = os.listdir(file)
-        print(files)
         for filename in files:
             f = open(os.path.join(file, filename), 'r')
             data = f.read()
@@ -196,11 +193,13 @@ class RecipeWindow(Frame):
             messagebox.showerror('Error', 'There are no recipes to output :(')
             return
         temp = '<recipe>\n\t<name>{name}</name>\n\t<basis>{base}</basis>\n{recipe}</recipe>\n'
-        
+
+        print(self.recipe_dict)        
         for key in self.recipe_dict:
             comp_string = ''
+            print(self.recipe_dict[key]['composition'])
             for iso, comp in self.recipe_dict[key]['composition'].items():
-                comp_string += '\t<nuclide>\t<id>%s</id>\t<comp>%f</comp>\t</nuclide>\n' %(iso, comp)
+                comp_string += '\t<nuclide>\t<id>%s</id>\t<comp>%f</comp>\t</nuclide>\n' %(iso, float(comp))
             name = key
             base = self.recipe_dict[key]['base']
             string += temp.format(name=name,
