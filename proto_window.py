@@ -47,7 +47,7 @@ class PrototypeWindow(Frame):
         self.region_str = StringVar(self.master)
         self.region_status_window = Toplevel(self.master)
         self.region_status_window.geometry('+500+920')
-        Label(self.region_status_window, text='Current Regions:').pack()
+        Label(self.region_status_window, text='Current Regions:', bg='yellow').pack()
         self.update_region_status()
         Label(self.region_status_window, textvariable=self.region_str, justify=LEFT).pack()
 
@@ -133,7 +133,7 @@ class PrototypeWindow(Frame):
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined facility prototypes')
         self.status_window.geometry('+250+700')
-        Label(self.status_window, text='Defined Facility Prototypes:\n').grid(row=0, columnspan=2)
+        Label(self.status_window, text='Defined Facility Prototypes:\n', bg='yellow').grid(row=0, columnspan=2)
         row=1
         for name, val in self.proto_dict.items():
             string = '%s (%s)\n' %(name, val['archetype'])

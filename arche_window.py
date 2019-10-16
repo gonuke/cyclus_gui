@@ -92,7 +92,7 @@ class ArchetypeWindow(Frame):
 
         self.status_window = Toplevel(self.master)
         self.status_window.geometry('+700+1000')
-        Label(self.status_window, text='Loaded modules:').grid(row=0, columnspan=2)
+        Label(self.status_window, text='Loaded modules:', bg='yellow').grid(row=0, columnspan=2)
         row = 1
         for i in self.arche:
             Label(self.status_window, text=i[0] + '::' + i[1]).grid(row=row, column=0)

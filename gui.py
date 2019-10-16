@@ -152,7 +152,7 @@ class Cygui(Frame):
     def load_prev_window(self):
         self.load_window = Toplevel(self.master)
         self.load_window.title('Load previous with hash')
-        Label(self.load_window, text='Enter id:').pack()
+        Label(self.load_window, text='Enter id:', bg='yellow').pack()
         entry = Entry(self.load_window)
         entry.pack()
         Button(self.load_window, text='Load!', command=lambda: self.load_prev(entry)).pack()

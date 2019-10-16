@@ -59,7 +59,7 @@ class RecipeWindow(Frame):
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined Recipes')
         self.status_window.geometry('+250+900')
-        Label(self.status_window, text='Loaded recipes:').grid(row=0, columnspan=2)
+        Label(self.status_window, text='Loaded recipes:', bg='yellow').grid(row=0, columnspan=2)
         row=1
         for key in self.recipe_dict:
             Button(self.status_window, text='x', command=lambda key=key: self.del_recipe(key)).grid(row=row, column=0)
