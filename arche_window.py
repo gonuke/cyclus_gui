@@ -10,6 +10,7 @@ import os
 import shutil
 import json
 import copy
+import urllib.request
 import subprocess
 
 
@@ -30,24 +31,30 @@ class ArchetypeWindow(Frame):
                       ['cycamore', 'FuelFab'], ['cycamore', 'GrowthRegion'], ['cycamore', 'ManagerInst'],
                       ['cycamore', 'Mixer'], ['cycamore', 'Reactor'], ['cycamore', 'Separations'],
                       ['cycamore', 'Storage']]
-        try:
-            path = os.path.join(self.output_path, 'm.json')
-            command = 'cyclus -m'
-            process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-            jtxt = process.stdout.read()
-            print(jtxt)
-            with open(path, 'wb') as f:
-                f.write(jtxt)
-            j = json.loads(jtxt)
-            messagebox.showinfo('Found', 'Found Cyclus, automatically grabbing archetype libraries :)')
-            self.arche = j['specs']
-            self.arche = [[q[0], q[1]] for q in (i[1:].split(':') for i in self.arche)]
-        except:
-            messagebox.showinfo('Cyclus not found', 'Cyclus is not found. Using all cyclus/cycamore arcehtypes as default.')
-        self.default_arche = copy.deepcopy(self.arche)
+        meta_file_path = os.path.join(self.output_path, 'm.json')
         if os.path.isfile(os.path.join(self.output_path, 'archetypes.xml')): 
             self.read_xml()
-
+        else:
+            try:
+                command = 'cyclus -m'
+                process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+                jtxt = process.stdout.read()
+                print(jtxt)
+                with open(meta_file_path, 'wb') as f:
+                    f.write(jtxt)
+                self.arche = self.read_metafile(meta_file_path)
+                messagebox.showinfo('Found', 'Found Cyclus, automatically grabbing archetype libraries :)')
+            except:
+                try:
+                    # try to download m.json from gitlab
+                    url = 'https://code.ornl.gov/4ib/cyclus_gui/raw/master/src/m.json'
+                    urllib.request.urlretrieve(url, meta_file_path)
+                    self.arche = self.read_metafile(meta_file_path)
+                    messagebox.showinfo('Downloaded', 'Did not find Cyclus, downloaded metadata from https://code.ornl.gov/4ib/cyclus_gui/')                    
+                except:
+                    messagebox.showinfo('Cyclus not found', 'Cyclus is not found. Using all cyclus/cycamore arcehtypes as default.')
+        self.default_arche = copy.deepcopy(self.arche)
+        
 
 
         Button(self.master, text='Add Row', command= lambda : self.add_more()).grid(row=1)
@@ -65,6 +72,14 @@ class ArchetypeWindow(Frame):
 
         # status window
         self.update_loaded_modules_window()
+
+    def read_metafile(self, meta_file_path):
+        with open(meta_file_path, 'r') as f:
+            jtxt = f.read()
+        j = json.loads(jtxt)
+        arche = j['specs']
+        arche = [[q[0], q[1]] for q in (i[1:].split(':') for i in arche)]
+        return arche
 
 
     def update_loaded_modules_window(self):

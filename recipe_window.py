@@ -9,7 +9,7 @@ import uuid
 import os
 import shutil
 import json
-import copy
+from proto_window import PrototypeWindow
 
 
 class RecipeWindow(Frame):
@@ -42,11 +42,16 @@ class RecipeWindow(Frame):
         Button(self.master, text='Finish', command=lambda: self.done()).grid(row=8)
         self.recipe_dict = {}
 
+        if os.path.isfile(os.path.join(self.output_path, 'prototypes.xml')):
+            self.show_defined_protos()
+
         if os.path.isfile(os.path.join(self.output_path, 'recipes.xml')):
             self.read_xml()
 
         self.update_loaded_recipes()
 
+
+            
 
     def update_loaded_recipes(self):
         try:

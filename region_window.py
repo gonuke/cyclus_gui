@@ -30,7 +30,7 @@ class RegionWindow(Frame):
         self.master.title('Define regions')
         self.output_path = output_path
         self.master.geometry('+150+850')
-        self.load_prototypes()
+        # self.load_prototypes()
         self.status_var = StringVar()
         self.guide()
         self.region_dict = {}
@@ -45,15 +45,34 @@ class RegionWindow(Frame):
         if os.path.isfile(os.path.join(self.output_path, 'regions.xml')):
             self.read_xml()
 
+        if os.path.isfile(os.path.join(self.output_path, 'prototypes.xml')):
+            self.show_defined_protos()
  
-        self.proto_window = Toplevel(self.master)
-        self.proto_window.title('Defined Prototypes')
-        self.proto_window.geometry('+700+1000')
-        Label(self.proto_window, text='Defined Prototypes:\n').pack()
-        for i in self.prototypes:
-            Label(self.proto_window, text=i).pack()
-
         self.update_status_window()
+
+    def show_defined_protos(self):
+        proto_dict = {}
+        with open(os.path.join(self.output_path, 'prototypes.xml'), 'r') as f:
+            xml_list = xmltodict.parse(f.read())['root']['facility']
+            for facility in xml_list:
+                if isinstance(facility, str):
+                    facility_name = xml_list['name']
+                    archetype = list(xml_list['config'].keys())[0]
+                    proto_dict[facility_name] = archetype
+                    break
+                facility_name = facility['name']
+                archetype = list(facility['config'].keys())[0]
+                proto_dict[facility_name] = archetype
+        defined_protos_window = Toplevel(self.master)
+        defined_protos_window.title('Defined Prototypes')
+        defined_protos_window.geometry('+1000+900')
+        Label(defined_protos_window, text='Defined Prototypes', bg='yellow').grid(row=0, column=0)
+        Label(defined_protos_window, text='Archetype', bg='yellow').grid(row=0, column=1)
+        row = 1
+        for key, val in proto_dict.items():
+            Label(defined_protos_window, text=key).grid(row=row, column=0)
+            Label(defined_protos_window, text=val).grid(row=row, column=1)
+            row +=1 
 
     def update_status_window(self):
         try:
@@ -63,9 +82,9 @@ class RegionWindow(Frame):
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined Regions')
         self.status_window.geometry('+500+920')
-        Label(self.status_window, text='Current regions:').grid(row=0, columnspan=7)
+        Label(self.status_window, text='Current regions:', bg='yellow').grid(row=0, columnspan=7)
         for indx, val in enumerate(['Region', 'Institution', 'Facility_proto', 'n_build', 'build_time', 'lifetime']):
-            Label(self.status_window, text=val).grid(row=1, column=indx+1)
+            Label(self.status_window, text=val, bg='yellow').grid(row=1, column=indx+1)
         row = 2
         for regionname, instdict in self.region_dict.items():
             Button(self.status_window, text='x', command=lambda regionname=regionname: self.del_region(regionname)).grid(row=row, column=0)
@@ -111,19 +130,6 @@ class RegionWindow(Frame):
         self.update_status_window()
 
 
-
-    def load_prototypes(self):
-        self.prototypes = []
-        if os.path.isfile(os.path.join(self.output_path, 'prototypes.xml')):
-            with open(os.path.join(self.output_path, 'prototypes.xml'), 'r') as f:
-                xml_list = xmltodict.parse(f.read())['root']['facility']
-                if isinstance(xml_list, dict):
-                    self.prototypes.append(xml_list['name'])
-                else:
-                    for facility in xml_list:
-                        self.prototypes.append(facility['name']) 
-        else:
-            return
 
     def read_xml(self):
         """
