@@ -66,40 +66,44 @@ class BackendWindow(Frame):
 
         columnspan = 4
         self.config_dict = {}
-        Label(parent, text='Configuration').grid(row=0, columnspan=columnspan)
+        Label(parent, text='Configuration', bg='yellow').grid(row=0, columnspan=columnspan)
         # n_isos, plotting scale, nuclide notation
-        Label(parent, text='Plot top n isos:').grid(row=1, column=0)
+        Label(parent, text='Parameter', bg='pale green').grid(row=1, column=0)
+        Label(parent, text='Value', bg='light salmon').grid(row=1, column=1)
+        Label(parent, text='Description', bg='SkyBlue1').grid(row=1, column=2)
+        
+        Label(parent, text='Plot top n isos:').grid(row=2, column=0)
         self.config_dict['n_isos'] = Entry(parent)
-        self.config_dict['n_isos'].grid(row=1, column=1)
-        Label(parent, text='Leave it blank to plot/export mass').grid(row=1, column=2)
+        self.config_dict['n_isos'].grid(row=2, column=1)
+        Label(parent, text='Leave it blank to plot/export mass').grid(row=2, column=2)
 
-        Label(parent, text='Plot y Scale').grid(row=2, column=0)
+        Label(parent, text='Plot y Scale').grid(row=3, column=0)
         self.config_dict['y_scale'] = StringVar(self.config_window)
         choices = ['linear', 'log', 'symlog', 'logit']
         self.config_dict['y_scale'].set('linear')
-        OptionMenu(self.config_window, self.config_dict['y_scale'], *choices).grid(row=2, column=1)
+        OptionMenu(self.config_window, self.config_dict['y_scale'], *choices).grid(row=3, column=1)
         print(self.config_dict['y_scale'].get())
         # self.tkvar.trace('w', s)
-        Label(parent, text='Scale of y scale').grid(row=2, column=2)
+        Label(parent, text='Scale of y scale').grid(row=3, column=2)
 
-        Label(parent, text='Nuclide Notation').grid(row=3, column=0)
+        Label(parent, text='Nuclide Notation').grid(row=4, column=0)
         self.config_dict['nuc_notation'] = StringVar(self.config_window)
         choices = ['ZZAAA', 'name']
         self.config_dict['nuc_notation'].set('ZZAAA')
-        OptionMenu(self.config_window, self.config_dict['nuc_notation'], *choices).grid(row=3, column=1)
-        Label(parent, text='nuclide notation in plot legend').grid(row=3, column=2)
+        OptionMenu(self.config_window, self.config_dict['nuc_notation'], *choices).grid(row=4, column=1)
+        Label(parent, text='nuclide notation in plot legend').grid(row=4, column=2)
 
-        Label(parent, text='Filename Suffix:').grid(row=4, column=0)
+        Label(parent, text='Filename Suffix').grid(row=5, column=0)
         self.config_dict['suffix'] = Entry(parent)
-        self.config_dict['suffix'].grid(row=4, column=1)
-        Label(parent, text='Append to filename for overlap prevention').grid(row=4, column=2)
+        self.config_dict['suffix'].grid(row=5, column=1)
+        Label(parent, text='Append to filename for overlap prevention').grid(row=5, column=2)
 
-        Label(parent, text='Cumulative').grid(row=5, column=0)
+        Label(parent, text='Cumulative').grid(row=6, column=0)
         self.config_dict['cumulative'] = StringVar(self.config_window)
         choices = ['True', 'False']
         self.config_dict['cumulative'].set('False')
-        OptionMenu(self.config_window, self.config_dict['cumulative'], *choices).grid(row=5, column=1)
-        Label(parent, text='Plot/Export cumulative values').grid(row=5, column=2)
+        OptionMenu(self.config_window, self.config_dict['cumulative'], *choices).grid(row=6, column=1)
+        Label(parent, text='Plot/Export cumulative values').grid(row=6, column=2)
 
 
     def print_choice(self):
@@ -151,7 +155,7 @@ class BackendWindow(Frame):
         self.mat_selec_window.title('Which Selection')
         self.mat_selec_window.geometry('+700+1000')
         parent = self.mat_selec_window
-        Label(parent, text='Group by agent or prototype').pack()
+        Label(parent, text='Group by agent or prototype', bg='yellow').pack()
         Button(parent, text='Group by agent', command=lambda: self.view_material_flow(groupby='agent')).pack()
         Button(parent, text='Group by prototype', command=lambda: self.view_material_flow(groupby='prototype')).pack() 
 
@@ -196,26 +200,26 @@ class BackendWindow(Frame):
                 return
 
         columnspan = 7
-        Label(parent, text='List of transactions:').grid(row=0, columnspan=columnspan)
+        Label(parent, text='List of transactions:', bg='yellow').grid(row=0, columnspan=columnspan)
         if groupby == 'agent':
-            Label(parent, text='Sender (id)').grid(row=1, column=0)
-            Label(parent, text='Receiver (id)').grid(row=1, column=4)
+            Label(parent, text='Sender (id)', bg='pale green').grid(row=1, column=0)
+            Label(parent, text='Receiver (id)', bg='SkyBlue1').grid(row=1, column=4)
         else:
-            Label(parent, text='Sender').grid(row=1, column=0)
-            Label(parent, text='Receiver').grid(row=1, column=4)
+            Label(parent, text='Sender', bg='pale green').grid(row=1, column=0)
+            Label(parent, text='Receiver', bg='SkyBlue1').grid(row=1, column=4)
         Label(parent, text='').grid(row=1, column=1)
-        Label(parent, text='Commodity').grid(row=1, column=2)
+        Label(parent, text='Commodity', bg='light salmon').grid(row=1, column=2)
         Label(parent, text='').grid(row=1, column=3)
         Label(parent, text=' ').grid(row=1, column=5)
         Label(parent, text='======================').grid(row=2, columnspan=columnspan)
              
         row = 3
         for indx, val in enumerate(table_dict['sender']):
-            Label(parent, text=val).grid(row=row, column=0)
+            Label(parent, text=val, bg='pale green').grid(row=row, column=0)
             Label(parent, text='->').grid(row=row, column=1)
-            Label(parent, text=table_dict['commodity'][indx]).grid(row=row, column=2)
+            Label(parent, text=table_dict['commodity'][indx], bg='light salmon').grid(row=row, column=2)
             Label(parent, text='->').grid(row=row, column=3)            
-            Label(parent, text=table_dict['receiver'][indx]).grid(row=row, column=4)
+            Label(parent, text=table_dict['receiver'][indx], bg='SkyBlue1').grid(row=row, column=4)
             Button(parent, text='plot', command=lambda sender=val, receiver=table_dict['receiver'][indx], commodity=table_dict['commodity'][indx], groupby=groupby: self.sender_receiver_action(sender, receiver, commodity, 'plot', groupby)).grid(row=row, column=5)
             Button(parent, text='export', command=lambda sender=val, receiver=table_dict['receiver'][indx], commodity=table_dict['commodity'][indx], groupby=groupby: self.sender_receiver_action(sender, receiver, commodity, 'export', groupby)).grid(row=row, column=6)
             row += 1
@@ -282,11 +286,11 @@ class BackendWindow(Frame):
 
         columnspan = 3
         
-        Label(parent, text='List of Commodities').grid(row=0, columnspan=columnspan)
+        Label(parent, text='List of Commodities', bg='yellow').grid(row=0, columnspan=columnspan)
         Label(parent, text='======================').grid(row=1, columns=columnspan)
         row = 2
         for i in names:
-            Label(parent, text=i).grid(row=row, column=0)
+            Label(parent, text=i, bg='pale green').grid(row=row, column=0)
             Button(parent, text='plot', command=lambda commod=i: self.commodity_transfer_action(commod, 'plot')).grid(row=row, column=1)
             Button(parent, text='export', command=lambda commod=i: self.commodity_transfer_action(commod, 'export')).grid(row=row, column=2)
             row += 1
@@ -341,13 +345,13 @@ class BackendWindow(Frame):
         columnspan = 7
 
 
-        Label(parent, text='List of Agents').grid(row=0, columnspan=columnspan)
+        Label(parent, text='List of Agents', bg='yellow').grid(row=0, columnspan=columnspan)
         Label(parent, text='======================').grid(row=1, columnspan=columnspan)
-        Label(parent, text='=====Plot=====').grid(row=2, columnspan=3)
-        Label(parent, text='=====Export=====').grid(row=2, column=4, columnspan=3)
+        Label(parent, text='=====Plot=====', bg='pale green').grid(row=2, columnspan=3)
+        Label(parent, text='=====Export=====', bg='SkyBlue1').grid(row=2, column=4, columnspan=3)
         row = 3
         for i in proto_list:
-            Label(parent, text=i).grid(row=row, column=3)
+            Label(parent, text=i, bg='light salmon').grid(row=row, column=3)
             Button(parent, text='enter', command=lambda prototype=i : self.agent_deployment_action(prototype, 'plot', 'enter')).grid(row=row, column=0)
             Button(parent, text='exit', command=lambda prototype=i : self.agent_deployment_action(prototype, 'plot', 'exit')).grid(row=row, column=1)
             Button(parent, text='deployed', command=lambda prototype=i : self.agent_deployment_action(prototype, 'plot', 'deployed')).grid(row=row, column=2)
@@ -426,12 +430,12 @@ class BackendWindow(Frame):
             return
 
         columnspan = 2
-        Label(parent, text='List of Timeseries').grid(row=0, columnspan=columnspan)
+        Label(parent, text='List of Timeseries', bg='yellow').grid(row=0, columnspan=columnspan)
         Label(parent, text='======================').grid(row=1, columns=columnspan)
         row = 2
 
         for i in timeseries_tables_list:
-            Label(parent, text=i).grid(row=row, column=0)
+            Label(parent, text=i, bg='pale green').grid(row=row, column=0)
             Button(parent, text='more', command=lambda timeseries=i: self.timeseries_action(timeseries)).grid(row=row, column=1)
             row += 1
 
@@ -508,30 +512,30 @@ class BackendWindow(Frame):
         self.inv_window.title('Which Selection')
         self.inv_window.geometry('+700+1000')
         parent = self.inv_window
-        Label(parent, text='Group by agent or prototype:').pack()
+        Label(parent, text='Group by agent or prototype:', bg='yellow').pack()
         Button(parent, text='Group by agent', command=lambda: self.inv_inv_window(groupby='agent')).pack()
         Button(parent, text='Group by prototype', command=lambda: self.inv_inv_window(groupby='prototype')).pack()
 
     def inv_inv_window(self, groupby):
 
         # show material trade between prototypes
-        self.inv_inv_window = Toplevel(self.inv_window)
-        self.inv_inv_window.title('Groupby %s' %groupby)
-        self.inv_inv_window.geometry('+1000+1000')
-        parent = self.inv_inv_window
+        self.inv_inv_window_ = Toplevel(self.inv_window)
+        self.inv_inv_window_.title('Groupby %s' %groupby)
+        self.inv_inv_window_.geometry('+1000+1000')
+        parent = self.inv_inv_window_
         if groupby == 'agent':
-            parent = self.assess_scroll_deny(len(self.id_proto_dict.keys()), self.inv_inv_window)
+            parent = self.assess_scroll_deny(len(self.id_proto_dict.keys()), self.inv_inv_window_)
             if parent == -1:
                 return
 
             # show the list of all agents to display
             columnspan = 3
-            Label(parent, text='List of Agents').grid(row=0, columnspan=columnspan)
-            Label(parent, text='Agent (id)').grid(row=1, column=0)
+            Label(parent, text='List of Agents', bg='yellow').grid(row=0, columnspan=columnspan)
+            Label(parent, text='Agent (id)', bg='pale green').grid(row=1, column=0)
             Label(parent, text='======================').grid(row=2, columnspan=columnspan)
             row = 3
             for id_, proto_ in self.id_proto_dict.items():
-                Label(parent, text= '%s (%s)' %(proto_, id_)).grid(row=row, column=0)
+                Label(parent, text= '%s (%s)' %(proto_, id_), bg='pale green').grid(row=row, column=0)
                 Button(parent, text='plot', command=lambda id_list=[id_]: self.inv_action(id_list, 'plot')).grid(row=row, column=1)
                 Button(parent, text='export', command=lambda id_list=[id_]: self.inv_action(id_list, 'export')).grid(row=row, column=2)
                 row += 1 
@@ -542,14 +546,19 @@ class BackendWindow(Frame):
             proto_list = [i['prototype'] for i in entry]
             proto_list.sort(key=str.lower)
 
-            parent = self.assess_scroll_deny(len(self.id_proto_dict.keys()), self.inv_inv_window)
+            parent = self.assess_scroll_deny(len(self.id_proto_dict.keys()), self.inv_inv_window_)
             if parent == -1:
                 return
+            columnspan=3
+            Label(parent, text='List of Prototypes', bg='yellow').grid(row=0, columnspan=columnspan)
+            Label(parent, text='Prototype Name', bg='pale green').grid(row=1, column=0)
+            Label(parent, text='======================').grid(row=2, columnspan=columnspan)
             
-            row = 0
+
+            row = 3
             for i in proto_list:
                 id_list = [k for k,v in self.id_proto_dict.items() if v == i]
-                Label(parent, text= '%s' %i).grid(row=row, column=0)
+                Label(parent, text= '%s' %i, bg='pale green').grid(row=row, column=0)
                 Button(parent, text='plot', command=lambda id_list=id_list: self.inv_action(id_list, 'plot')).grid(row=row, column=1)
                 Button(parent, text='export', command=lambda id_list=id_list: self.inv_action(id_list, 'export')).grid(row=row, column=2)
                 row += 1

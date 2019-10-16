@@ -299,6 +299,12 @@ class PrototypeWindow(Frame):
         if len(self.proto_dict) == 0:
             messagebox.showerror('Nope', 'You have not defined any facilities yet.')
             return
+        self.not_defined = []
+        for regionname, instdict in self.region_dict.items():
+            for instname, instarray in instdict.items():
+                for instlist in instarray:
+                    if instlist[0] not in self.proto_dict.keys():
+                        self.not_defined.append(instlist[0])
         if len(self.not_defined) != 0:
             string = 'You have not defined:\n'
             for i in self.not_defined:
