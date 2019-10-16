@@ -108,11 +108,18 @@ class RecipeWindow(Frame):
     def read_xml(self):
         with open(os.path.join(self.output_path, 'recipes.xml'), 'r') as f:
             xml_list = xmltodict.parse(f.read())['root']['recipe']
+            if 'dict' in str(type(xml_list)).lower():
+                # if there's only one recipe entry, it will return
+                # a dictionary instead of a list
+                xml_list = [xml_list]
             for recipe in xml_list:
                 comp_dict = {}
+                # if there's only one nuclide, it will return
+                # a dictionary instead of a list
+                if 'dict' in str(type(recipe['nuclide'])).lower():
+                    recipe['nuclide'] = [recipe['nuclide']]
                 for entry in recipe['nuclide']:
-                    for iso, comp in entry.items():
-                        comp_dict[iso] = comp
+                    comp_dict[entry['id']] = entry['comp']
                 self.recipe_dict[recipe['name']] = {'base': recipe['basis'],
                                                     'composition': comp_dict}
 
