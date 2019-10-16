@@ -72,7 +72,7 @@ class Cygui(Frame):
         menu.add_cascade(label='Edit', menu=edit)
         """
 
-        Label(root, text='Cyclus Input generator').pack()
+        Label(root, text='Cyclus Helper').pack()
         Label(root, textvariable=self.hash_var).pack()
 
 
