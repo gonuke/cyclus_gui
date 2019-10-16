@@ -31,7 +31,7 @@ class PrototypeWindow(Frame):
         self.output_path = output_path
         self.master.geometry('+0+700')
         self.guide()
-        Label(self.master, text='Choose an archetype to add:').grid(row=0)
+        Label(self.master, text='Choose a facility archetype to add:').grid(row=0)
         self.get_schema()
         self.proto_dict = {}
         self.arche_dict = {}
@@ -40,18 +40,7 @@ class PrototypeWindow(Frame):
         if os.path.isfile(os.path.join(self.output_path, 'prototypes.xml')):
             self.read_xml()
 
-
-        # reading regions
-        if os.path.isfile(os.path.join(self.output_path, 'regions.xml')):
-            self.read_regions()
-        self.region_str = StringVar(self.master)
-        self.region_status_window = Toplevel(self.master)
-        self.region_status_window.geometry('+500+920')
-        Label(self.region_status_window, text='Current Regions:', bg='yellow').pack()
-        self.update_region_status()
-        Label(self.region_status_window, textvariable=self.region_str, justify=LEFT).pack()
-
-
+        self.region_window()
         self.tkvar = StringVar(self.master)
         archetypes = [x[0] + ':' + x[1] for x in self.arches]
         archetypes = [x for x in archetypes if 'inst' not in x.lower()]
@@ -64,22 +53,38 @@ class PrototypeWindow(Frame):
 
         self.update_loaded_modules()
 
-    def update_region_status(self):
-        self.not_defined = []
-        string = '\t\t\t\t\tN_build\tBuild Time\t Lifetime'
-        for regionname, instdict in self.region_dict.items():
-            string += '\n' + regionname + '\n'
-            for instname, instarray in instdict.items():
-                string += '\t-> ' + instname + '\t\t\t' + '\t' + '\t' + '\n'
-                for instlist in instarray:
-                    if instlist[0] not in self.proto_dict.keys():
-                        isit = instlist[0] + ' (x)'
-                        self.not_defined.append(instlist[0])
-                    else:
-                        isit = instlist[0]
-                    string += '\t\t->> ' + isit + '\t\t' + instlist[1] +'\t' + instlist[2] + '\t' + instlist[3] + '\n'
-        self.region_str.set(string)
 
+    def region_window(self):        
+        # reading regions
+        if os.path.isfile(os.path.join(self.output_path, 'regions.xml')):
+            self.read_regions()
+        self.region_status_window = Toplevel(self.master)
+        self.region_status_window.geometry('+500+920')
+        c_dict = {'Region': 'pale green',
+                  'Institution': 'light salmon',
+                  'Facility_proto': 'SkyBlue1',
+                  'n_build': 'ivory3',
+                  'build_time': 'orchid1',
+                  'lifetime': 'pale turquoise'}
+        Label(self.region_status_window, text='Current regions:', bg='yellow').grid(row=0, columnspan=7)
+        columns = ['Region', 'Institution', 'Facility_proto', 'n_build', 'build_time', 'lifetime']
+        for indx, val in enumerate(columns):
+            c = c_dict[val]
+            Label(self.region_status_window, text=val, bg=c).grid(row=1, column=indx+1)
+        row = 2
+        for regionname, instdict in self.region_dict.items():
+            Label(self.region_status_window, text=regionname, bg='pale green').grid(row=row, column=1)
+            row += 1
+            for instname, instarray in instdict.items():
+                Label(self.region_status_window, text=instname, bg='light salmon').grid(row=row, column=2)
+                row += 1
+                for instlist in instarray:
+                    fac_name = instlist[0]
+                    columns_ = columns[2:]
+                    for indx, v in enumerate(instlist):
+                        c = c_dict[columns_[indx]]
+                        Label(self.region_status_window, text=v, bg=c).grid(row=row, column=indx+3)
+                    row += 1
 
     def read_regions(self):
         """
@@ -145,7 +150,6 @@ class PrototypeWindow(Frame):
         messagebox.showinfo('Deleted', 'Deleted facility prototype %s' %name)
         self.proto_dict.pop(name, None)
         self.update_loaded_modules()
-        self.update_region_status()
 
     def reopen_def_window(self, name, archetype):
         self.def_window = Toplevel(self.master)
@@ -404,7 +408,6 @@ class PrototypeWindow(Frame):
                                        'config': config_dict}
         messagebox.showinfo('Success', 'Successfully created %s facility %s' %(archetype_name, proto_name))
         self.update_loaded_modules()
-        self.update_region_status()
         print(self.proto_dict)
         self.def_window.destroy()
 
@@ -743,9 +746,9 @@ class PrototypeWindow(Frame):
 
 
     def add_row(self, label, master, rownum, archetype):
-        color = 'black'
+        color = 'snow'
         if '*' in label:
-            color = 'red'
+            color = 'salmon1'
         if label == '':
             self.unknown_entry += 1
             label = self.unknown_entry
@@ -756,18 +759,18 @@ class PrototypeWindow(Frame):
             self.start_row += 1
             return
         label = label.replace('*', '')
-        Label(master, text=label, fg=color).grid(row=rownum, column=1)
+        Label(master, text=label, bg=color).grid(row=rownum, column=1)
         self.entry_dict[label] = {rownum: Entry(self.def_window)}
-        if color == 'red':
+        if color == 'salmon1':
             default_val = str(self.j['annotations'][':'+archetype]['vars'][label]['default'])
             self.entry_dict[label][rownum].insert(END, default_val)
         self.entry_dict[label][rownum].grid(row=rownum, column=2)
 
 
     def add_row_oneormore(self, label, master, rownum, archetype):
-        color = 'black'
+        color = 'snow'
         if '*' in label:
-            color = 'red'
+            color = 'salmon1'
         if label == '':
             self.unknown_entry += 1
             label = self.unknown_entry * -1
@@ -778,7 +781,7 @@ class PrototypeWindow(Frame):
             self.start_row += 1
             return
         label = label.replace('*', '')
-        Label(master, text=label, fg=color).grid(row=rownum, column=1)
+        Label(master, text=label, bg=color).grid(row=rownum, column=1)
         self.entry_dict[label] = {rownum : []}
         Button(master, text='Add', command=lambda label=label, rownum=rownum: self.add_entry(label, rownum)).grid(row=rownum, column=0)
 
@@ -853,13 +856,13 @@ class PrototypeWindow(Frame):
         Click on the dropdown to select the archetype you want to add, 
         and two windows will pop up. One is the documentation for the
         archetype and the parameters, and the other is the one you should
-        fill out. The red parameters have default values (specified in 
+        fill out. The highlighted parameters have default values (specified in 
         documentation window), thus are optional. The parameters with 'Add'
         button next to it are parameters with (potentially) more than one
         variables. You can add more values by clicking 'Add'. Fill out
         the facility name and the parameters, then click 'Done' to
         save the facility. The window with 'Defined Archetypes' will update
-        as you define facility prototypes 
+        as you define facility prototypes. 
 
         """
         Label(self.guide_window, text=guide_text, justify=LEFT).pack(padx=30, pady=30)

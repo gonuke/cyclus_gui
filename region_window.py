@@ -83,12 +83,20 @@ class RegionWindow(Frame):
         self.status_window.title('Defined Regions')
         self.status_window.geometry('+500+920')
         Label(self.status_window, text='Current regions:', bg='yellow').grid(row=0, columnspan=7)
-        for indx, val in enumerate(['Region', 'Institution', 'Facility_proto', 'n_build', 'build_time', 'lifetime']):
-            Label(self.status_window, text=val, bg='yellow').grid(row=1, column=indx+1)
+        c_dict = {'Region': 'pale green',
+                  'Institution': 'light salmon',
+                  'Facility_proto': 'SkyBlue1',
+                  'n_build': 'ivory3',
+                  'build_time': 'orchid1',
+                  'lifetime': 'pale turquoise'}
+        columns = ['Region', 'Institution', 'Facility_proto', 'n_build', 'build_time', 'lifetime']
+        for indx, val in enumerate(columns):
+            c = c_dict[val]
+            Label(self.status_window, text=val, bg=c).grid(row=1, column=indx+1)
         row = 2
         for regionname, instdict in self.region_dict.items():
             Button(self.status_window, text='x', command=lambda regionname=regionname: self.del_region(regionname)).grid(row=row, column=0)
-            Label(self.status_window, text=regionname).grid(row=row, column=1)
+            Label(self.status_window, text=regionname, bg='pale green').grid(row=row, column=1)
             row += 1
             for instname, instarray in instdict.items():
                 Button(self.status_window, text='x', command=lambda regionname=regionname, instname=instname: self.del_inst(regionname, instname)).grid(row=row, column=0)
@@ -97,8 +105,10 @@ class RegionWindow(Frame):
                 for instlist in instarray:
                     fac_name = instlist[0]
                     Button(self.status_window, text='x', command=lambda regionname=regionname, instname=instname, fac_name=fac_name: self.del_fac(regionname, instname, fac_name)).grid(row=row, column=0)
+                    columns_ = columns[2:]
                     for indx, v in enumerate(instlist):
-                        Label(self.status_window, text=v).grid(row=row, column=indx+3)
+                        c = c_dict[columns_[indx]]
+                        Label(self.status_window, text=v, bg=c).grid(row=row, column=indx+3)
                     row += 1
 
 

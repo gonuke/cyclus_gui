@@ -72,8 +72,8 @@ class Cygui(Frame):
         menu.add_cascade(label='Edit', menu=edit)
         """
 
-        Label(root, text='Cyclus Helper').pack()
-        Label(root, textvariable=self.hash_var).pack()
+        Label(root, text='Cyclus Helper', bg='yellow').pack()
+        Label(root, textvariable=self.hash_var, bg='pale green').pack()
 
 
         sim_button = Button(root, text='Simulation', command=lambda : self.open_window('simulation', output_path))
