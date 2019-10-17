@@ -130,6 +130,9 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
 
         except Exception as e:
             self.err_message = """Did not connect! Check Internet connection or contact baej@ornl.gov
+
+The Azure VM might not be turned on. If so, ask baej@ornl.gov to turn it on.
+
 If you are using this in a secure network, that might be the reason as well.
 Try using a tunneling application (ex. Corkscrew) to use a proxy, by defining the `hostname' and `port' blocks.
 https://wiki.archlinux.org/index.php/HTTP_tunneling

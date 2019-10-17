@@ -43,17 +43,16 @@ class Cygui(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.master = master
-        self.master.geometry('+0+0')
+        # self.master.geometry('+0+0')
         self.init_window()
         self.guide()
 
     def init_window(self):
         self.master.title('GUI')
-        self.pack(fill=BOTH, expand=1)
 
         # menu instance
         menu = Menu(self.master)
-        self.master.config(menu=menu)
+        # self.master.config(menu=menu)
 
 
         self.hash_var = StringVar()
@@ -72,62 +71,60 @@ class Cygui(Frame):
         menu.add_cascade(label='Edit', menu=edit)
         """
 
-        Label(root, text='Cyclus Helper', bg='yellow').pack()
-        Label(root, textvariable=self.hash_var, bg='pale green').pack()
+        columnspan=5
+        Label(root, text='Cyclus Helper', bg='yellow').grid(row=0, columnspan=columnspan)
+        Label(root, textvariable=self.hash_var, bg='pale green').grid(row=1, columnspan=columnspan)
+        Label(root, text='====================================').grid(row=2, columnspan=columnspan)
+        Label(root, text='Generate / Edit Blocks').grid(row=3, column=0)
+        Label(root, text='=============').grid(row=4, column=0)
+        Label(root, text='Load:').grid(row=3, column=2)
+        Label(root, text='=============').grid(row=4, column=2)
+        Label(root, text='Run / Visualize').grid(row=3, column=4)
+        Label(root, text='=============').grid(row=4, column=4)
 
 
         sim_button = Button(root, text='Simulation', command=lambda : self.open_window('simulation', output_path))
-        sim_button.pack()
+        sim_button.grid(row=5, column=0)
 
         library_button = Button(root, text='Libraries', command=lambda : self.open_window('archetype', output_path))
-        library_button.pack()
+        library_button.grid(row=6, column=0)
 
         prototype_button = Button(root, text='Facilities', command=lambda : self.open_window('facility', output_path))
-        prototype_button.pack()
+        prototype_button.grid(row=7, column=0)
 
         region_button = Button(root, text='Regions', command=lambda : self.open_window('region', output_path))
-        region_button.pack()
-
+        region_button.grid(row=8, column=0)
 
         recipe_button = Button(root, text='Recipes', command=lambda : self.open_window('recipe', output_path))
-        recipe_button.pack()
+        recipe_button.grid(row=9, column=0)
+
+        for i in range(5,10):
+            Label(root, text='   ').grid(row=i, column=1)
+            Label(root, text='   ').grid(row=i, column=3)
+
+        load_button = Button(root, text='From Instance', command=lambda: self.load_prev_window())
+        load_button.grid(row=6, column=2)
+
+        load_complete_input = Button(root, text='From xml', command=lambda: self.load_full_xml())
+        load_complete_input.grid(row=7, column=2)
 
 
-        Label(root, text='').pack()
-
-        load_button = Button(root, text='Load', command=lambda: self.load_prev_window())
-        load_button.pack()
-
-
-        Label(root, text='').pack()
 
         make_input_button = Button(root, text='Generate Input', command=lambda: self.check_and_run(run=False))
-        make_input_button.pack()
+        make_input_button.grid(row=6, column=4)
 
 
         done_button = Button(root, text='Combine and Run', command= lambda: self.check_and_run())
-        done_button.pack()
+        done_button.grid(row=7, column=4)
 
         backend_button = Button(root, text='Backend Analysis', command= lambda: self.open_window('backend', output_path))
-        backend_button.pack()
+        backend_button.grid(row=8, column=4)
 
-        Label(root, text='').pack()
 
 
     def client_exit(self):
         exit()
 
-    def showImg(self, image_path):
-        load = Image.open(image_path)
-        render = ImageTk.PhotoImage(load)
-
-        img = Label(self, image=render)
-        img.image = render
-        img.place(x=0, y=0)
-
-    def showTxt(self, text):
-        text = Label(self, text=text)
-        text.pack()
 
     def open_window(self, name, output_path):
         if name == 'simulation':
@@ -182,12 +179,34 @@ class Cygui(Frame):
         messagebox.showerror('Error', 'No folder with that name.\n The folder must exist in: \n %s' %file_path)
         
 
+    def load_full_xml(self):
+        self.load_xml_window = Toplevel(self.master)
+        self.load_xml_window.title('Load full xml file')
+        Label(self.load_xml_window, text='Choose a file to load!').pack()
+        Button(self.load_xml_window, text='Browse', command= lambda : self.askopenfile()).pack()
+
+    def askopenfile(self):
+        file = filedialog.askopenfile(parent=self.load_xml_window, mode='r', title='Choose an xml file')
+        xml_dict = xmltodict.parse(file.read())['simulation']
+        # check if file is good:
+        elements = ['control', 'archetypes', 'facility', 'region', 'recipe']
+        if list(xml_dict.keys()) != elements:
+            messagebox.showerror('Error', 'This is a malformed xml file! Check file to see if it has all the nodes:\nIt needs:\n%s\n\nBut it only has:\n %s' %(', '.join(elements), ', '.join(list(xml_dict.keys()))))
+
+        for part in elements:
+            with open(os.path.join(output_path, part+'.xml'), 'w') as f:
+                if part in ['facility', 'region', 'recipe']:
+                    f.write('<root>')
+                f.write(xmltodict.unparse({part: xml_dict[part]}, pretty=True, full_document=False))
+                if part in ['facility', 'region', 'recipe']:
+                    f.write('</root>')
+
     def check_and_run(self, run=True):
         files = os.listdir(output_path)
         okay = True
         absentee = []
-        file_list = ['simulation.xml', 'archetypes.xml', 'prototypes.xml',
-                     'regions.xml', 'recipes.xml']
+        file_list = ['control.xml', 'archetypes.xml', 'facility.xml',
+                     'region.xml', 'recipe.xml']
         for i in file_list:
             if i not in files:
                 absentee.append(i.replace('.xml', ''))
@@ -288,7 +307,7 @@ class Cygui(Frame):
 
 
 root = Tk()
-root.geometry('400x300')
+#root.geometry('400x300')
 app = Cygui(root)
 root.mainloop()
 

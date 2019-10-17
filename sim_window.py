@@ -43,7 +43,7 @@ class SimulationWindow():
         self.entry_dict['dt'].insert(END, 2629846)
         self.entry_dict['explicit_inventory'].insert(END, 0)
 
-        if os.path.isfile(os.path.join(self.output_path, 'simulation.xml')):
+        if os.path.isfile(os.path.join(self.output_path, 'control.xml')):
             self.read_xml()
 
         done_button = Button(self.master, text='Done', command=lambda: self.done())
@@ -57,7 +57,7 @@ class SimulationWindow():
         return True
 
     def read_xml(self):
-        with open(os.path.join(self.output_path, 'simulation.xml'), 'r') as f:
+        with open(os.path.join(self.output_path, 'control.xml'), 'r') as f:
             xml_dict = xmltodict.parse(f.read())['control']
         for key, val in xml_dict.items():
             self.entry_dict[key].delete(0, END)
@@ -90,7 +90,7 @@ class SimulationWindow():
                     continue
                 xml_string+='\t<%s>%s</%s>\n' %(key, val, key)
             xml_string += '</control>\n'
-            with open(os.path.join(self.output_path, 'simulation.xml'), 'w') as f:
+            with open(os.path.join(self.output_path, 'control.xml'), 'w') as f:
                 f.write(xml_string)
 
             self.master.destroy()

@@ -42,17 +42,17 @@ class RegionWindow(Frame):
         Label(self.master, text='').grid(row=2, column=0)
         Button(self.master, text='Done', command=lambda : self.done_region()).grid(row=3, column=0)
 
-        if os.path.isfile(os.path.join(self.output_path, 'regions.xml')):
+        if os.path.isfile(os.path.join(self.output_path, 'region.xml')):
             self.read_xml()
 
-        if os.path.isfile(os.path.join(self.output_path, 'prototypes.xml')):
+        if os.path.isfile(os.path.join(self.output_path, 'facility.xml')):
             self.show_defined_protos()
  
         self.update_status_window()
 
     def show_defined_protos(self):
         proto_dict = {}
-        with open(os.path.join(self.output_path, 'prototypes.xml'), 'r') as f:
+        with open(os.path.join(self.output_path, 'facility.xml'), 'r') as f:
             xml_list = xmltodict.parse(f.read())['root']['facility']
             for facility in xml_list:
                 if isinstance(facility, str):
@@ -147,7 +147,7 @@ class RegionWindow(Frame):
         becasuse xmltodict reads single entries as strings
         while multiple entries as lists..
         """
-        with open(os.path.join(self.output_path, 'regions.xml'), 'r') as f:
+        with open(os.path.join(self.output_path, 'region.xml'), 'r') as f:
             xml_list = xmltodict.parse(f.read())['root']['region']
             if isinstance(xml_list, dict):
                 xml_list = [xml_list]
@@ -227,7 +227,7 @@ class RegionWindow(Frame):
                 inst_chunk += inst_template.format(name=inst_name, deployinst=all_four)
             string += region_template.format(name=regionname, institution=inst_chunk)
         string += '\n</root>'
-        with open(os.path.join(self.output_path, 'regions.xml'), 'w') as f:
+        with open(os.path.join(self.output_path, 'region.xml'), 'w') as f:
             f.write(string)
         messagebox.showinfo('Success', 'Successfully rendered %i regions!' %len(self.region_dict))
 

@@ -37,7 +37,7 @@ class PrototypeWindow(Frame):
         self.arche_dict = {}
         self.region_dict = {}
         self.load_archetypes()
-        if os.path.isfile(os.path.join(self.output_path, 'prototypes.xml')):
+        if os.path.isfile(os.path.join(self.output_path, 'facility.xml')):
             self.read_xml()
 
         self.region_window()
@@ -56,7 +56,7 @@ class PrototypeWindow(Frame):
 
     def region_window(self):        
         # reading regions
-        if os.path.isfile(os.path.join(self.output_path, 'regions.xml')):
+        if os.path.isfile(os.path.join(self.output_path, 'region.xml')):
             self.read_regions()
         self.region_status_window = Toplevel(self.master)
         self.region_status_window.geometry('+500+920')
@@ -92,7 +92,7 @@ class PrototypeWindow(Frame):
         becasuse xmltodict reads single entries as strings
         while multiple entries as lists..
         """
-        with open(os.path.join(self.output_path, 'regions.xml'), 'r') as f:
+        with open(os.path.join(self.output_path, 'region.xml'), 'r') as f:
             xml_list = xmltodict.parse(f.read())['root']['region']
             if isinstance(xml_list, dict):
                 xml_list = [xml_list]
@@ -325,7 +325,7 @@ class PrototypeWindow(Frame):
                 string += '%s\n' %i
             messagebox.showerror('Nope', string)
             return
-        with open(os.path.join(self.output_path, 'prototypes.xml'), 'w') as f:
+        with open(os.path.join(self.output_path, 'facility.xml'), 'w') as f:
             print(self.proto_dict)
             for name, config in self.proto_dict.items():
                 facility_dict = {}
@@ -818,7 +818,7 @@ class PrototypeWindow(Frame):
 
 
     def read_xml(self):
-        with open(os.path.join(self.output_path, 'prototypes.xml'), 'r') as f:
+        with open(os.path.join(self.output_path, 'facility.xml'), 'r') as f:
             xml_list = xmltodict.parse(f.read())['root']['facility']
             for facility in xml_list:
                 if isinstance(facility, str):

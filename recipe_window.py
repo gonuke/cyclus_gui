@@ -41,7 +41,7 @@ class RecipeWindow(Frame):
         Button(self.master, text='Finish', command=lambda: self.done()).grid(row=8)
         self.recipe_dict = {}
 
-        if os.path.isfile(os.path.join(self.output_path, 'recipes.xml')):
+        if os.path.isfile(os.path.join(self.output_path, 'recipe.xml')):
             self.read_xml()
 
         self.update_loaded_recipes()
@@ -107,7 +107,7 @@ class RecipeWindow(Frame):
         self.recipe_input(name, text, window)
 
     def read_xml(self):
-        with open(os.path.join(self.output_path, 'recipes.xml'), 'r') as f:
+        with open(os.path.join(self.output_path, 'recipe.xml'), 'r') as f:
             xml_list = xmltodict.parse(f.read())['root']['recipe']
             if 'dict' in str(type(xml_list)).lower():
                 # if there's only one recipe entry, it will return
@@ -208,7 +208,7 @@ class RecipeWindow(Frame):
                                   recipe=comp_string)
             string += '\n'
         string += '</root>'
-        with open(os.path.join(self.output_path, 'recipes.xml'), 'w') as f:
+        with open(os.path.join(self.output_path, 'recipe.xml'), 'w') as f:
             f.write(string)
         messagebox.showinfo('Success', 'Successfully rendered %i recipes! :)' %len(self.recipe_dict.keys()))
         self.master.destroy()
