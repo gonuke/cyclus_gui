@@ -151,6 +151,7 @@ class PrototypeWindow(Frame):
         self.proto_dict.pop(name, None)
         self.update_loaded_modules()
 
+
     def reopen_def_window(self, name, archetype):
         self.def_window = Toplevel(self.master)
         self.def_window.title('Define facility prototype')
@@ -166,15 +167,28 @@ class PrototypeWindow(Frame):
 
         if arche_long in self.param_dict.keys():
             self.def_entries(arche_long)
+            print(self.proto_dict[name]['config'][archetype])
             for param, val in self.proto_dict[name]['config'][archetype].items():
+                print(param)
+                print(val)
+                print('\n')
                 rownum = list(self.entry_dict[param].keys())[0]
                 if isinstance(val, dict):
-                    tag = self.tag_dict[arche_long][param]
+                    
+                    try:
+                        tag = self.tag_dict[arche_long][param]
+                    except:
+                        tag = self.tag_dict[arche_long][param+ '*']
+
+                    if not isinstance(val[tag], list):
+                        val[tag] = [val[tag]]
                     for v in val[tag]:
                         self.add_entry(param, rownum)
                         self.entry_dict[param][rownum][-1].insert(END, v)
                 else:
-                    self.entry_dict[param][rownum].insert(END, val)
+                    if self.entry_dict[param][rownum].get() != val:
+                        self.entry_dict[param][rownum].delete(0, END)
+                        self.entry_dict[param][rownum].insert(END, val)
         else:
             self.def_entries_unknown(archetype, name=name, reopen=True)
 
