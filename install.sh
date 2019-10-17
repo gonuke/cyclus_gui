@@ -1,1 +1,1 @@
-pyinstaller --add-data "./src/*:./src/" gui.spec
+pyinstaller --add-data "./src/*:./src/" --onefile gui.spec
