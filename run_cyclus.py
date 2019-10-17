@@ -8,7 +8,6 @@ import xmltodict
 import http.client
 import uuid
 import os
-import seaborn as sns
 import shutil
 import json
 import copy

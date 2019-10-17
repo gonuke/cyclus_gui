@@ -9,7 +9,6 @@ import uuid
 import os
 import shutil
 import json
-from proto_window import PrototypeWindow
 
 
 class RecipeWindow(Frame):
