@@ -107,8 +107,19 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
         proxy_hostname = self.proxy_hostname.get()
         proxy_port = self.proxy_port.get()
         try:
+            self.err_message = """Did not connect! Check Internet connection or contact baej@ornl.gov
+
+The Azure VM might not be turned on. If so, ask baej@ornl.gov to turn it on.
+
+If you are using this in a secure network, that might be the reason as well.
+Try using a tunneling application (ex. Corkscrew) to use a proxy, by defining the `hostname' and `port' blocks.
+https://wiki.archlinux.org/index.php/HTTP_tunneling
+
+
+Error message:\n"""
             if proxy_hostname != '':
                 self.output_pipe.insert(END, '\n' + 'with Proxy hostname=%s and port=%s' %(proxy_hostname, proxy_port))
+                
                 http_con  = http.client.HTTPConnection(proxy_hostname, proxy_port)
                 # this should be changed?
                 headers = {}
@@ -125,21 +136,15 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
                                  password=' ',
                                  allow_agent=False, look_for_keys=False)
             self.output_pipe.insert(END, '\n\n CONNECTED. Now uploading generated input file, running the file on the VM, and downloading the file:\n\n')
+            self.err_message = """Did connect, but Cyclus Run was unsuccessful. 
+
+Check the error message.
+"""
             self.upload_run_download(self.input_path, self.output_path)
             self.return_code = 0
 
         except Exception as e:
-            self.err_message = """Did not connect! Check Internet connection or contact baej@ornl.gov
-
-The Azure VM might not be turned on. If so, ask baej@ornl.gov to turn it on.
-
-If you are using this in a secure network, that might be the reason as well.
-Try using a tunneling application (ex. Corkscrew) to use a proxy, by defining the `hostname' and `port' blocks.
-https://wiki.archlinux.org/index.php/HTTP_tunneling
-
-
-Error message:\n""" + str(e)
-            self.output_pipe.insert(END, '\n\n' + self.err_message)
+            self.output_pipe.insert(END, '\n\n' + self.err_message + str(e))
             self.return_code = -1
 
 
