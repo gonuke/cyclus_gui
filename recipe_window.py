@@ -28,6 +28,7 @@ class RecipeWindow(Frame):
         self.master.title('Define recipes')
         self.output_path = output_path
         self.master.geometry('+0+900')
+        self.scrape_for_recipes_in_facility()
         self.guide()
         browse_button = Button(self.master, text='Add From File [atomic]', command=lambda : self.askopenfile('atom')).grid(row=1)
         browse_button = Button(self.master, text='Add From File [mass]', command= lambda : self.askopenfile('mass')).grid(row=2)
@@ -43,11 +44,33 @@ class RecipeWindow(Frame):
 
         if os.path.isfile(os.path.join(self.output_path, 'recipe.xml')):
             self.read_xml()
+        
 
         self.update_loaded_recipes()
 
 
-            
+    def scrape_for_recipes_in_facility(self):
+        self.defined_recipe_dict = {}
+        if os.path.exists(os.path.join(self.output_path, 'facility.xml')):
+            with open(os.path.join(self.output_path, 'facility.xml'), 'r') as f:
+                xml_list = xmltodict.parse(f.read())['root']['facility']
+                for facility in xml_list:
+                    for key, val in facility['config'].items():
+                        for key2, val2 in val.items():
+                            if 'recipe' in key2:
+                                self.defined_recipe_dict[facility['name']+' [%s]' %key2] = val2
+        new_ = {}
+        for key, val in self.defined_recipe_dict.items():
+            if 'ict' in str(type(val)):
+                new_[key] = val['val']
+            else:
+                new_[key] = val
+        self.defined_recipe_dict = new_
+        if len(self.defined_recipe_dict.keys()) != 0:
+            self.recipes_defined = True
+        else:
+            self.recipes_defined = False
+
 
     def update_loaded_recipes(self):
         try:
@@ -238,5 +261,16 @@ class RecipeWindow(Frame):
         You can also add multiple recipes at a time by selecting a directory
         that contains multiple recipe files.
         """
+        if self.recipes_defined:
+            guide_string += '\nThe following recipe names are defined in the facility block:\n\n'
+        for key, val in self.defined_recipe_dict.items():
+            if isinstance(val, list):
+                guide_string += 'FROM %s:\n' %key
+                for i in val:
+                    guide_string += '\t%s\n' %i
+                guide_string += '\n'
+            else:
+                guide_string += 'FROM %s:\n\t%s\n\n' %(key, val)
+
         Label(self.guide_window, text=guide_string, justify=LEFT).pack(padx=30, pady=30)
 

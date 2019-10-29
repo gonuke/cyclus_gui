@@ -192,7 +192,8 @@ Check the error message.
         
         c = self.run_and_print('/home/baej/.local/bin/cyclus %s -o %s --warn-limit 0' %(remote_input_path,
                                                                          remote_output_path), p=True)
-        if c == 0 or ('Error' not in c and 'error' not in c and 'Abort' not in c and 'fatal' not in c):
+
+        if c == 0 or ('Error' not in c and 'error' not in c and 'Abort' not in c and 'fatal' not in c and 'Invalid' not in c):
             # download yo
             self.output_pipe.insert(END, '\n Run Successful. Now downloading output back into local drive:\n')
             self.check_existing_output()
