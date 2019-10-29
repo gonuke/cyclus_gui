@@ -224,9 +224,9 @@ class Cygui(Frame):
                 skipback = 0
                 with open(os.path.join(output_path, i), 'r') as f:
                     x = f.readlines()
-                    if 'prototype' in i:
+                    if 'facility' in i:
                         skipfront += 1
-                    if 'prototype' in i or 'region' in i or 'recipe' in i:
+                    if 'facility' in i or 'region' in i or 'recipe' in i:
                         skipfront += 1
                         skipback -= 1
                     if skipback == 0:
