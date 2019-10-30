@@ -27,10 +27,24 @@ class SimulationWindow():
         # self.frame = Frame(self.master)
         self.master.geometry('+0+500')
         self.guide()
+        self.master.bind('<Motion>', self.motion)
         inputs = ['duration', 'startmonth', 'startyear', 'decay',
                   'explicit_inventory', 'dt']
+        description = ['Duration of the simulation', 'Starting month of the simulation',
+                       'Starting year of the simulation', 'Decay mode [never, lazy, manual]',
+                       'Creates explicit inventory table - If you want to save the inventory of each facility at each timestep, write 1',
+                       'Duration of single timestep in seconds (default is a month)']
+        self.label_dict = {}
         for i, txt in enumerate(inputs):
-            Label(self.master, text=txt).grid(row=(i))
+            self.label_dict[txt] = Label(self.master, text=txt)
+            self.label_dict[txt].grid(row=(i))
+            self.label_dict[txt].description = description[i]
+            # self.label_dict[txt].bind('<Enter>', self.on_enter)
+            # self.label_dict[txt].bind('<Leave>', self.on_leave)
+
+        #self.guide_label = Label(self.master, text='')
+        #self.guide_label.grid(row=i+1)
+        
 
         self.entry_dict = {}
         for row, txt in enumerate(inputs):
@@ -48,6 +62,29 @@ class SimulationWindow():
 
         done_button = Button(self.master, text='Done', command=lambda: self.done())
         done_button.grid(row=len(inputs)+1, columnspan=2)
+
+    def on_enter(self, event):
+        self.new_window = Toplevel(event.widget)
+        print('%s%s' %(str(self.x), str(self.y)))
+        self.new_window.geometry('%s%s' %(str(self.x), str(self.y)))
+        description = getattr(event.widget, 'description', '')
+        Label(self.new_window, text=description).pack()
+
+
+    def on_leave(self, event):
+        self.new_window.destroy()
+
+
+    def motion(self, event):
+        # tracks mouse location
+        self.x, self.y = event.x, event.y+500
+        # print('Mouse Loc: %i %i' %(self.x, self.y))
+        if self.x > 0:
+            self.x = '+%s' %str(self.x)
+        if self.y > 0:
+            self.y = '+%s' %str(self.y) 
+
+
 
     def is_it_pos_integer(self, num):
         if float(num) % 1.0 != 0.0:

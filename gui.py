@@ -305,7 +305,6 @@ class Cygui(Frame):
 
 
 
-
 root = Tk()
 #root.geometry('400x300')
 app = Cygui(root)
