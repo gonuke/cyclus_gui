@@ -15,7 +15,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-
+from window_tools import *
 
 
 class BackendWindow(Frame):
@@ -172,7 +172,7 @@ class BackendWindow(Frame):
                           'receiver': [],
                           'commodity': []}
 
-            parent = self.assess_scroll_deny(len(traders), self.material_flow_window)
+            parent = assess_scroll_deny(len(traders), self.material_flow_window)
             if parent == -1:
                 return
 
@@ -193,7 +193,7 @@ class BackendWindow(Frame):
                     table_dict['sender'].append(checker[0])
                     table_dict['receiver'].append(checker[1])
                     table_dict['commodity'].append(checker[2])
-            parent = self.assess_scroll_deny(len(table_dict['sender']), self.material_flow_window)
+            parent = assess_scroll_deny(len(table_dict['sender']), self.material_flow_window)
             if parent == -1:
                 return
 
@@ -279,7 +279,7 @@ class BackendWindow(Frame):
         for i in commods:
             names.append(i['commodity'])
         names.sort(key=str.lower)
-        parent = self.assess_scroll_deny(len(commods), self.commodity_tr_window)
+        parent = assess_scroll_deny(len(commods), self.commodity_tr_window)
         if parent == -1:
             return
 
@@ -372,7 +372,7 @@ class BackendWindow(Frame):
         entry = self.cur.execute('SELECT DISTINCT prototype FROM agententry WHERE kind="Facility"').fetchall()
         proto_list = [i['prototype'] for i in entry]
         proto_list.sort(key=str.lower)
-        parent = self.assess_scroll_deny(len(entry), self.agent_dep_window)
+        parent = assess_scroll_deny(len(entry), self.agent_dep_window)
         if parent == -1:
             return
 
@@ -459,7 +459,7 @@ class BackendWindow(Frame):
             if 'TimeSeries' in i['name']:
                 timeseries_tables_list.append(i['name'].replace('TimeSeries', ''))
         timeseries_tables_list.sort()
-        parent = self.assess_scroll_deny(len(timeseries_tables_list), self.ts_window)
+        parent = assess_scroll_deny(len(timeseries_tables_list), self.ts_window)
         if parent == -1:
             return
 
@@ -482,7 +482,7 @@ class BackendWindow(Frame):
         self.ta_window.geometry('+1000+1000')
         parent = self.ta_window
 
-        parent = self.assess_scroll_deny(len(agentname_list), self.ta_window)
+        parent = assess_scroll_deny(len(agentname_list), self.ta_window)
         if parent == -1:
             return
         
@@ -558,7 +558,7 @@ class BackendWindow(Frame):
         self.inv_inv_window_.geometry('+1000+1000')
         parent = self.inv_inv_window_
         if groupby == 'agent':
-            parent = self.assess_scroll_deny(len(self.id_proto_dict.keys()), self.inv_inv_window_)
+            parent = assess_scroll_deny(len(self.id_proto_dict.keys()), self.inv_inv_window_)
             if parent == -1:
                 return
 
@@ -580,7 +580,7 @@ class BackendWindow(Frame):
             proto_list = [i['prototype'] for i in entry]
             proto_list.sort(key=str.lower)
 
-            parent = self.assess_scroll_deny(len(self.id_proto_dict.keys()), self.inv_inv_window_)
+            parent = assess_scroll_deny(len(self.id_proto_dict.keys()), self.inv_inv_window_)
             if parent == -1:
                 return
             columnspan=3
@@ -742,31 +742,6 @@ class BackendWindow(Frame):
         new_x = np.arange(self.duration / groups)
         new_y = []
 
-
-    def assess_scroll_deny(self, length, window_obj):
-        view_hard_limit = 140
-        scroll_limit = 25
-        if length > view_hard_limit:
-            messagebox.showinfo('Too much', 'You have %s distinct values. Too much to show here.' %length)
-            window_obj.destroy()
-            return -1
-        elif length > scroll_limit:
-            return self.add_scrollbar(window_obj)
-        else:
-            return window_obj
-
-    def add_scrollbar(self, window_obj):
-        canvas = Canvas(window_obj, width=800, height=1000)
-        frame = Frame(canvas)
-        scrollbar = Scrollbar(window_obj, command=canvas.yview)
-        scrollbar.pack(side=RIGHT, fill='y')
-        canvas.pack(side=LEFT, fill='both', expand=True)        
-        def on_configure(event):
-            canvas.configure(scrollregion=canvas.bbox('all'))
-        canvas.configure(yscrollcommand=scrollbar.set)
-        frame.bind('<Configure>', on_configure)
-        canvas.create_window((4,4), window=frame, anchor='nw')
-        return frame
 
     def check_n_isos(self):
         n_isos = self.config_dict['n_isos'].get()
