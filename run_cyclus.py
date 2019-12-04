@@ -39,19 +39,37 @@ class cyclus_run:
         self.cyclus_cmd = Entry(self.master)
         self.cyclus_cmd.insert(END, 'cyclus')
         self.cyclus_cmd.grid(row=2, column=2)
+
+
+        Label(self.master, text='========================').grid(row=3, columnspan=columnspan)
         
+
         cloud_run = Button(self.master, text='Run on Cloud', command=lambda:self.run_on_cloud())
-        cloud_run.grid(row=3, column=0)
-        Label(self.master, text='Proxy Hostname:').grid(row=3, column=1)
+        cloud_run.grid(row=4, column=0)
+        Label(self.master, text='server:').grid(row=4, column=1)
+        self.server = Entry(self.master)
+        self.server.insert(END, 'azure')
+        self.server.grid(row=4, column=2)
+
+
+        Label(self.master, text='username:').grid(row=5, column=0)
+        self.username = Entry(self.master)
+        self.username.grid(row=5, column=1)
+        Label(self.master, text='password:').grid(row=5, column=2)
+        self.password = Entry(self.master)
+        self.password.grid(row=5, column=3)
+
+
+        Label(self.master, text='Proxy Hostname:').grid(row=6, column=0)
         self.proxy_hostname = Entry(self.master)
-        self.proxy_hostname.grid(row=3, column=2)
-        Label(self.master, text='Proxy Port:').grid(row=3, column=3)
+        self.proxy_hostname.grid(row=6, column=1)
+        Label(self.master, text='Proxy Port:').grid(row=6, column=2)
         self.proxy_port = Entry(self.master)
-        self.proxy_port.grid(row=3, column=4)
+        self.proxy_port.grid(row=6, column=3)
         
         
         frame = Frame(self.master)
-        frame.grid(row=4, columnspan=columnspan)
+        frame.grid(row=7, columnspan=columnspan)
 
         s = Scrollbar(frame)
         s.pack(side=RIGHT, fill=Y)
@@ -99,8 +117,12 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
 
     def run_on_cloud(self):
         # microsoft azure account
-        ip = '40.121.41.236'
-        self.username = 'user1'
+        if self.server.get() == 'azure':
+            ip = '40.121.41.236'
+        else:
+            ip = self.server.get()
+        username = self.username.get()
+        password = self.password.get()
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.output_pipe.insert(END, '\nAttempting to connect to Azure VM:')
@@ -109,12 +131,11 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
         try:
             self.err_message = """Did not connect! Check Internet connection or contact baej@ornl.gov
 
-The Azure VM might not be turned on. If so, ask baej@ornl.gov to turn it on.
+If using the Azure server, the Azure VM might not be turned on. If so, ask baej@ornl.gov to turn it on.
 
 If you are using this in a secure network, that might be the reason as well.
 Try using a tunneling application (ex. Corkscrew) to use a proxy, by defining the `hostname' and `port' blocks.
 https://wiki.archlinux.org/index.php/HTTP_tunneling
-
 
 Error message:\n"""
             if proxy_hostname != '':
@@ -127,13 +148,13 @@ Error message:\n"""
                 http_con.set_tunnel(ip, 22, headers)
                 http_con.connect()
                 sock = http_con.sock
-                self.ssh.connect(ip, username=self.username,
-                                 password=' ', sock=sock,
+                self.ssh.connect(ip, username=username,
+                                 password=password, sock=sock,
                                  allow_agent=False, look_for_keys=False)
 
             else:
-                self.ssh.connect(ip, username=self.username,
-                                 password=' ',
+                self.ssh.connect(ip, username=username,
+                                 password=password,
                                  allow_agent=False, look_for_keys=False)
             self.output_pipe.insert(END, '\n\n CONNECTED. Now uploading generated input file, running the file on the VM, and downloading the file:\n\n')
             self.err_message = """Did connect, but Cyclus Run was unsuccessful. 
@@ -175,7 +196,7 @@ Check the error message.
         ftp = self.ssh.open_sftp()
         # upload yo
 
-        rnd_dir = '/home/%s/%s' %(self.username, str(uuid.uuid4()))
+        rnd_dir = '/home/%s/%s' %(self.username.get(), str(uuid.uuid4()))
         remote_input_path = rnd_dir + '/input.xml' 
 
         # make temporary directory with random hash so no overlap
