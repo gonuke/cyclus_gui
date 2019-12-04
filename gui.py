@@ -263,19 +263,13 @@ class Cygui(Frame):
             Since Cyclus is a modular framework, here you
             decide what libraries and what archetypes to use.
             An archetype is a self-contained code that defines
-            a facility's behavior (e.g. reactor, sink)
+            a facility's behavior (e.g. reactor, sink). It is 
+            automatically populated, so don't do anything
+            unless you need some specific library.
 
             (A reactor archetype [takes in, depletes, and discharges fuel at a
              predefined cycle length])
 
-        Regions:
-            Here, you actually set up how the facility prototypes will be `played'
-            - when to enter, when to exit, and how many to play.
-
-            (The Clinton reactor (facility prototype) is inside the Exelon Institution,
-             which is inside the U.S.A. region, has 1 unit (n_build),
-             has a lifetime of 960 months (lifetimes),
-             and enters simulation in timestep 100 (build_times).)
 
         Facilities:
             Here, you define the facilities' parameters.
@@ -293,6 +287,16 @@ class Cygui(Frame):
 
             ( The Clinton reactor facility takes in, depletes and discharges
              fuel in [18-month cycles], outputs [1,062 MWe], and uses [UOX] fuel.) 
+
+        Regions:
+            Here, you actually set up how the facility prototypes will be `played'
+            - when to enter, when to exit, and how many to play.
+
+            (The Clinton reactor (facility prototype) is inside the Exelon Institution,
+             which is inside the U.S.A. region, has 1 unit (n_build),
+             has a lifetime of 960 months (lifetimes),
+             and enters simulation in timestep 100 (build_times).)
+
 
         Recipes:
             Well, recipes, are, well, recipes.

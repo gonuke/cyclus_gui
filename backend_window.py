@@ -248,9 +248,10 @@ class BackendWindow(Frame):
             q = self.cur.execute(query).fetchall()
             x, y = self.query_result_to_timeseries(q, 'sum(quantity)')
         else:
-            query = 'SELECT sum(quantity)*massfrac, nucid, time FROM transactions INNER JOIN resources ON transactions.resourceid == resources.resourceid LEFT OUTER JOIN compositions ON compositions.qualid = resources.qualid WHERE (senderid = ' + ' OR senderid = '.join(str_sender_id) + ') AND (receiverid = ' + ' OR receiverid = '.join(str_receiver_id) + ') GROUP BY time, nucid'
-            q = self.cur.execute(query).fetchall()
-            x, y = self.query_result_to_dict(q, 'nucid', 'sum(quantity)*massfrac')
+            # query = 'SELECT sum(quantity)*massfrac, nucid, time FROM transactions INNER JOIN resources ON transactions.resourceid == resources.resourceid LEFT OUTER JOIN compositions ON compositions.qualid = resources.qualid WHERE (senderid = ' + ' OR senderid = '.join(str_sender_id) + ') AND (receiverid = ' + ' OR receiverid = '.join(str_receiver_id) + ') GROUP BY time, nucid'
+            # q = self.cur.execute(query).fetchall()
+            # x, y = self.query_result_to_dict(q, 'nucid', 'sum(quantity)*massfrac')
+            x, y = self.get_iso_flow_dict('(senderid = ' + ' OR senderid = '.join(str_sender_id) + ') AND (receiverid = ' + ' OR receiverid = '.join(str_receiver_id) + ')', n_isos)
 
         if groupby == 'prototype':
             name = '%s_%s_%s.csv' %(sender, receiver, commodity)
@@ -303,15 +304,50 @@ class BackendWindow(Frame):
         if n_isos == 0:
             movement = self.cur.execute('SELECT time, sum(quantity) FROM transactions INNER JOIN resources on transactions.resourceid==resources.resourceid WHERE commodity="%s" GROUP BY time' %commod).fetchall()
             x, y = self.query_result_to_timeseries(movement, 'sum(quantity)')
+            print(x, y)
         else:
-            movement = self.cur.execute('SELECT time, sum(quantity)*massfrac, nucid FROM transactions INNER JOIN resources ON transactions.resourceid = resources.resourceid LEFT OUTER JOIN compositions ON compositions.qualid = resources.qualid WHERE commodity="%s" GROUP BY time, nucid' %commod).fetchall()
-            x, y = self.query_result_to_dict(movement, 'nucid', 'sum(quantity)*massfrac')
+            # movement = self.cur.execute('SELECT time, sum(quantity)*massfrac, nucid FROM transactions INNER JOIN resources ON transactions.resourceid = resources.resourceid LEFT OUTER JOIN compositions ON compositions.qualid = resources.qualid WHERE commodity="%s" GROUP BY transactions.time, nucid' %commod).fetchall()
+            # x, y = self.query_result_to_dict(movement, 'nucid', 'sum(quantity)*massfrac')
+            x, y = self.get_iso_flow_dict('commodity = "%s"' %commod, n_isos)
 
 
         if action == 'plot':
             self.plot(x, y, '%s Sent', commod)
         elif action == 'export':
             self.export(x, y, '%s.csv' %commod)
+
+
+    def get_iso_flow_dict(self, where_phrase, n_isos, time_col_name='Time'):
+        q = self.cur.execute('SELECT time, quantity, qualid FROM transactions INNER JOIN resources ON transactions.resourceid = resources.resourceid WHERE %s' %where_phrase).fetchall()
+        timeseries = []
+        nucid_dict = {}
+        for row in q:
+            qualid = row['QualId']
+            w = self.cur.execute('SELECT nucid, massfrac FROM compositions WHERE qualid=%i' %qualid)
+            for row2 in w:
+                if row2['nucid'] not in nucid_dict.keys():
+                    nucid_dict[row2['nucid']] = 0
+                e = copy.deepcopy(dict(row))
+                e['nucid'] = row2['nucid']
+                e['Quantity'] = e['Quantity'] * row2['MassFrac']
+                nucid_dict[row2['nucid']] += e['Quantity']
+                timeseries.append(e)
+
+        x = np.arange(self.duration)
+        y = {}
+        # sort out top n isos
+        keys = sorted(nucid_dict, key=nucid_dict.__getitem__, reverse=True)[:n_isos]
+        for key in keys:
+            y[key] = np.zeros(self.duration)
+            for entry in timeseries:
+                if entry['nucid'] == key:
+                    y[key][int(entry[time_col_name])] += entry['Quantity']
+
+        y = {self.nucid_convert(k):v for k,v in y.items()}
+        return x, y
+
+
+
 
 
     def agent_deployment_window(self):
@@ -599,10 +635,6 @@ class BackendWindow(Frame):
         lines = []
         if type(y) is dict:
             for key, val in y.items():
-                try: # if nucid, turn to nameAAA
-                    key = self.nucid_convert(key)
-                except:
-                    z = 0
                 l, = ax1.plot(self.timestep_to_date(x), val, label=key)
                 lines.append(l)
             if sum([sum(y[k]) for k in y]) > 1e3:
@@ -659,7 +691,7 @@ class BackendWindow(Frame):
             os.mkdir(export_dir)
         filename = os.path.join(export_dir, filename)
         if type(y) is dict:
-            columns = [self.nucid_convert(q) for q in list(y.keys())]
+            columns = [str(q) for q in list(y.keys())]
             s = 'time, %s\n' %', '.join(columns)
             for indx, val in enumerate(x):
                 s += '%s, %s\n' %(str(x[indx]), ', '.join([str(q[indx]) for q in list(y.values())]))
