@@ -1,9 +1,7 @@
 from tkinter import *
-from PIL import Image, ImageTk
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
-import xml.etree.ElementTree as et
 import xmltodict
 import http.client
 import uuid

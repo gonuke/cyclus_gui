@@ -1,10 +1,8 @@
 from pprint import pprint
 from tkinter import *
-from PIL import Image, ImageTk
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
-import xml.etree.ElementTree as et
 import xmltodict
 import uuid
 import os
@@ -101,6 +99,7 @@ class PrototypeWindow(Frame):
             xml_list = xmltodict.parse(f.read())['root']['region']
             if isinstance(xml_list, dict):
                 xml_list = [xml_list]
+
             for region in xml_list:
                 self.region_dict[region['name']] = {}
 
@@ -109,39 +108,36 @@ class PrototypeWindow(Frame):
 
                 for i in region['institution']:
                     inst_array = []
-                    if 'DeployInst' not in i['config'].keys():
-                            continue
-                    prototypes = i['config']['DeployInst']['prototypes']['val']
-                    instname = i['name']
+                    if 'DeployInst' in i['config'].keys():
+                        prototypes = i['config']['DeployInst']['prototypes']['val']
+                        instname = i['name']
 
-                    if isinstance(prototypes, str):
-                        prototypes = [prototypes]
+                        if isinstance(prototypes, str):
+                            prototypes = [prototypes]
 
-                    for indx, p in enumerate(prototypes):
-                        self.tot_entry_n += 1
-                        entry_list = []
-                        entry_dict = i['config']['DeployInst']
-                        for cat in ['prototypes', 'n_build', 'build_times', 'lifetimes']:
-                            if len(prototypes) == 1:
-                                entry_list.append(entry_dict[cat]['val'])
-                            else:
-                                entry_list.append(entry_dict[cat]['val'][indx])
-                        inst_array.append(entry_list)
+                        for indx, p in enumerate(prototypes):
+                            self.tot_entry_n += 1
+                            entry_list = []
+                            entry_dict = i['config']['DeployInst']
+                            for cat in ['prototypes', 'n_build', 'build_times', 'lifetimes']:
+                                if len(prototypes) == 1:
+                                    entry_list.append(entry_dict[cat]['val'])
+                                else:
+                                    entry_list.append(entry_dict[cat]['val'][indx])
+                            inst_array.append(entry_list)
 
-
-                    if 'initialfacilitylist'in i.keys():
+                    if 'initialfacilitylist' in i.keys():
                         init_facility = region['institution']['initialfacilitylist']['entry']
                         if type(init_facility) != list:
                             init_facility = [init_facility]
                         for i in init_facility:
                             self.tot_entry_n += 1
-                            entry_list = [i['prototype'], i['number'], 1, 99999]
+                            entry_list = [i['prototype'], i['number'], '1', '99999']
                             if 'lifetime' in self.proto_dict[i['prototype']].keys():
                                 entry_list[3] = self.proto_dict[i['prototype']]['lifetime']
                             inst_array.append(entry_list)
 
-
-                    self.region_dict[region['name']][instname] = inst_array
+                self.region_dict[region['name']][instname] = inst_array
 
 
 

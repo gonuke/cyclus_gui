@@ -1,9 +1,7 @@
 from tkinter import *
-from PIL import Image, ImageTk
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
-import xml.etree.ElementTree as et
 import xmltodict
 import uuid
 import os
@@ -12,6 +10,7 @@ import json
 import copy
 import urllib.request
 import subprocess
+from read_xml import *
 
 
 class ArchetypeWindow(Frame):
@@ -33,7 +32,7 @@ class ArchetypeWindow(Frame):
                       ['cycamore', 'Storage']]
         meta_file_path = os.path.join(self.output_path, 'm.json')
         if os.path.isfile(os.path.join(self.output_path, 'archetypes.xml')): 
-            self.read_xml()
+            self.arche = read_xml(os.path.join(self.output_path, 'archetypes.xml'), 'arche')
         else:
             try:
                 command = 'cyclus -m'

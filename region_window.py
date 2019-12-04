@@ -1,9 +1,7 @@
 from tkinter import *
-from PIL import Image, ImageTk
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
-import xml.etree.ElementTree as et
 import xmltodict
 import uuid
 import os
@@ -30,6 +28,7 @@ class RegionWindow(Frame):
         self.master.title('Define regions')
         self.output_path = output_path
         self.master.geometry('+150+850')
+        self.tot_entry_n = 0
         # self.load_prototypes()
         self.status_var = StringVar()
         self.guide()
@@ -82,6 +81,9 @@ class RegionWindow(Frame):
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined Regions')
         self.status_window.geometry('+500+920')
+        parent = self.status_window
+        parent = assess_scroll_deny(len(self.proto_dict.keys())+2, self.status_window)
+        
         Label(self.status_window, text='Current regions:', bg='yellow').grid(row=0, columnspan=7)
         c_dict = {'Region': 'pale green',
                   'Institution': 'light salmon',

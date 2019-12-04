@@ -1,14 +1,13 @@
 from tkinter import *
-from PIL import Image, ImageTk
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
-import xml.etree.ElementTree as et
 import xmltodict
 import uuid
 import os
 import shutil
 import json
+from read_xml import *
 
 
 class RecipeWindow(Frame):
@@ -43,7 +42,7 @@ class RecipeWindow(Frame):
         self.recipe_dict = {}
 
         if os.path.isfile(os.path.join(self.output_path, 'recipe.xml')):
-            self.read_xml()
+            self.recipe_dict = read_xml(os.path.join(self.output_path, 'recipe.xml'), 'recipe')
         
 
         self.update_loaded_recipes()
@@ -57,7 +56,7 @@ class RecipeWindow(Frame):
                 for facility in xml_list:
                     # if there's only one facility,
                     if facility == 'name':
-                        break
+                        facility = [facility]
                     for key, val in facility['config'].items():
                         for key2, val2 in val.items():
                             if 'recipe' in key2:
