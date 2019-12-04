@@ -55,6 +55,9 @@ class RecipeWindow(Frame):
             with open(os.path.join(self.output_path, 'facility.xml'), 'r') as f:
                 xml_list = xmltodict.parse(f.read())['root']['facility']
                 for facility in xml_list:
+                    # if there's only one facility,
+                    if facility == 'name':
+                        break
                     for key, val in facility['config'].items():
                         for key2, val2 in val.items():
                             if 'recipe' in key2:
@@ -260,6 +263,8 @@ class RecipeWindow(Frame):
         When you add recipe from a file, the filename becomes the recipe name.
         You can also add multiple recipes at a time by selecting a directory
         that contains multiple recipe files.
+
+        If there are no recipes to define, just define a dummy one manually and move on.
         """
         if self.recipes_defined:
             guide_string += '\nThe following recipe names are defined in the facility block:\n\n'
