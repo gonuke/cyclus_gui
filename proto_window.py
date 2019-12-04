@@ -11,6 +11,7 @@ import os
 import shutil
 import json
 import copy
+from window_tools import *
 
 
 class PrototypeWindow(Frame):
@@ -66,25 +67,28 @@ class PrototypeWindow(Frame):
                   'n_build': 'ivory3',
                   'build_time': 'orchid1',
                   'lifetime': 'pale turquoise'}
-        Label(self.region_status_window, text='Current regions:', bg='yellow').grid(row=0, columnspan=7)
+        parent = self.region_status_window
+        parent = assess_scroll_deny(self.tot_entry_n+len(self.region_dict.keys())*2+1, self.region_status_window)
+        Label(parent, text='Current regions:', bg='yellow').grid(row=0, columnspan=7)
         columns = ['Region', 'Institution', 'Facility_proto', 'n_build', 'build_time', 'lifetime']
         for indx, val in enumerate(columns):
             c = c_dict[val]
-            Label(self.region_status_window, text=val, bg=c).grid(row=1, column=indx+1)
+            Label(parent, text=val, bg=c).grid(row=1, column=indx+1)
         row = 2
         for regionname, instdict in self.region_dict.items():
-            Label(self.region_status_window, text=regionname, bg='pale green').grid(row=row, column=1)
+            Label(parent, text=regionname, bg='pale green').grid(row=row, column=1)
             row += 1
             for instname, instarray in instdict.items():
-                Label(self.region_status_window, text=instname, bg='light salmon').grid(row=row, column=2)
+                Label(parent, text=instname, bg='light salmon').grid(row=row, column=2)
                 row += 1
                 for instlist in instarray:
                     fac_name = instlist[0]
                     columns_ = columns[2:]
                     for indx, v in enumerate(instlist):
                         c = c_dict[columns_[indx]]
-                        Label(self.region_status_window, text=v, bg=c).grid(row=row, column=indx+3)
+                        Label(parent, text=v, bg=c).grid(row=row, column=indx+3)
                     row += 1
+
 
     def read_regions(self):
         """
@@ -92,45 +96,54 @@ class PrototypeWindow(Frame):
         becasuse xmltodict reads single entries as strings
         while multiple entries as lists..
         """
+        self.tot_entry_n = 0
         with open(os.path.join(self.output_path, 'region.xml'), 'r') as f:
             xml_list = xmltodict.parse(f.read())['root']['region']
             if isinstance(xml_list, dict):
                 xml_list = [xml_list]
             for region in xml_list:
                 self.region_dict[region['name']] = {}
+
                 if not isinstance(region['institution'], list):
-                    do_it = 1
-                else:
-                    do_it = len(region['institution'])
-                for i in range(do_it):
+                    region['institution'] = [region['institution']]
+
+                for i in region['institution']:
                     inst_array = []
-                    if do_it == 1:
-                        prototypes = region['institution']['config']['DeployInst']['prototypes']['val']
-                        instname = region['institution']['name']
-                    else:
-                        prototypes = region['institution'][i]['config']['DeployInst']['prototypes']['val']
-                        instname = region['institution'][i]['name']
+                    if 'DeployInst' not in i['config'].keys():
+                            continue
+                    prototypes = i['config']['DeployInst']['prototypes']['val']
+                    instname = i['name']
 
                     if isinstance(prototypes, str):
-                        entry_length = 1
-                    else:
-                        entry_length = len(prototypes)
+                        prototypes = [prototypes]
 
-                    for indx in range(entry_length):
+                    for indx, p in enumerate(prototypes):
+                        self.tot_entry_n += 1
                         entry_list = []
-                        if do_it == 1:
-                            entry_dict = region['institution']['config']['DeployInst']
-                        else:
-                            entry_dict = region['institution'][i]['config']['DeployInst']
+                        entry_dict = i['config']['DeployInst']
                         for cat in ['prototypes', 'n_build', 'build_times', 'lifetimes']:
-                            if entry_length == 1:
+                            if len(prototypes) == 1:
                                 entry_list.append(entry_dict[cat]['val'])
                             else:
                                 entry_list.append(entry_dict[cat]['val'][indx])
                         inst_array.append(entry_list)
 
 
+                    if 'initialfacilitylist'in i.keys():
+                        init_facility = region['institution']['initialfacilitylist']['entry']
+                        if type(init_facility) != list:
+                            init_facility = [init_facility]
+                        for i in init_facility:
+                            self.tot_entry_n += 1
+                            entry_list = [i['prototype'], i['number'], 1, 99999]
+                            if 'lifetime' in self.proto_dict[i['prototype']].keys():
+                                entry_list[3] = self.proto_dict[i['prototype']]['lifetime']
+                            inst_array.append(entry_list)
+
+
                     self.region_dict[region['name']][instname] = inst_array
+
+
 
 
 
@@ -138,12 +151,15 @@ class PrototypeWindow(Frame):
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined facility prototypes')
         self.status_window.geometry('+250+700')
-        Label(self.status_window, text='Defined Facility Prototypes:\n', bg='yellow').grid(row=0, columnspan=2)
+        parent = self.status_window
+        parent = assess_scroll_deny(len(self.proto_dict.keys())+2, self.status_window)
+        
+        Label(parent, text='Defined Facility Prototypes:\n', bg='yellow').grid(row=0, columnspan=2)
         row=1
         for name, val in self.proto_dict.items():
             string = '%s (%s)\n' %(name, val['archetype'])
-            Button(self.status_window, text=string, command = lambda name=name, val=val: self.reopen_def_window(name, val['archetype'])).grid(row=row, column=0)
-            Button(self.status_window, text='x', command = lambda name=name: self.delete_fac(name)).grid(row=row, column=1)
+            Button(parent, text=string, command = lambda name=name, val=val: self.reopen_def_window(name, val['archetype'])).grid(row=row, column=0)
+            Button(parent, text='x', command = lambda name=name: self.delete_fac(name)).grid(row=row, column=1)
             row += 1
 
     def delete_fac(self, name):
@@ -820,21 +836,28 @@ class PrototypeWindow(Frame):
     def read_xml(self):
         with open(os.path.join(self.output_path, 'facility.xml'), 'r') as f:
             xml_list = xmltodict.parse(f.read())['root']['facility']
+            if type(xml_list) != list:
+                xml_list = [xml_list]
             for facility in xml_list:
-                if isinstance(facility, str):
-                    facility_name = xml_list['name']
-                    archetype = list(xml_list['config'].keys())[0]
-                    self.proto_dict[facility_name] = {'archetype': archetype,
-                                                      'config': {archetype: xml_list['config'][archetype]}}
+                #if isinstance(facility, str):
+                #    facility_name = xml_list['name']
+                #    archetype = list(xml_list['config'].keys())[0]
+                #    self.proto_dict[facility_name] = {'archetype': archetype,
+                #                                      'config': {archetype: xml_list['config'][archetype]}}
+                #    if 'lifetime' in xml_list.keys():
+                #        self.proto_dict[facility_name]['lifetime'] = xml_list['lifetime']
 
                     # default is cycamore - do something about this
-                    self.arche_dict[facility_name] = archetype
-                    break
+                #    self.arche_dict[facility_name] = archetype
+                #    break
 
                 facility_name = facility['name']
                 archetype = list(facility['config'].keys())[0]
+
                 self.proto_dict[facility_name] = {'archetype': archetype,
                                                   'config': {archetype: facility['config'][archetype]}}
+                if 'lifetime' in facility.keys():
+                    self.proto_dict[facility_name]['lifetime'] = facility['lifetime']
                 # default is cycamore - do something about this
                 self.arche_dict[facility_name] = archetype
 

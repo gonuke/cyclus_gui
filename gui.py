@@ -185,6 +185,7 @@ class Cygui(Frame):
         Label(self.load_xml_window, text='Choose a file to load!').pack()
         Button(self.load_xml_window, text='Browse', command= lambda : self.askopenfile()).pack()
 
+
     def askopenfile(self):
         file = filedialog.askopenfile(parent=self.load_xml_window, mode='r', title='Choose an xml file')
         xml_dict = xmltodict.parse(file.read())['simulation']
@@ -200,6 +201,9 @@ class Cygui(Frame):
                 f.write(xmltodict.unparse({part: xml_dict[part]}, pretty=True, full_document=False))
                 if part in ['facility', 'region', 'recipe']:
                     f.write('</root>')
+        messagebox.showinfo('Successfully loaded file', 'Successfully loaded file')
+        self.load_xml_window.destroy()
+
 
     def check_and_run(self, run=True):
         files = os.listdir(output_path)
