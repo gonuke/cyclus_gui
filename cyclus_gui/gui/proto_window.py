@@ -11,7 +11,7 @@ import json
 import copy
 from window_tools import *
 from read_xml import *
-
+from hovertip import CreateToolTip
 
 class PrototypeWindow(Frame):
     def __init__(self, master, output_path):
@@ -55,7 +55,7 @@ class PrototypeWindow(Frame):
         self.update_loaded_modules()
 
 
-    def region_window(self):        
+    def region_window(self):
         # reading regions
         n = 0
         if os.path.isfile(os.path.join(self.output_path, 'region.xml')):
@@ -106,6 +106,7 @@ class PrototypeWindow(Frame):
             Button(parent, text=string, command = lambda name=name, val=val: self.reopen_def_window(name, val['archetype'])).grid(row=row, column=0)
             Button(parent, text='x', command = lambda name=name: self.delete_fac(name)).grid(row=row, column=1)
             row += 1
+
 
     def delete_fac(self, name):
         messagebox.showinfo('Deleted', 'Deleted facility prototype %s' %name)
@@ -191,7 +192,7 @@ class PrototypeWindow(Frame):
                     docstring = 'No documentation avail.'
                 
                 self.doc_dict[arche][key] = docstring
-
+        print(self.doc_dict)
 
         self.tag_dict = {}
         self.param_dict = {}
@@ -715,13 +716,27 @@ class PrototypeWindow(Frame):
             self.start_row += 1
             return
         label = label.replace('*', '')
-        Label(master, text=label, bg=color).grid(row=rownum, column=1)
+        q = Label(master, text=label, bg=color)
+        q.grid(row=rownum, column=1)        
+        CreateToolTip(q, text=self.generate_docstring(archetype, label))
         self.entry_dict[label] = {rownum: Entry(self.def_window)}
         if color == 'salmon1':
             default_val = str(self.j['annotations'][':'+archetype]['vars'][label]['default'])
             self.entry_dict[label][rownum].insert(END, default_val)
         self.entry_dict[label][rownum].grid(row=rownum, column=2)
 
+
+    def generate_docstring(self, archetype, label):
+        s = 'type= ' + self.type_dict[archetype][label]
+        print(label)
+        print(self.default_dict[archetype].keys())
+        if label in self.default_dict[archetype].keys():
+            default = str(self.default_dict[archetype][label])
+            if default == '':
+                default = "''"
+            s += '\n(default=%s)' %default
+        s += '\n' + self.doc_dict[archetype][label]
+        return s
 
     def add_row_oneormore(self, label, master, rownum, archetype):
         color = 'snow'

@@ -36,7 +36,10 @@ def CreateToolTip(widget, text):
     def leave(event):
         toolTip.hidetip()
     def click(event):
-        widget.invoke()
+        try:
+            widget.invoke()
+        except:
+            z=0
     widget.bind('<Enter>', enter)
     widget.bind('<Leave>', leave)
     try: widget.bind('<Button-1>', click)
