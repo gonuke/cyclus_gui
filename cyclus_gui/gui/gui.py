@@ -361,6 +361,9 @@ class Cygui(Frame):
             guide_text = """
             Welcome!
 
+            I am the guide window, and I will guide you
+            through the intricacies of Cyclus!
+
             A Cyclus input file has 5 major blocks.
             It is recommended you fill them out sequentially:
 
@@ -408,9 +411,13 @@ class Cygui(Frame):
 
 
             Recipes:
-                Well, recipes, are, well, recipes.
+                Recipes are predefined compositions of various material. They can
+                be defined as mass or atomic concentrations. You can import them
+                from a CSV file or manually write them yourself.
 
-                ( ???? )
+            
+            All feedback and comments / bug reports can be made to baej@ornl.gov
+            Enjoy :)
 
             """
         Label(self.guide_window, text=guide_text, justify=LEFT).pack(padx=30, pady=30)

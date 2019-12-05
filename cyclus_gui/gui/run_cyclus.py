@@ -97,8 +97,6 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
         self.output_pipe.insert(END, '\n'+command)
         proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
         out, err = proc.communicate()
-        print(out)
-        print(err)
         self.output_pipe.insert(END, '\n\n'+out.decode('utf-8'))
         if 'success' in out.decode('utf-8'):
             self.output_pipe.insert(END, '\n\nGreat! move on to the backend analysis!')

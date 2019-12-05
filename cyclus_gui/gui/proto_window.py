@@ -57,6 +57,7 @@ class PrototypeWindow(Frame):
 
     def region_window(self):        
         # reading regions
+        n = 0
         if os.path.isfile(os.path.join(self.output_path, 'region.xml')):
             self.region_dict, n = read_xml(os.path.join(self.output_path, 'region.xml'),
                                         'region')
@@ -127,11 +128,7 @@ class PrototypeWindow(Frame):
 
         if arche_long in self.param_dict.keys():
             self.def_entries(arche_long)
-            print(self.proto_dict[name]['config'][archetype])
             for param, val in self.proto_dict[name]['config'][archetype].items():
-                print(param)
-                print(val)
-                print('\n')
                 rownum = list(self.entry_dict[param].keys())[0]
                 if isinstance(val, dict):
                     
@@ -275,7 +272,6 @@ class PrototypeWindow(Frame):
             messagebox.showerror('Nope', string)
             return
         with open(os.path.join(self.output_path, 'facility.xml'), 'w') as f:
-            print(self.proto_dict)
             for name, config in self.proto_dict.items():
                 facility_dict = {}
                 facility_dict['name'] = name
@@ -312,7 +308,6 @@ class PrototypeWindow(Frame):
         archetype_name = archetype.split(':')[-1]
         config_dict = {archetype_name: {}}
         # if from unknown, parse it through before
-        print('ifffff')
         if str(list(self.entry_dict.keys())[0]).replace('-','').isdigit():
             new_entry_dict = {}
             for key, val in self.entry_dict.items():
@@ -337,11 +332,8 @@ class PrototypeWindow(Frame):
                         except:
                             self.tag_dict[archetype] = {name: val_list[1].get()}
             self.entry_dict = new_entry_dict
-        print(self.entry_dict)
         # .get() all the entries
         for param, row_val_dict in self.entry_dict.items():
-            print(param)
-            print(row_val_dict)
             for rownum, val_list in row_val_dict.items():
                 if isinstance(val_list, list):
                     val_list = [x.get() for x in val_list]
@@ -377,7 +369,6 @@ class PrototypeWindow(Frame):
                                        'config': config_dict}
         messagebox.showinfo('Success', 'Successfully created %s facility %s' %(archetype_name, proto_name))
         self.update_loaded_modules()
-        print(self.proto_dict)
         self.def_window.destroy()
 
 
@@ -401,7 +392,6 @@ class PrototypeWindow(Frame):
             oneormore.remove('in_streams')
         one = self.param_dict[archetype]['one']
 
-        pprint(self.param_dict[archetype])
         for val in oneormore:
             start_row += 1
             self.add_row_oneormore(val, self.def_window, start_row, archetype)
@@ -424,7 +414,6 @@ class PrototypeWindow(Frame):
             Button(self.def_window, text='Add input Stream', command=lambda:self.add_mix_stream()).grid(row=start_row, columnspan=3)
             self.update_mixer_status_window()
             self.entry_dict['in_streams'] = {9999: {'stream': []}}
-        print(self.entry_dict)
 
 
     def def_entries_unknown(self,archetype, name='', reopen=False):
@@ -447,8 +436,6 @@ class PrototypeWindow(Frame):
         Label(self.def_window, text='Value').grid(row=self.start_row, column=3)
         self.start_row += 1
 
-        print(self.proto_dict)
-        print(self.entry_dict)
         if reopen:
             for param, val in self.proto_dict[name]['config'][archetype].items():
                 if isinstance(val, dict):

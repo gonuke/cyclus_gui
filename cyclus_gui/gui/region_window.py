@@ -61,7 +61,6 @@ class RegionWindow(Frame):
         Label(parent, text='Defined Prototypes', bg='yellow').grid(row=0, column=0)
         Label(parent, text='Archetype', bg='yellow').grid(row=0, column=1)
         row = 1
-        print(arche)
         for key, val in self.proto_dict.items():
             Label(parent, text=key).grid(row=row, column=0)
             Label(parent, text=arche[key]).grid(row=row, column=1)

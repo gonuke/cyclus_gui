@@ -25,7 +25,6 @@ class SimulationWindow():
         # self.frame = Frame(self.master)
         self.master.geometry('+0+500')
         self.guide()
-        self.master.bind('<Motion>', self.motion)
         inputs = ['duration', 'startmonth', 'startyear', 'decay',
                   'explicit_inventory', 'dt']
         description = ['Duration of the simulation', 'Starting month of the simulation',
@@ -63,7 +62,6 @@ class SimulationWindow():
 
     def on_enter(self, event):
         self.new_window = Toplevel(event.widget)
-        print('%s%s' %(str(self.x), str(self.y)))
         self.new_window.geometry('%s%s' %(str(self.x), str(self.y)))
         description = getattr(event.widget, 'description', '')
         Label(self.new_window, text=description).pack()
@@ -72,15 +70,6 @@ class SimulationWindow():
     def on_leave(self, event):
         self.new_window.destroy()
 
-
-    def motion(self, event):
-        # tracks mouse location
-        self.x, self.y = event.x, event.y+500
-        # print('Mouse Loc: %i %i' %(self.x, self.y))
-        if self.x > 0:
-            self.x = '+%s' %str(self.x)
-        if self.y > 0:
-            self.y = '+%s' %str(self.y) 
 
 
     def is_it_pos_integer(self, num):
@@ -136,19 +125,25 @@ class SimulationWindow():
         self.guide_window.geometry('+0+3500')
 
         guide_string = """
-        duration = Number of timesteps in the simulation
+        duration =
+        Number of timesteps in the simulation
 
-        startmonth = Starting month of the simulation [1-12]
+        startmonth =
+        Starting month of the simulation [1-12]
         
-        startyear = Starting year of the simulation
+        startyear =
+        Starting year of the simulation
         
-        decay = Decay solver [never, lazy, manual]
+        decay =
+        Decay solver [never, lazy, manual]
         
-        explicit_inventory =  Create ExplicitInventory table (0 for no, 1 for yes)
+        explicit_inventory =
+        Create ExplicitInventory table (0 for no, 1 for yes)
         If you want to get the inventory of each facility at each timestep,
         write 1
              
-        dt = Duration of single timestep in seconds (default is a month -> 2,629,846)
+        dt =
+        Duration of single timestep in seconds (default is a month -> 2,629,846)
 
         FOR MORE INFORMATION:
         http://fuelcycle.org/user/input_specs/control.html

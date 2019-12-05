@@ -38,7 +38,6 @@ class ArchetypeWindow(Frame):
                 command = 'cyclus -m'
                 process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
                 jtxt = process.stdout.read()
-                print(jtxt)
                 with open(meta_file_path, 'wb') as f:
                     f.write(jtxt)
                 self.arche = self.read_metafile(meta_file_path)
@@ -49,9 +48,9 @@ class ArchetypeWindow(Frame):
                     url = 'https://code.ornl.gov/4ib/cyclus_gui/raw/master/src/m.json'
                     urllib.request.urlretrieve(url, meta_file_path)
                     self.arche = self.read_metafile(meta_file_path)
-                    messagebox.showinfo('Downloaded', 'Did not find Cyclus, downloaded metadata from https://code.ornl.gov/4ib/cyclus_gui/')                    
+                    messagebox.showinfo('Downloaded', 'Downloaded metadata from https://code.ornl.gov/4ib/cyclus_gui/\nIt seems like you do not have Cyclus.\n So I filled this for you :)')
                 except:
-                    messagebox.showinfo('Cyclus not found', 'Cyclus is not found, and failed to download metadata from repo. Using all cyclus/cycamore arcehtypes as default.')
+                    messagebox.showinfo('No Internet', 'No internet, so we are going to use metadata saved in the package.\n Using all cyclus/cycamore arcehtypes as default.')
         self.default_arche = copy.deepcopy(self.arche)
         
 
@@ -101,14 +100,10 @@ class ArchetypeWindow(Frame):
 
 
     def delete_arche(self, lib_name):
-        print(self.arche)
-        print(lib_name)
         for indx, val in enumerate(self.arche):
             if val == lib_name:
                 it = indx
-                print('IT', it)
         del self.arche[it]
-        print(self.arche)
         self.update_loaded_modules_window()
 
 
@@ -179,7 +174,7 @@ class ArchetypeWindow(Frame):
         and press `Add!'.
 
         Try not to delete cycamore::DeployInst and agents::NullRegion, since they are the
-        default for this gui.
+        default for this GUI.
 
         If you made a mistake, you can go back to the default Cyclus + Cycamore
         archetypes by clicking `Default'.

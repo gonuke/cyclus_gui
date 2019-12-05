@@ -78,7 +78,6 @@ class BackendWindow(Frame):
         choices = ['linear', 'log', 'symlog', 'logit']
         self.config_dict['y_scale'].set('linear')
         OptionMenu(self.config_window, self.config_dict['y_scale'], *choices).grid(row=3, column=1)
-        print(self.config_dict['y_scale'].get())
         # self.tkvar.trace('w', s)
         Label(parent, text='Scale of y scale').grid(row=3, column=2)
 
@@ -300,7 +299,6 @@ class BackendWindow(Frame):
         if n_isos == 0:
             movement = self.cur.execute('SELECT time, sum(quantity) FROM transactions INNER JOIN resources on transactions.resourceid==resources.resourceid WHERE commodity="%s" GROUP BY time' %commod).fetchall()
             x, y = self.query_result_to_timeseries(movement, 'sum(quantity)')
-            print(x, y)
         else:
             # movement = self.cur.execute('SELECT time, sum(quantity)*massfrac, nucid FROM transactions INNER JOIN resources ON transactions.resourceid = resources.resourceid LEFT OUTER JOIN compositions ON compositions.qualid = resources.qualid WHERE commodity="%s" GROUP BY transactions.time, nucid' %commod).fetchall()
             # x, y = self.query_result_to_dict(movement, 'nucid', 'sum(quantity)*massfrac')
@@ -648,7 +646,6 @@ class BackendWindow(Frame):
         ax2.set_xticks(new_tick_locations)
         l = new_tick_locations * max(x)
         l = ['%.0f' %z for z in l]
-        print(l)
         ax2.set_xticklabels(l)
         ax2.set_xlabel('Timesteps')
         ax1.legend(handles=lines)
@@ -697,7 +694,6 @@ class BackendWindow(Frame):
                 s += '%s, %s\n' %(str(x[indx]), str(y[indx]))
         with open(filename, 'w') as f:
             f.write(s)
-        print('Exported %s' %filename)
         messagebox.showinfo('Success', 'Exported %s' %filename)
 
 

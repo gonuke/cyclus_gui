@@ -203,10 +203,8 @@ class RecipeWindow(Frame):
             return
         temp = '<recipe>\n\t<name>{name}</name>\n\t<basis>{base}</basis>\n{recipe}</recipe>\n'
 
-        print(self.recipe_dict)        
         for key in self.recipe_dict:
             comp_string = ''
-            print(self.recipe_dict[key]['composition'])
             for iso, comp in self.recipe_dict[key]['composition'].items():
                 comp_string += '\t<nuclide>\t<id>%s</id>\t<comp>%f</comp>\t</nuclide>\n' %(iso, float(comp))
             name = key
