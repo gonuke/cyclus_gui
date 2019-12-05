@@ -10,6 +10,7 @@ import shutil
 import json
 import copy
 from window_tools import *
+from read_xml import *
 
 
 class PrototypeWindow(Frame):
@@ -35,9 +36,10 @@ class PrototypeWindow(Frame):
         self.proto_dict = {}
         self.arche_dict = {}
         self.region_dict = {}
-        self.load_archetypes()
+        self.arches, w = read_xml(os.path.join(self.output_path, 'archetypes.xml'), 'arche')
         if os.path.isfile(os.path.join(self.output_path, 'facility.xml')):
-            self.read_xml()
+            self.proto_dict, self.arche_dict, self.n = read_xml(os.path.join(self.output_path, 'facility.xml'),
+                                                                'facility')
 
         self.region_window()
         self.tkvar = StringVar(self.master)
@@ -56,7 +58,8 @@ class PrototypeWindow(Frame):
     def region_window(self):        
         # reading regions
         if os.path.isfile(os.path.join(self.output_path, 'region.xml')):
-            self.read_regions()
+            self.region_dict, n = read_xml(os.path.join(self.output_path, 'region.xml'),
+                                        'region')
         self.region_status_window = Toplevel(self.master)
         self.region_status_window.geometry('+500+920')
         c_dict = {'Region': 'pale green',
@@ -66,7 +69,7 @@ class PrototypeWindow(Frame):
                   'build_time': 'orchid1',
                   'lifetime': 'pale turquoise'}
         parent = self.region_status_window
-        parent = assess_scroll_deny(self.tot_entry_n+len(self.region_dict.keys())*2+1, self.region_status_window)
+        parent = assess_scroll_deny(n+len(self.region_dict.keys())*2+1, self.region_status_window)
         Label(parent, text='Current regions:', bg='yellow').grid(row=0, columnspan=7)
         columns = ['Region', 'Institution', 'Facility_proto', 'n_build', 'build_time', 'lifetime']
         for indx, val in enumerate(columns):
@@ -86,61 +89,6 @@ class PrototypeWindow(Frame):
                         c = c_dict[columns_[indx]]
                         Label(parent, text=v, bg=c).grid(row=row, column=indx+3)
                     row += 1
-
-
-    def read_regions(self):
-        """
-        read xml has wayy too many if else statements
-        becasuse xmltodict reads single entries as strings
-        while multiple entries as lists..
-        """
-        self.tot_entry_n = 0
-        with open(os.path.join(self.output_path, 'region.xml'), 'r') as f:
-            xml_list = xmltodict.parse(f.read())['root']['region']
-            if isinstance(xml_list, dict):
-                xml_list = [xml_list]
-
-            for region in xml_list:
-                self.region_dict[region['name']] = {}
-
-                if not isinstance(region['institution'], list):
-                    region['institution'] = [region['institution']]
-
-                for i in region['institution']:
-                    inst_array = []
-                    if 'DeployInst' in i['config'].keys():
-                        prototypes = i['config']['DeployInst']['prototypes']['val']
-                        instname = i['name']
-
-                        if isinstance(prototypes, str):
-                            prototypes = [prototypes]
-
-                        for indx, p in enumerate(prototypes):
-                            self.tot_entry_n += 1
-                            entry_list = []
-                            entry_dict = i['config']['DeployInst']
-                            for cat in ['prototypes', 'n_build', 'build_times', 'lifetimes']:
-                                if len(prototypes) == 1:
-                                    entry_list.append(entry_dict[cat]['val'])
-                                else:
-                                    entry_list.append(entry_dict[cat]['val'][indx])
-                            inst_array.append(entry_list)
-
-                    if 'initialfacilitylist' in i.keys():
-                        init_facility = region['institution']['initialfacilitylist']['entry']
-                        if type(init_facility) != list:
-                            init_facility = [init_facility]
-                        for i in init_facility:
-                            self.tot_entry_n += 1
-                            entry_list = [i['prototype'], i['number'], '1', '99999']
-                            if 'lifetime' in self.proto_dict[i['prototype']].keys():
-                                entry_list[3] = self.proto_dict[i['prototype']]['lifetime']
-                            inst_array.append(entry_list)
-
-                self.region_dict[region['name']][instname] = inst_array
-
-
-
 
 
     def update_status_window(self):
@@ -299,17 +247,6 @@ class PrototypeWindow(Frame):
                         self.tag_dict[arche][name] = param['oneOrMore']['element']['@name']
                         if 'interleave' in param['oneOrMore']['element'].keys():
                             continue
-
-
-    def load_archetypes(self):
-        # get from archetypes definition
-        self.arches = []
-        with open(os.path.join(self.output_path, 'archetypes.xml'), 'r') as f:
-            xml_dict = xmltodict.parse(f.read())['archetypes']
-        for entry in xml_dict['spec']:
-            # ignore institutions and regions
-            if 'region' not in entry['name'].lower() or 'inst' not in entry['name'].lower():
-                self.arches.append([entry['lib'], entry['name']])
 
 
     def update_loaded_modules(self):
@@ -818,7 +755,6 @@ class PrototypeWindow(Frame):
         Button(master, text='Add', command=lambda label=label, rownum=rownum: self.add_entry(label, rownum)).grid(row=rownum, column=0)
 
 
-
     def add_entry(self, label, rownum):
         # did you know that a negative sign messes up the isdigit
         if str(label).replace('-' ,'').isdigit():
@@ -827,55 +763,6 @@ class PrototypeWindow(Frame):
             col = len(self.entry_dict[label][rownum]) + 2
         self.entry_dict[label][rownum].append(Entry(self.def_window))
         self.entry_dict[label][rownum][-1].grid(row=rownum, column=col)
-
-
-    def read_xml(self):
-        with open(os.path.join(self.output_path, 'facility.xml'), 'r') as f:
-            xml_list = xmltodict.parse(f.read())['root']['facility']
-            if type(xml_list) != list:
-                xml_list = [xml_list]
-            for facility in xml_list:
-                #if isinstance(facility, str):
-                #    facility_name = xml_list['name']
-                #    archetype = list(xml_list['config'].keys())[0]
-                #    self.proto_dict[facility_name] = {'archetype': archetype,
-                #                                      'config': {archetype: xml_list['config'][archetype]}}
-                #    if 'lifetime' in xml_list.keys():
-                #        self.proto_dict[facility_name]['lifetime'] = xml_list['lifetime']
-
-                    # default is cycamore - do something about this
-                #    self.arche_dict[facility_name] = archetype
-                #    break
-
-                facility_name = facility['name']
-                archetype = list(facility['config'].keys())[0]
-
-                self.proto_dict[facility_name] = {'archetype': archetype,
-                                                  'config': {archetype: facility['config'][archetype]}}
-                if 'lifetime' in facility.keys():
-                    self.proto_dict[facility_name]['lifetime'] = facility['lifetime']
-                # default is cycamore - do something about this
-                self.arche_dict[facility_name] = archetype
-
-            # facility name add library
-            new_dict = {}
-            for facname, archename in self.arche_dict.items():
-                matcher = []
-                for i in self.arches:
-                    if archename in i[1]:
-                        matcher.append(i[0])
-
-                if len(matcher) == 1:
-                    libname = matcher[0]
-                elif len(matcher) != 1 and 'cycamore' in matcher:
-                    libname = 'cycamore'
-                else:
-                    raise ValueError('duplicate names?')
-
-                new_dict[facname] = libname + ':' + archename
-
-            self.arche_dict = new_dict
-
 
 
     def guide(self):

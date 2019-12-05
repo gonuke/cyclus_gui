@@ -32,7 +32,7 @@ class ArchetypeWindow(Frame):
                       ['cycamore', 'Storage']]
         meta_file_path = os.path.join(self.output_path, 'm.json')
         if os.path.isfile(os.path.join(self.output_path, 'archetypes.xml')): 
-            self.arche = read_xml(os.path.join(self.output_path, 'archetypes.xml'), 'arche')
+            self.arche, self.n = read_xml(os.path.join(self.output_path, 'archetypes.xml'), 'arche')
         else:
             try:
                 command = 'cyclus -m'
@@ -111,14 +111,6 @@ class ArchetypeWindow(Frame):
         print(self.arche)
         self.update_loaded_modules_window()
 
-
-    def read_xml(self):
-        new_arche = []
-        with open(os.path.join(self.output_path, 'archetypes.xml'), 'r') as f:
-            xml_dict = xmltodict.parse(f.read())['archetypes']
-        for entry in xml_dict['spec']:
-            new_arche.append([entry['lib'], entry['name']])
-        self.arche = new_arche
 
     def add_more(self):
         row_list = []

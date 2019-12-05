@@ -83,7 +83,6 @@ class SimulationWindow():
             self.y = '+%s' %str(self.y) 
 
 
-
     def is_it_pos_integer(self, num):
         if float(num) % 1.0 != 0.0:
             return False

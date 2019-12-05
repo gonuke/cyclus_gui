@@ -8,7 +8,8 @@ import os
 import shutil
 import json
 import copy
-
+from read_xml import *
+from window_tools import *
 
 class RegionWindow(Frame):
     def __init__(self, master, output_path):
@@ -42,35 +43,28 @@ class RegionWindow(Frame):
         Button(self.master, text='Done', command=lambda : self.done_region()).grid(row=3, column=0)
 
         if os.path.isfile(os.path.join(self.output_path, 'region.xml')):
-            self.read_xml()
-
+            self.region_dict, self.n = read_xml(os.path.join(self.output_path, 'region.xml'),
+                                                'region')
         if os.path.isfile(os.path.join(self.output_path, 'facility.xml')):
             self.show_defined_protos()
  
         self.update_status_window()
 
     def show_defined_protos(self):
-        proto_dict = {}
-        with open(os.path.join(self.output_path, 'facility.xml'), 'r') as f:
-            xml_list = xmltodict.parse(f.read())['root']['facility']
-            for facility in xml_list:
-                if isinstance(facility, str):
-                    facility_name = xml_list['name']
-                    archetype = list(xml_list['config'].keys())[0]
-                    proto_dict[facility_name] = archetype
-                    break
-                facility_name = facility['name']
-                archetype = list(facility['config'].keys())[0]
-                proto_dict[facility_name] = archetype
+        self.proto_dict, arche, n = read_xml(os.path.join(self.output_path, 'facility.xml'),
+                              'facility')
         defined_protos_window = Toplevel(self.master)
         defined_protos_window.title('Defined Prototypes')
         defined_protos_window.geometry('+1000+900')
-        Label(defined_protos_window, text='Defined Prototypes', bg='yellow').grid(row=0, column=0)
-        Label(defined_protos_window, text='Archetype', bg='yellow').grid(row=0, column=1)
+        parent = defined_protos_window
+        parent = assess_scroll_deny(n+2, defined_protos_window)
+        Label(parent, text='Defined Prototypes', bg='yellow').grid(row=0, column=0)
+        Label(parent, text='Archetype', bg='yellow').grid(row=0, column=1)
         row = 1
-        for key, val in proto_dict.items():
-            Label(defined_protos_window, text=key).grid(row=row, column=0)
-            Label(defined_protos_window, text=val).grid(row=row, column=1)
+        print(arche)
+        for key, val in self.proto_dict.items():
+            Label(parent, text=key).grid(row=row, column=0)
+            Label(parent, text=arche[key]).grid(row=row, column=1)
             row +=1 
 
     def update_status_window(self):
@@ -84,7 +78,7 @@ class RegionWindow(Frame):
         parent = self.status_window
         parent = assess_scroll_deny(len(self.proto_dict.keys())+2, self.status_window)
         
-        Label(self.status_window, text='Current regions:', bg='yellow').grid(row=0, columnspan=7)
+        Label(parent, text='Current regions:', bg='yellow').grid(row=0, columnspan=7)
         c_dict = {'Region': 'pale green',
                   'Institution': 'light salmon',
                   'Facility_proto': 'SkyBlue1',
@@ -94,23 +88,23 @@ class RegionWindow(Frame):
         columns = ['Region', 'Institution', 'Facility_proto', 'n_build', 'build_time', 'lifetime']
         for indx, val in enumerate(columns):
             c = c_dict[val]
-            Label(self.status_window, text=val, bg=c).grid(row=1, column=indx+1)
+            Label(parent, text=val, bg=c).grid(row=1, column=indx+1)
         row = 2
         for regionname, instdict in self.region_dict.items():
-            Button(self.status_window, text='x', command=lambda regionname=regionname: self.del_region(regionname)).grid(row=row, column=0)
-            Label(self.status_window, text=regionname, bg='pale green').grid(row=row, column=1)
+            Button(parent, text='x', command=lambda regionname=regionname: self.del_region(regionname)).grid(row=row, column=0)
+            Label(parent, text=regionname, bg='pale green').grid(row=row, column=1)
             row += 1
             for instname, instarray in instdict.items():
-                Button(self.status_window, text='x', command=lambda regionname=regionname, instname=instname: self.del_inst(regionname, instname)).grid(row=row, column=0)
-                Button(self.status_window, text=instname, command=lambda regionname=regionname, instname=instname: self.update_inst(regionname, instname)).grid(row=row, column=2)
+                Button(parent, text='x', command=lambda regionname=regionname, instname=instname: self.del_inst(regionname, instname)).grid(row=row, column=0)
+                Button(parent, text=instname, command=lambda regionname=regionname, instname=instname: self.update_inst(regionname, instname)).grid(row=row, column=2)
                 row += 1
                 for instlist in instarray:
                     fac_name = instlist[0]
-                    Button(self.status_window, text='x', command=lambda regionname=regionname, instname=instname, fac_name=fac_name: self.del_fac(regionname, instname, fac_name)).grid(row=row, column=0)
+                    Button(parent, text='x', command=lambda regionname=regionname, instname=instname, fac_name=fac_name: self.del_fac(regionname, instname, fac_name)).grid(row=row, column=0)
                     columns_ = columns[2:]
                     for indx, v in enumerate(instlist):
                         c = c_dict[columns_[indx]]
-                        Label(self.status_window, text=v, bg=c).grid(row=row, column=indx+3)
+                        Label(parent, text=v, bg=c).grid(row=row, column=indx+3)
                     row += 1
 
 
@@ -125,7 +119,8 @@ class RegionWindow(Frame):
 
     def update_inst(self, regionname, instname):
         # open window
-        self.add_inst(regionname)
+        self.add_inst(regionname, instname)
+
         self.inst_name_entry.insert(END, instname)
         for indx, val in enumerate(self.region_dict[regionname][instname]):
             if indx != 0:
@@ -143,53 +138,6 @@ class RegionWindow(Frame):
 
 
 
-    def read_xml(self):
-        """
-        read xml has wayy too many if else statements
-        becasuse xmltodict reads single entries as strings
-        while multiple entries as lists..
-        """
-        with open(os.path.join(self.output_path, 'region.xml'), 'r') as f:
-            xml_list = xmltodict.parse(f.read())['root']['region']
-            if isinstance(xml_list, dict):
-                xml_list = [xml_list]
-            for region in xml_list:
-                self.region_dict[region['name']] = {}
-                if not isinstance(region['institution'], list):
-                    do_it = 1
-                else:
-                    do_it = len(region['institution'])
-                for i in range(do_it):
-                    inst_array = []
-                    if do_it == 1:
-                        prototypes = region['institution']['config']['DeployInst']['prototypes']['val']
-                        instname = region['institution']['name']
-                    else:
-                        prototypes = region['institution'][i]['config']['DeployInst']['prototypes']['val']
-                        instname = region['institution'][i]['name']
-
-                    if isinstance(prototypes, str):
-                        entry_length = 1
-                    else:
-                        entry_length = len(prototypes)
-
-                    for indx in range(entry_length):
-                        entry_list = []
-                        if do_it == 1:
-                            entry_dict = region['institution']['config']['DeployInst']
-                        else:
-                            entry_dict = region['institution'][i]['config']['DeployInst']
-                        for cat in ['prototypes', 'n_build', 'build_times', 'lifetimes']:
-                            if entry_length == 1:
-                                entry_list.append(entry_dict[cat]['val'])
-                            else:
-                                entry_list.append(entry_dict[cat]['val'][indx])
-                        inst_array.append(entry_list)
-
-
-                    self.region_dict[region['name']][instname] = inst_array
-
-        self.update_status_window()
 
         # also get from the prototype file
 
@@ -234,7 +182,7 @@ class RegionWindow(Frame):
         messagebox.showinfo('Success', 'Successfully rendered %i regions!' %len(self.region_dict))
 
 
-    def add_inst(self, region_name):
+    def add_inst(self, region_name, instname=''):
         if region_name == '':
             messagebox.showerror('Error', 'You have to define the region name before adding and institution!')
             return
@@ -242,6 +190,10 @@ class RegionWindow(Frame):
         self.add_inst_window.title('Add institution')
         self.add_inst_window.geometry('+100+1000')
         self.inst_dict = {}
+        if instname != '':
+            self.add_inst_window = assess_scroll_deny(len(self.region_dict[region_name][instname]),
+                                                      self.add_inst_window)
+
         if region_name not in self.region_dict.keys():
             self.region_dict[region_name] = {}
         self.current_region = region_name
