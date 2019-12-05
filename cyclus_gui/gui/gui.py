@@ -15,8 +15,10 @@ from region_window import RegionWindow
 from recipe_window import RecipeWindow
 from backend_window import BackendWindow
 import subprocess
+import copy
 from run_cyclus import cyclus_run
 import cyclus_gui.tools.from_pris as fp
+from hovertip import CreateToolTip
 
 
 uniq_id = str(uuid.uuid4())[:3]
@@ -72,7 +74,9 @@ class Cygui(Frame):
         """
 
         columnspan=5
-        Label(root, text='Cyclus Helper', bg='yellow').grid(row=0, columnspan=columnspan)
+        q = Label(root, text='Cyclus Helper', bg='yellow')
+        q.grid(row=0, columnspan=columnspan)
+        CreateToolTip(q, text='huehuehuehuehue\n huehuehuehuehue')
         Label(root, textvariable=self.hash_var, bg='pale green').grid(row=1, columnspan=columnspan)
         Label(root, text='====================================').grid(row=2, columnspan=columnspan)
         Label(root, text='Generate / Edit Blocks').grid(row=3, column=0)
@@ -103,24 +107,30 @@ class Cygui(Frame):
             Label(root, text='   ').grid(row=i, column=3)
 
         load_button = Button(root, text='From Instance', command=lambda: self.load_prev_window())
+        CreateToolTip(load_button, text='You can load from a previous instance.\nFor every instance, the GUI automatically creates `output_xxx` directory\nwhere it saves all the files, so that it can be called later on.')
         load_button.grid(row=6, column=2)
 
         load_complete_input = Button(root, text='From xml', command=lambda: self.load_full_xml())
+        CreateToolTip(load_complete_input, text='You can load from a previously-existing Cyclus input xml file.\nThere are limitations to some input files, if they use special archetypes. You can edit or run cyclus on the file!')
         load_complete_input.grid(row=7, column=2)
 
         load_pris = Button(root, text='From PRIS', command=lambda: self.load_from_pris())
+        CreateToolTip(load_pris, text='You can initialize a simulation to a real-world initial condition!\nUsing this method the real-life fleet is automatically generated from the\nIAEA Power Reactor Information System (PRIS) database.')
         load_pris.grid(row=8, column=2)
 
 
 
         make_input_button = Button(root, text='Generate Input', command=lambda: self.check_and_run(run=False))
+        CreateToolTip(make_input_button, text='Compile the input (into `input.xml`)\nbut not run the file')
         make_input_button.grid(row=6, column=4)
 
 
-        done_button = Button(root, text='Combine and Run', command= lambda: self.check_and_run())
-        done_button.grid(row=7, column=4)
+        combine_run_button = Button(root, text='Combine and Run', command= lambda: self.check_and_run())
+        CreateToolTip(combine_run_button, text='You can compile and run this simulation\nYou can do this locally if you have a local installation of Cyclus\nBut you can also run it remotely.')
+        combine_run_button.grid(row=7, column=4)
 
         backend_button = Button(root, text='Backend Analysis', command= lambda: self.open_window('backend', output_path))
+        CreateToolTip(backend_button, text='After getting the output file, you can get plots and csv files\nwith ease using this module.')
         backend_button.grid(row=8, column=4)
 
 
