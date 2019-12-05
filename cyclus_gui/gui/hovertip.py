@@ -32,10 +32,8 @@ class ToolTip(object):
 def CreateToolTip(widget, text):
     toolTip = ToolTip(widget)
     def enter(event):
-        print('ITS IN')
         toolTip.showtip(text)
     def leave(event):
-        print('ITS OUT')
         toolTip.hidetip()
     def click(event):
         widget.invoke()
