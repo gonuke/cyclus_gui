@@ -35,12 +35,19 @@ class RegionWindow(Frame):
         self.guide()
         self.region_dict = {}
         self.proto_dict = {}
-
+        try:
+            arches, w = read_xml(os.path.join(self.output_path, 'archetypes.xml'), 'arche')
+        except:
+            arches = []
+        self.libs = [x[0] for x in arches]
         Label(self.master, text='Region Name:').grid(row=0, column=0)
         region_name = Entry(self.master)
         region_name.grid(row=0, column=1)
         Button(self.master, text='Add Institution', command=lambda : self.add_inst(region_name.get())).grid(row=1, column=0)
-        Label(self.master, text='').grid(row=2, column=0)
+        if len([q for q in self.libs if 'd3ploy' in q]) != 0:
+            Button(self.master, text='Add D3ploy Institution', command=lambda : self.add_d3ploy(region_name.get())).grid(row=2, column=0)
+        else:
+            Label(self.master, text='').grid(row=2, column=0)
         Button(self.master, text='Done', command=lambda : self.done_region()).grid(row=3, column=0)
 
         if os.path.isfile(os.path.join(self.output_path, 'region.xml')):
@@ -50,6 +57,7 @@ class RegionWindow(Frame):
             self.show_defined_protos()
  
         self.update_status_window()
+
 
     def show_defined_protos(self):
         self.proto_dict, arche, n = read_xml(os.path.join(self.output_path, 'facility.xml'),
@@ -213,6 +221,63 @@ class RegionWindow(Frame):
         self.rownum = 6
 
         # show realtime institutions added
+
+    def add_d3ploy(self, region_name, instname=''):
+        if region_name == '':
+            messagebox.showerror('Error', 'You have to define the region name before adding and institution!')
+            return
+        self.add_d3ploy_window = Toplevel(self.master)
+        self.add_d3ploy_window.title('Add D3ploy Institution')
+        self.add_d3ploy_window.geometry('+100+1000')
+        self.d3ploy_dict = {}
+        if instname != '':
+            self.add_d3ploy_window = assess_scroll_deny(len(self.d3ploy_dict.keys()),
+                                                        self.add_d3ploy_window)
+        if region_name not in self.region_dict.keys():
+            self.region_dict[region_name] = {}
+        self.current_region = region_name
+        self.d3ploy_entry_dict = {}
+        
+        cat = ['institution_name', 'driving_commodity:', 'demand_equation:',
+               'prediction_method', 'regression_backsteps']
+        for indx, val in enumerate(cat):
+            disp_name = val.replace('_', ' ').capitalize() + ':'
+            Label(self.add_d3ploy_window, text=disp_name).grid(row=indx, column=1)
+            self.d3ploy_entry_dict[val] = Entry(self.add_d3ploy_window)
+            self.d3ploy_entry_dict[val].grid(row=indx, column=2)
+        self.rownum = indx + 1
+        Button(self.add_d3ploy_window, text='Done', command=lambda : self.submit_d3ploy()).grid(row=0, column=0)
+        Button(self.add_d3ploy_window, text='Add Row', command= lambda: self.add_d3ploy_row()).grid(row=1, column=0)
+
+        Label(self.add_d3ploy_window, text=' ').grid(row=self.rownum, columnspan=3)
+        self.rownum += 1
+        self.d3ploy_entry_dict = {}
+        # d3ploy_entry_dict:
+        #   key: category
+        #   val: list of entries for values
+        self.d3ploy_cat = ['facility_name', 'commodity', 'capacity', 'preference', 'constraintcommod', 'constraintval']
+        if_optional = [0, 0, 0, 1, 1, 1]
+        for indx, val in enumerate(self.d3ploy_cat):
+            color = 'snow'
+            if if_optional[indx]:
+                color='salmon1'
+            Label(self.add_d3ploy_window, text=val, bg=color).grid(row=self.rownum, column=indx)
+            # initialize list for filling it up
+            self.d3ploy_entry_dict[val] = []
+            self.d3ploy_entry_dict[val].append(Entry(self.add_d3ploy_window))
+            self.d3ploy_entry_dict[val][-1].grid(row=self.rownum+1, column=indx)
+        self.rownum += 1
+
+    def add_d3ploy_row(self):
+        for indx, val in enumerate(self.d3ploy_cat):
+            self.d3ploy_entry_dict[val].append(Entry(self.add_d3ploy_window))
+            self.d3ploy_entry_dict[val][-1].grid(row=self.rownum, column=indx)
+        self.rownum += 1
+
+
+    def submit_d3ploy(self):
+        q=0
+            
 
     def submit_inst(self, inst_name):
         # check input correctness:
