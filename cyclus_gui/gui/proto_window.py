@@ -192,7 +192,6 @@ class PrototypeWindow(Frame):
                     docstring = 'No documentation avail.'
                 
                 self.doc_dict[arche][key] = docstring
-        print(self.doc_dict)
 
         self.tag_dict = {}
         self.param_dict = {}
@@ -735,8 +734,27 @@ class PrototypeWindow(Frame):
             if default == '':
                 default = "''"
             s += '\n(default=%s)' %default
-        s += '\n' + self.doc_dict[archetype][label]
+        s += '\n' + self.reasonable_linebreak(self.doc_dict[archetype][label])
         return s
+
+
+    def reasonable_linebreak(self, string, lim=50):
+        nlines = len(string) // lim
+
+        space_indices = []
+        for i in range(nlines):
+            n = (i+1)*lim
+            space_indices.append(string[n:].find(' ') + n)
+
+        new_str = ''
+        for indx, val in enumerate(string):
+            if indx not in space_indices:
+                new_str += val
+            else:
+                new_str += '\n'
+
+        return new_str
+
 
     def add_row_oneormore(self, label, master, rownum, archetype):
         color = 'snow'
@@ -752,7 +770,9 @@ class PrototypeWindow(Frame):
             self.start_row += 1
             return
         label = label.replace('*', '')
-        Label(master, text=label, bg=color).grid(row=rownum, column=1)
+        q = Label(master, text=label, bg=color)
+        q.grid(row=rownum, column=1)
+        CreateToolTip(q, text=self.generate_docstring(archetype, label))
         self.entry_dict[label] = {rownum : []}
         Button(master, text='Add', command=lambda label=label, rownum=rownum: self.add_entry(label, rownum)).grid(row=rownum, column=0)
 

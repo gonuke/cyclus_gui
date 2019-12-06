@@ -34,6 +34,7 @@ class RegionWindow(Frame):
         self.status_var = StringVar()
         self.guide()
         self.region_dict = {}
+        self.proto_dict = {}
 
         Label(self.master, text='Region Name:').grid(row=0, column=0)
         region_name = Entry(self.master)
