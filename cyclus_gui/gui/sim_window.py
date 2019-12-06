@@ -9,7 +9,6 @@ import shutil
 import json
 import copy
 
-
 class SimulationWindow():
     """ This is the simulation window where it takes input from the user on
         simulation parameters and makes a Cyclus control box
@@ -36,12 +35,7 @@ class SimulationWindow():
             self.label_dict[txt] = Label(self.master, text=txt)
             self.label_dict[txt].grid(row=(i))
             self.label_dict[txt].description = description[i]
-            # self.label_dict[txt].bind('<Enter>', self.on_enter)
-            # self.label_dict[txt].bind('<Leave>', self.on_leave)
 
-        #self.guide_label = Label(self.master, text='')
-        #self.guide_label.grid(row=i+1)
-        
 
         self.entry_dict = {}
         for row, txt in enumerate(inputs):

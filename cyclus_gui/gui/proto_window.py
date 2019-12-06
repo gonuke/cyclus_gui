@@ -26,6 +26,7 @@ class PrototypeWindow(Frame):
                                  val: list or float
 
         """
+        print(self.master.parent())
         self.master = Toplevel(master)
         self.master.title('Add Facilities')
         self.output_path = output_path
@@ -280,6 +281,7 @@ class PrototypeWindow(Frame):
             f.write(xmltodict.unparse(new_dict, pretty=True))
         messagebox.showinfo('Sucess', 'Successfully rendered %i facility prototypes!' %len(new_dict['root']['facility']))
         self.master.destroy()
+        self
 
 
 

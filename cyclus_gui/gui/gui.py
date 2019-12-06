@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
+from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 import xmltodict
 import uuid
@@ -19,6 +20,8 @@ import copy
 from run_cyclus import cyclus_run
 import cyclus_gui.tools.from_pris as fp
 from hovertip import CreateToolTip
+from window_tools import *
+from threading import Timer
 
 
 uniq_id = str(uuid.uuid4())[:3]
@@ -44,6 +47,8 @@ print('This your id boy:', uniq_id)
 class Cygui(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
+        self.file_list = ['control.xml', 'archetypes.xml', 'facility.xml',
+                          'region.xml', 'recipe.xml']
         self.master = master
         # self.master.geometry('+0+0')
         self.init_window()
@@ -59,19 +64,6 @@ class Cygui(Frame):
 
         self.hash_var = StringVar()
         self.hash_var.set(uniq_id)
-
-        """ menu functions not in use
-        file = Menu(menu)
-        file.add_command(label='Exit', command=self.client_exit)
-        menu.add_cascade(label='File', menu=file)
-
-
-        edit = Menu(menu)
-        edit.add_command(label='undo')
-        edit.add_command(label='copy')
-        # this cascade will have all the commands in edit
-        menu.add_cascade(label='Edit', menu=edit)
-        """
 
         columnspan=5
         q = Label(root, text='Cyclus Helper', bg='yellow')
@@ -118,7 +110,9 @@ class Cygui(Frame):
         CreateToolTip(load_pris, text='You can initialize a simulation to a real-world initial condition!\nUsing this method the real-life fleet is automatically generated from the\nIAEA Power Reactor Information System (PRIS) database.')
         load_pris.grid(row=8, column=2)
 
-
+        view_input_button = Button(root, text='View Input', command=lambda: self.xml_window())
+        CreateToolTip(view_input_button, text='See the input in a window, just to see\nwhat it looks like.')
+        view_input_button.grid(row=5, column=4)
 
         make_input_button = Button(root, text='Generate Input', command=lambda: self.check_and_run(run=False))
         CreateToolTip(make_input_button, text='Compile the input (into `input.xml`)\nbut not run the file')
@@ -132,11 +126,6 @@ class Cygui(Frame):
         backend_button = Button(root, text='Backend Analysis', command= lambda: self.open_window('backend', output_path))
         CreateToolTip(backend_button, text='After getting the output file, you can get plots and csv files\nwith ease using this module.')
         backend_button.grid(row=8, column=4)
-
-
-
-    def client_exit(self):
-        exit()
 
 
     def open_window(self, name, output_path):
@@ -158,6 +147,7 @@ class Cygui(Frame):
                 messagebox.showerror('Error', 'You must have the output file first!')
             else:
                 self.app = BackendWindow(self.master, output_path)
+
 
     def load_prev_window(self):
         self.load_window = Toplevel(self.master)
@@ -199,7 +189,6 @@ class Cygui(Frame):
         Button(self.load_xml_window, text='Browse', command= lambda : self.askopenfile()).pack()
 
 
-
     def askopenfile(self):
         file = filedialog.askopenfile(parent=self.load_xml_window, mode='r', title='Choose an xml file')
         self.load_xml_file(file)
@@ -231,10 +220,11 @@ class Cygui(Frame):
         are calculated as a remaining lifetime.
 
         Assumptions:
-        1. Reactors below 100 MWe are filtered out (assumed to be research reactors)
-        2. Core size is linearly scaled with power capacity
-        3. Reactor lifetimes are all assumed to be 60 years from their first criticality date
-        4. Fuel Cycle facilities are deployed with infinite capacity.
+        1. Timestep is assumed to be a month
+        2. Reactors below 100 MWe are filtered out (assumed to be research reactors)
+        3. Core size is linearly scaled with power capacity
+        4. Reactor lifetimes are all assumed to be 60 years from their first criticality date
+        5. Fuel Cycle facilities are deployed with infinite capacity.
 
         Simulation defaults:
         1. Reactors are cycamore::Reactor (recipe reactors)
@@ -305,6 +295,7 @@ class Cygui(Frame):
                     output_file=outpath)
             self.load_xml_file(open(outpath, 'r'))
             messagebox.showinfo('Successfully loaded file', 'Successfully loaded file with countries\n\n '+'\n'.join(self.selected_countries))
+            
             self.load_from_pris_window.destroy()
 
 
@@ -312,9 +303,8 @@ class Cygui(Frame):
         files = os.listdir(output_path)
         okay = True
         absentee = []
-        file_list = ['control.xml', 'archetypes.xml', 'facility.xml',
-                     'region.xml', 'recipe.xml']
-        for i in file_list:
+        
+        for i in self.file_list:
             if i not in files:
                 absentee.append(i.replace('.xml', ''))
         if len(absentee) != 0:
@@ -326,7 +316,7 @@ class Cygui(Frame):
 
         if okay:
             input_file = '<simulation>\n'
-            for i in file_list:
+            for i in self.file_list:
                 skipfront = 0
                 skipback = 0
                 with open(os.path.join(output_path, i), 'r') as f:
@@ -421,6 +411,37 @@ class Cygui(Frame):
 
             """
         Label(self.guide_window, text=guide_text, justify=LEFT).pack(padx=30, pady=30)
+
+
+    def xml_window(self):
+        try:
+            self.xml_window_.destroy()
+        except:
+            t=0
+
+        self.xml_window_ = Toplevel(self.master)
+        self.xml_window_.title('XML rendering')
+        self.xml_window_.geometry('+700+0')
+
+        tab_parent = ttk.Notebook(self.xml_window_)
+        file_paths = [os.path.join(output_path, x) for x in self.file_list]
+        tab_dict = {}
+        for indx, file in enumerate(file_paths):
+            try: 
+                with open(file, 'r') as f:
+                    s = f.read().replace('<root>', '').replace('</root>', '')
+                key = self.file_list[indx].replace('.xml', '')
+                tab_dict[key] = Frame(tab_parent)
+                tab_parent.add(tab_dict[key], text=key)
+                #tab_dict[key] = assess_scroll_deny(100, tab_dict[key])
+                q = Text(tab_dict[key], width=100, height=30)
+                q.pack()
+                q.insert(END, s)
+            except Exception as e:
+                print(e)
+                print('Could not find %s' %file)
+                t=0
+        tab_parent.pack(expand=1, fill='both')
 
 
 
