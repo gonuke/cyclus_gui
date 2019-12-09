@@ -59,6 +59,7 @@ class Cygui(Frame):
 
         # menu instance
         menu = Menu(self.master)
+        self.initialized = {}
         # self.master.config(menu=menu)
 
 
@@ -150,6 +151,13 @@ class Cygui(Frame):
 
 
     def load_prev_window(self):
+        try:
+            if self.initialized['prev']:
+                return
+        except:
+            z = 0
+
+        self.initialized['prev'] = True
         self.load_window = Toplevel(self.master)
         self.load_window.title('Load previous with hash')
         Label(self.load_window, text='Enter id:', bg='yellow').pack()
@@ -177,10 +185,11 @@ class Cygui(Frame):
                 print('Changed ID to %s' %hash_)
                 output_path = os.path.join(file_path, i)
                 self.load_window.destroy()
+                self.initialized['prev'] = False
                 return
         # if folder is not found,
         messagebox.showerror('Error', 'No folder with that name.\n The folder must exist in: \n %s' %file_path)
-        
+        self.initialized['prev'] = False
 
     def load_full_xml(self):
         self.load_xml_window = Toplevel(self.master)
@@ -236,8 +245,13 @@ class Cygui(Frame):
            e. [uox_waste] -> `reprocessing' -> ['Pu', 'U']
         """
         self.guide(guide_text)
+        try:
+            if self.initialized['pris']:
+                return
+        except:
+            z=0
 
-
+        self.initialized['pris'] = True
         self.load_from_pris_window = Toplevel(self.master)
         self.entry_dict = {}
         self.load_from_pris_window.title('Load from PRIS database')
@@ -297,6 +311,7 @@ class Cygui(Frame):
             messagebox.showinfo('Successfully loaded file', 'Successfully loaded file with countries\n\n '+'\n'.join(self.selected_countries))
             
             self.load_from_pris_window.destroy()
+        self.initialized['pris'] = False
 
 
     def check_and_run(self, run=True):

@@ -26,7 +26,7 @@ class PrototypeWindow(Frame):
                                  val: list or float
 
         """
-        print(self.master.parent())
+        
         self.master = Toplevel(master)
         self.master.title('Add Facilities')
         self.output_path = output_path

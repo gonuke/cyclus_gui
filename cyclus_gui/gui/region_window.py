@@ -44,10 +44,12 @@ class RegionWindow(Frame):
         region_name = Entry(self.master)
         region_name.grid(row=0, column=1)
         Button(self.master, text='Add Institution', command=lambda : self.add_inst(region_name.get())).grid(row=1, column=0)
-        if len([q for q in self.libs if 'd3ploy' in q]) != 0:
-            Button(self.master, text='Add D3ploy Institution', command=lambda : self.add_d3ploy(region_name.get())).grid(row=2, column=0)
-        else:
-            Label(self.master, text='').grid(row=2, column=0)
+        # I thought I could do d3ploy but it complicates too much.
+        # backlog for later maybe
+        #if len([q for q in self.libs if 'd3ploy' in q]) != 0:
+        #    Button(self.master, text='Add D3ploy Institution', command=lambda : self.add_d3ploy(region_name.get())).grid(row=2, column=0)
+        #else:
+        #    Label(self.master, text='').grid(row=2, column=0)
         Button(self.master, text='Done', command=lambda : self.done_region()).grid(row=3, column=0)
 
         if os.path.isfile(os.path.join(self.output_path, 'region.xml')):
@@ -238,7 +240,7 @@ class RegionWindow(Frame):
         self.current_region = region_name
         self.d3ploy_entry_dict = {}
         
-        cat = ['institution_name', 'driving_commodity:', 'demand_equation:',
+        cat = ['institution_name', 'driving_commodity', 'demand_equation',
                'prediction_method', 'regression_backsteps']
         for indx, val in enumerate(cat):
             disp_name = val.replace('_', ' ').capitalize() + ':'
@@ -246,7 +248,7 @@ class RegionWindow(Frame):
             self.d3ploy_entry_dict[val] = Entry(self.add_d3ploy_window)
             self.d3ploy_entry_dict[val].grid(row=indx, column=2)
         self.rownum = indx + 1
-        Button(self.add_d3ploy_window, text='Done', command=lambda : self.submit_d3ploy()).grid(row=0, column=0)
+        Button(self.add_d3ploy_window, text='Done', command=lambda : self.submit_d3ploy(self.d3ploy_entry_dict['institution_name'].get())).grid(row=0, column=0)
         Button(self.add_d3ploy_window, text='Add Row', command= lambda: self.add_d3ploy_row()).grid(row=1, column=0)
 
         Label(self.add_d3ploy_window, text=' ').grid(row=self.rownum, columnspan=3)
@@ -275,8 +277,38 @@ class RegionWindow(Frame):
         self.rownum += 1
 
 
-    def submit_d3ploy(self):
-        q=0
+    def submit_d3ploy(self, inst_name):
+        if inst_name == '':
+            messagebox.showerror('Error', 'You have to define an Institution Name')
+            return
+        d3ploy_array = []
+        for indx in range(len(self.d3ploy_entry_dict['facility_name'])):
+            # check input validity
+            facility_name_ = self.d3ploy_entry_dict['facility_name'][indx].get()
+            commodity_ = self.d3ploy_entry_dict['commodity'][indx].get()
+            capacity_ = self.d3ploy_entry_dict['capacity'][indx].get()
+            preference_ = self.d3ploy_entry_dict['preference'][indx].get()
+            constraintcommod_ = self.d3ploy_entry_dict['constraintcommod'][indx].get()
+            constraintval_ = self.d3ploy_entry_dict['constraintval'][indx].get()
+            if facility_name_ == commodity_ == capacity_ == capacity_ == preference_ == constraintcommod_ == constraintval_ == '':
+                continue
+            elif '' in [facility_name_, commodity_, capacity_, capacity_,
+                        preference_, constraintcommod_, constraintval_]:
+                messagebox.showerror('Error', 'You are missing a parameter for line %i' %indx)
+                return
+            d3ploy_array.append([facility_name_, commodity_, capacity_, capacity_,
+                                 preference_, constraintcommod_, constraintval_])
+
+        if len(d3ploy_array) == 0:
+            messagebox.showerror('Error', 'There are no entries! ')
+            return
+
+        messagebox.showinfo('Added', 'Added institution %s' %inst_name)
+        # where to now?
+        self.region_dict[self.current_region][inst_name] = 0
+
+
+
             
 
     def submit_inst(self, inst_name):

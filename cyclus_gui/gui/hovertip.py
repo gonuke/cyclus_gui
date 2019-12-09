@@ -6,9 +6,11 @@ class ToolTip(object):
         self.tipwindow = None
         self.id = None
         self.x = self.y = 0
+        self.showing = False
 
     def showtip(self, text):
         self.text = text
+        self.showing = True
         if self.tipwindow or not self.text:
             return
         x, y, cx, cy = self.widget.bbox("insert")
@@ -24,6 +26,7 @@ class ToolTip(object):
         label.pack(ipadx=1)
 
     def hidetip(self):
+        self.showing = False
         tw = self.tipwindow
         self.tipwindow = None
         if tw:
@@ -37,7 +40,8 @@ def CreateToolTip(widget, text):
         toolTip.hidetip()
     def click(event):
         try:
-            widget.invoke()
+            if toolTip.showing:
+                widget.invoke()
         except:
             z=0
     widget.bind('<Enter>', enter)
