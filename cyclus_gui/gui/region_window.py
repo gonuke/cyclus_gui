@@ -7,9 +7,14 @@ import uuid
 import os
 import shutil
 import json
+import numpy as np
 import copy
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 from read_xml import *
 from window_tools import *
+from hovertip import CreateToolTip
 
 class RegionWindow(Frame):
     def __init__(self, master, output_path):
@@ -34,6 +39,10 @@ class RegionWindow(Frame):
         self.status_var = StringVar()
         self.guide()
         self.region_dict = {}
+        try:
+            self.duration = int(xmltodict.parse(open(os.path.join(self.output_path, 'control.xml'), 'r').read())['control']['duration'])
+        except:
+            self.duration = 0
         self.proto_dict = {}
         try:
             arches, w = read_xml(os.path.join(self.output_path, 'archetypes.xml'), 'arche')
@@ -147,12 +156,6 @@ class RegionWindow(Frame):
         self.update_status_window()
 
 
-
-
-        # also get from the prototype file
-
-
-
     def done_region(self):
         if len(self.region_dict) == 0:
             messagebox.showerror('Error', 'No Regions were defined!')
@@ -203,7 +206,6 @@ class RegionWindow(Frame):
         if instname != '':
             self.add_inst_window = assess_scroll_deny(len(self.region_dict[region_name][instname]),
                                                       self.add_inst_window)
-
         if region_name not in self.region_dict.keys():
             self.region_dict[region_name] = {}
         self.current_region = region_name
@@ -211,6 +213,9 @@ class RegionWindow(Frame):
         self.inst_name_entry = Entry(self.add_inst_window)
         self.inst_name_entry.grid(row=0, column=2)
         Button(self.add_inst_window, text='Done', command= lambda : self.submit_inst(self.inst_name_entry.get())).grid(row=1, column=0)
+        w = Button(self.add_inst_window, text='Power Demand Deploy', command=lambda:self.demand_deploy())
+        CreateToolTip(w, text='This allows you to automatically deploy facilities to meet power demand.')
+        w.grid(row=1, column=3)
         Label(self.add_inst_window, text='Add new prototypes here:').grid(row=2, columnspan=3)
         Button(self.add_inst_window, text='Add Row', command= lambda: self.add_inst_row()).grid(row=3, column=3)
         self.inst_entry_dict = {'prototypes': [], 'lifetimes': [],
@@ -222,7 +227,238 @@ class RegionWindow(Frame):
             self.inst_entry_dict[val][-1].grid(row=5, column=indx)
         self.rownum = 6
 
-        # show realtime institutions added
+
+    def demand_deploy(self):
+
+        guide_text= """Given your current simulation status, this allows you to automatically deploy
+        facilities to meet a certain power demand.
+
+        Assumptions:
+        Always over-deploy (i.e. Always deploy to have a capacity higher than demand, but just above the demand)
+        If demand equation is not defined for a timestep range, the demand is assumed zero, thus nothing happens.
+        """
+        self.demand_deploy_window = Toplevel(self.master)
+        self.demand_deploy_window.title('Demand deployment')
+        self.demand_deploy_window.geometry('+100+1000')
+
+        Button(self.demand_deploy_window, text='Done', command=lambda:self.submit_demand()).grid(row=0, column=0)
+        Button(self.demand_deploy_window, text='Add row', command=lambda:self.add_demand_row()).grid(row=0, column=1)
+
+        # Button(self.add_d3ploy_window, text='Done', command=lambda : self.submit_d3ploy(self.d3ploy_entry_dict['institution_name'].get())).grid(row=0, column=0)
+        insts_label = Label(self.demand_deploy_window, text='Institutions')
+        CreateToolTip(insts_label, text='Institutions to set the demand to.\n`all` takes into account all the institutions.\nThey must be currently existing institutions')
+        insts_label.grid(row=1, column=0)
+        self.inst_entry = Entry(self.demand_deploy_window)
+        self.inst_entry.insert(END, 'all')
+        self.inst_entry.grid(row=1, column=1)
+
+        power_cap_varname_label = Label(self.demand_deploy_window, text='Power capacity varnames')
+        CreateToolTip(power_cap_varname_label, text='Power capacity variable names.\nIf you are not sure what this is, do not mess with it.')
+        power_cap_varname_label.grid(row=2, column=0)
+        self.power_cap_varname = Entry(self.demand_deploy_window)
+        self.power_cap_varname.insert(END, 'power_cap')
+        self.power_cap_varname.grid(row=2, column=1)
+
+
+        equation_label = Label(self.demand_deploy_window, text='Equation:')
+        startime_label = Label(self.demand_deploy_window, text='Start time:')
+        endtime_label = Label(self.demand_deploy_window, text='End time:')
+        facility_label = Label(self.demand_deploy_window, text='Facility:')
+        lifetime_label = Label(self.demand_deploy_window, text='Lifetime')
+        ratio_label = Label(self.demand_deploy_window, text='Ratio:')
+        CreateToolTip(equation_label, text='Equation for power demand.\nYou can use variables `t` and `e`.\n`t`=absolute timestep\n`e`=2.71828\n(e.g. 100*e**(t/12))')
+        CreateToolTip(startime_label, text='Timestep to start applying the demand equation\nStarts from 0.\nTimestep is inclusive.')
+        CreateToolTip(endtime_label, text='Timestep to end applying the demand equation.\nTimestep is inclusive.\n(i.e. Your next starttime should be endtime+1)')
+        CreateToolTip(facility_label, text='Facility to deploy to meet demand.\nThis can be a space-separated list for multiple facilities\n(e.g. ``reactor1 reactor2``)')
+        CreateToolTip(lifetime_label, text='Lifetime of the facilities in timesteps\nThis can also be a space-separated list for multiple facilties\n(e.g. ``960, 360``)')
+        CreateToolTip(ratio_label, text='Power ratio of different facilities to deploy to meet demand.\nThis is currently a bit wonky. The demand is simply split into the ratio.\nCurrently looking for better ways to do this.\nThis is ignored if there is only one `facility` parameter.\nThis is also space-separated (e.g. 0.8 0.2)\nIt is automatically normalized.')
+        equation_label.grid(row=3, column=0)
+        startime_label.grid(row=3, column=1)
+        endtime_label.grid(row=3, column=2)
+        facility_label.grid(row=3, column=3)
+        lifetime_label.grid(row=3, column=4)
+        ratio_label.grid(row=3, column=5)
+        self.demand_row = 4
+        self.demand_cat = ['equation', 'starttime', 'endtime', 'facility', 'lifetime', 'ratio']
+        self.demand_entry_dict = {k:[] for k in self.demand_cat}
+
+        self.add_demand_row()
+
+
+    def add_demand_row(self):
+        for indx, val in enumerate(self.demand_cat):
+            self.demand_entry_dict[val].append(Entry(self.demand_deploy_window))
+            self.demand_entry_dict[val][-1].grid(row=self.demand_row, column=indx)
+        self.demand_row += 1
+
+
+    def parse_entry(self, text):
+        text = text.replace(',', ' ')
+        w = text.split()
+        return w
+
+
+    def check_deploy_input(self):
+        self.insts = self.parse_entry(self.inst_entry.get())
+        self.power_varname = self.parse_entry(self.power_cap_varname.get())
+
+        self.demand_dict = {k:[q.get() for q in v] for k, v in self.demand_entry_dict.items()}
+        for key in ['facility', 'lifetime', 'ratio']:
+            self.demand_dict[key] = [self.parse_entry(q) for q in self.demand_dict[key]]
+
+        e = 2.718
+        for i in ['starttime', 'endtime']:
+            if not all([self.check_if_int(q) for q in self.demand_dict[i]]):
+                messagebox.showerror('Error', 'Your %s definition is not an integer' %i)
+                return False
+        for i in self.demand_dict['lifetime']:
+            for j in i:
+                if not self.check_if_int(j):
+                    messagebox.showerror('Error', 'Your lifetime definition is not an integer' %i)
+                    return False
+
+        # check equation
+        if self.duration == 0:
+            messagebox.showerror('Error', 'Your must set the simulation parameter, so we know what the duration of the simulation is!')
+            return False
+        self.demand = np.zeros(self.duration)
+        for indx, val in enumerate(self.demand_dict['equation']):
+            a = int(self.demand_dict['starttime'][indx])
+            z = int(self.demand_dict['endtime'][indx]) + 1
+            if z >= self.duration+1:
+                messagebox.showerror('Error', 'Your end time is longer than the duration of:\n %s' %(str(self.duration)))
+                return False
+            # check if times are sequential
+            if val != self.demand_dict['equation'][0]:
+                if a <= int(self.demand_dict['starttime'][indx-1]):
+                    messagebox.showerror('Error', 'Your start and end times have to be sequential\nYour endtime=%s has to be more than the previous starttime=%s' %(str(self.demand_dict['starttime'][indx-1]), str(a)))
+                    return False
+            times = list(range(a,z))
+            try:
+                d = [eval(val) for t in times]
+                self.demand[a:z] = d
+            except:
+                messagebox.showerror('Error', 'Demand equation for the %s entry:\n%s\n is invalid!' %(str(indx+1), val))
+                return False
+
+        # check facility exists?
+        for i in self.demand_dict['facility']:
+            for j in i:
+                if j not in self.proto_dict:
+                    messagebox.showerror('Error', 'Facility %s has not been defined.' %i)
+                    return False
+                if not self.is_any_in_list(self.power_varname, self.proto_dict[j]['config'][self.proto_dict[j]['archetype']]):
+                    messagebox.showerror('Error', 'Facility %s does not have any of the power variable name attributes\n%s.' %(j, ' '.join(self.power_varname)))
+                    return False
+
+        # check ratio is float
+        for indx, val in enumerate(self.demand_dict['ratio']):
+            for val2 in val:
+                if not self.check_if_float(val2):
+                    messagebox.showerror('Error', 'Ratio entry %s:\n%s\nShould be a float' %(str(indx+1), val2))
+                    return False
+
+        return True
+
+
+    def submit_demand(self):
+        # get power capacity values of every facility
+        self.power_dict = {}
+        if not self.check_deploy_input():
+            return
+
+        for key, val in self.proto_dict.items():
+            if self.is_any_in_list(self.power_varname, list(val['config'][self.proto_dict[key]['archetype']].keys())):
+                pow_ = 0
+                for i in self.power_varname:
+                    try:
+                        pow_ += float(val['config'][self.proto_dict[key]['archetype']][i])
+                    except:
+                        print('facility %s does not have parameter %s' %(key, i))
+                self.power_dict[key] = pow_
+            else:
+                continue
+
+        # calculate current supply
+        current_power = self.get_current_power()
+        """
+        plt.plot(list(range(self.duration)), current_power)
+        if 'all' in self.insts:
+            which = 'all institutions'
+        else:
+            which = 'institutions ' + ' '.join(self.insts)
+        plt.title('Currently deployed power in %s' %which)
+        plt.xlabel('Timesteps')
+        plt.ylabel('Power Capacity')
+        plt.grid()
+        plt.show()
+        """
+        # calculate lack
+        # get deployment scheme to make up
+        print(self.demand_dict['facility'])
+        deploy_dict = {k:np.zeros(self.duration) for k in self.demand_dict['facility']}
+        self.lack = np.array(self.demand) - np.array(current_power)
+        for time in range(len(self.lack)):
+            for indx, val in enumerate(self.demand_dict['facility']):
+                if int(self.demand_dict['starttime'][indx]) <= time and int(self.demand_dict['endtime'][indx]) >= time:
+                    if len(val) == 1:
+                        fac = val[0]
+                        while self.lack[time] >= self.power_dict[fac]:
+                            deploy_dict[fac][time] += 1
+                            self.lack[time:time+int(self.demand_dict['lifetime'])] -= self.power_dict[fac]
+                    else:
+                        facs = val
+                        # sort fac ascending order by power
+                        # facs.sort(key=lambda:i:self.power_dict[i], reverse=True)
+                        # there has got to be a better way
+                        print(facs)
+                        print(self.demand_dict['ratio'][indx])
+                        lack_split = {k:self.lack*v for k,v in zip(facs, [float(q) for q in self.demand_dict['ratio'][indx]])}
+                        print(lack_split)
+                        for indx2, fac in enumerate(facs):
+                            while lack_split[fac][time] >= self.power_dict[fac]:
+                                deploy_dict[fac][time] += 1
+                                self.lack[time:time+int(self.demand_dict['lifetime'][indx2])] -= self.power_dict[fac]
+
+        print('deploy dict:')
+        print(deploy_dict)
+
+
+
+    def get_current_power(self):
+
+        # now actually do work
+        # calculate current capacity
+        current_power = np.zeros(self.duration)
+        # self.power_dict
+        for region in self.region_dict:
+            for inst in self.region_dict[region]:
+                if inst in self.insts or 'all' in self.insts:
+                    for fac in self.region_dict[region][inst]:
+                        # [0] prototype name
+                        # [1] n_build
+                        # [2] entertime
+                        # [3] lifetime
+                        if fac[0] in self.power_dict:
+                            current_power[int(fac[2]): int(fac[2])+int(fac[3])] += self.power_dict[fac[0]] * int(fac[1])
+                        else:
+                            continue
+        return current_power
+
+
+
+
+
+
+    def is_any_in_list(self, list1, list2):
+        # checks if at least one element in list1 is in list2
+        for i in list1:
+            if i in list2:
+                return True
+        
+        return False
+
+
 
     def add_d3ploy(self, region_name, instname=''):
         if region_name == '':
@@ -307,9 +543,7 @@ class RegionWindow(Frame):
         # where to now?
         self.region_dict[self.current_region][inst_name] = 0
 
-
-
-            
+           
 
     def submit_inst(self, inst_name):
         # check input correctness:
@@ -348,6 +582,13 @@ class RegionWindow(Frame):
     def check_if_int(self, string):
         try:
             int(string)
+            return True
+        except ValueError:
+            return False
+
+    def check_if_float(self, string):
+        try:
+            float(string)
             return True
         except ValueError:
             return False

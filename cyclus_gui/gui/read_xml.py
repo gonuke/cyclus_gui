@@ -23,7 +23,6 @@ def read_xml(path, which):
         return recipe_dict, n
 
 
-
     if which == 'arche':
         new_arche = []
         xml_dict = obj['archetypes']
@@ -31,7 +30,6 @@ def read_xml(path, which):
             new_arche.append([entry['lib'], entry['name']])
             n += 1
         return new_arche, n
-
 
 
     if which == 'region':

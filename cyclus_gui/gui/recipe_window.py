@@ -42,7 +42,7 @@ class RecipeWindow(Frame):
         self.recipe_dict = {}
 
         if os.path.isfile(os.path.join(self.output_path, 'recipe.xml')):
-            self.recipe_dict = read_xml(os.path.join(self.output_path, 'recipe.xml'), 'recipe')
+            self.recipe_dict, n = read_xml(os.path.join(self.output_path, 'recipe.xml'), 'recipe')
         
 
         self.update_loaded_recipes()
@@ -50,6 +50,7 @@ class RecipeWindow(Frame):
 
     def scrape_for_recipes_in_facility(self):
         self.defined_recipe_dict = {}
+        already_in = []
         if os.path.exists(os.path.join(self.output_path, 'facility.xml')):
             with open(os.path.join(self.output_path, 'facility.xml'), 'r') as f:
                 xml_list = xmltodict.parse(f.read())['root']['facility']
@@ -59,8 +60,9 @@ class RecipeWindow(Frame):
                         facility = [facility]
                     for key, val in facility['config'].items():
                         for key2, val2 in val.items():
-                            if 'recipe' in key2:
+                            if 'recipe' in key2 and val2 not in already_in:
                                 self.defined_recipe_dict[facility['name']+' [%s]' %key2] = val2
+                                already_in.append(val2)
         new_ = {}
         for key, val in self.defined_recipe_dict.items():
             if 'ict' in str(type(val)):
@@ -85,6 +87,7 @@ class RecipeWindow(Frame):
         self.status_window.geometry('+250+900')
         Label(self.status_window, text='Loaded recipes:', bg='yellow').grid(row=0, columnspan=2)
         row=1
+        print(self.recipe_dict)
         for key in self.recipe_dict:
             Button(self.status_window, text='x', command=lambda key=key: self.del_recipe(key)).grid(row=row, column=0)
             Button(self.status_window, text=key, command=lambda key=key: self.edit_recipe(key)).grid(row=row, column=1)
