@@ -123,6 +123,8 @@ class RegionWindow(Frame):
                     columns_ = columns[2:]
                     for indx, v in enumerate(instlist):
                         c = c_dict[columns_[indx]]
+                        if indx == 0 and v not in self.proto_dict.keys():
+                            v = v + ' (undefined)'
                         Label(parent, text=v, bg=c).grid(row=row, column=indx+3)
                     row += 1
 
@@ -705,7 +707,7 @@ class RegionWindow(Frame):
         Once done, click done to add the institution into the region. The status
         window will reflect the changes you've made.
 
-        A prototype with a `(x)' next to it means that the prototype has not
+        A prototype with a `(undefined)' next to the name means that the prototype has not
         been defined by the prototype definition section.
 
         Once done, click Done in the region window.
