@@ -728,7 +728,14 @@ class PrototypeWindow(Frame):
 
 
     def generate_docstring(self, archetype, label):
-        s = 'type= ' + self.type_dict[archetype][label]
+        print(self.type_dict)
+        print(archetype)
+        print(label)
+        if not isinstance(self.type_dict[archetype][label], list):
+            t = [self.type_dict[archetype][label]]
+        else:
+            t = self.type_dict[archetype][label]
+        s = 'type= ' + ', '.join(t)
         print(label)
         print(self.default_dict[archetype].keys())
         if label in self.default_dict[archetype].keys():
