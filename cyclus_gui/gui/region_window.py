@@ -203,33 +203,35 @@ class RegionWindow(Frame):
         self.add_inst_window.title('Add institution')
         self.add_inst_window.geometry('+100+1000')
         self.inst_dict = {}
-        if instname != '':
-            self.add_inst_window = assess_scroll_deny(len(self.region_dict[region_name][instname]),
-                                                      self.add_inst_window)
+        self.add_inst_window_frame = assess_scroll_deny(100,
+                                                  self.add_inst_window)
+
         if region_name not in self.region_dict.keys():
             self.region_dict[region_name] = {}
         self.current_region = region_name
-        Label(self.add_inst_window, text='Institution Name:').grid(row=0, column=1)
-        self.inst_name_entry = Entry(self.add_inst_window)
+        Label(self.add_inst_window_frame, text='Institution Name:').grid(row=0, column=1)
+        self.inst_name_entry = Entry(self.add_inst_window_frame)
         self.inst_name_entry.grid(row=0, column=2)
-        Button(self.add_inst_window, text='Done', command= lambda : self.submit_inst(self.inst_name_entry.get())).grid(row=1, column=0)
-        w = Button(self.add_inst_window, text='Power Demand Deploy', command=lambda:self.demand_deploy())
+        Button(self.add_inst_window_frame, text='Done', command= lambda : self.submit_inst(self.inst_name_entry.get())).grid(row=1, column=0)
+        w = Button(self.add_inst_window_frame, text='Power Demand Deploy', command=lambda:self.demand_deploy())
         CreateToolTip(w, text='This allows you to automatically deploy facilities to meet power demand.')
         w.grid(row=1, column=3)
-        Label(self.add_inst_window, text='Add new prototypes here:').grid(row=2, columnspan=3)
-        Button(self.add_inst_window, text='Add Row', command= lambda: self.add_inst_row()).grid(row=3, column=3)
+        Label(self.add_inst_window_frame, text='Add new prototypes here:').grid(row=2, columnspan=3)
+        Button(self.add_inst_window_frame, text='Add Row', command= lambda: self.add_inst_row()).grid(row=3, column=3)
         self.inst_entry_dict = {'prototypes': [], 'lifetimes': [],
                                 'n_build': [], 'build_times': []}
         self.cat_list = ['prototypes', 'n_build', 'build_times', 'lifetimes']
         for indx, val in enumerate(self.cat_list):
-            Label(self.add_inst_window, text=val).grid(row=4, column=indx)
-            self.inst_entry_dict[val].append(Entry(self.add_inst_window))
+            Label(self.add_inst_window_frame, text=val).grid(row=4, column=indx)
+            self.inst_entry_dict[val].append(Entry(self.add_inst_window_frame))
             self.inst_entry_dict[val][-1].grid(row=5, column=indx)
         self.rownum = 6
 
 
     def demand_deploy(self):
-
+        if self.inst_name_entry.get() == '':
+            messagebox.showerror('Error', 'You must define the institution name before doing this.' )
+            return
         guide_text= """Given your current simulation status, this allows you to automatically deploy
         facilities to meet a certain power demand.
 
@@ -325,16 +327,16 @@ class RegionWindow(Frame):
         self.demand = np.zeros(self.duration-1)
         for indx, val in enumerate(self.demand_dict['equation']):
             a = int(self.demand_dict['starttime'][indx])
-            z = int(self.demand_dict['endtime'][indx]) + 1
-            if z >= self.duration+1:
-                messagebox.showerror('Error', 'Your end time is longer than the duration of:\n %s' %(str(self.duration)))
+            z = int(self.demand_dict['endtime'][indx])
+            if z > self.duration:
+                messagebox.showerror('Error', 'Your end time is higher than the duration of:\n %s' %(str(self.duration)))
                 return False
             # check if times are sequential
             if val != self.demand_dict['equation'][0]:
                 if a <= int(self.demand_dict['starttime'][indx-1]):
                     messagebox.showerror('Error', 'Your start and end times have to be sequential\nYour endtime=%s has to be more than the previous starttime=%s' %(str(self.demand_dict['starttime'][indx-1]), str(a)))
                     return False
-            times = list(range(a,z))
+            times = list(range(a+1,z))
             try:
                 d = [eval(val) for t in times]
                 self.demand[a:z] = d
@@ -365,7 +367,7 @@ class RegionWindow(Frame):
         # get power capacity values of every facility
         self.power_dict = {}
         if not self.check_deploy_input():
-            return
+            return False
 
         for key, val in self.proto_dict.items():
             if self.is_any_in_list(self.power_varname, list(val['config'][self.proto_dict[key]['archetype']].keys())):
@@ -418,10 +420,11 @@ class RegionWindow(Frame):
                                 self.deploy_dict[fac][time] += 1
                                 self.lack[time:time+int(self.lifetime_dict[fac])] -= self.power_dict[fac]
                                 self.deployed_power_dict[fac][time:time+int(self.lifetime_dict[fac])] += self.power_dict[fac]
-
+        return True
 
     def visualize_power(self):
-        self.calculate_deploy_data()
+        if not self.calculate_deploy_data():
+            return
 
         self.plot_window = Toplevel(self.demand_deploy_window)
         self.plot_window.title('Plots')
@@ -490,12 +493,12 @@ class RegionWindow(Frame):
 
 
     def submit_demand(self):
-        self.calculate_deploy_data()
+        if not self.calculate_deploy_data():
+            return
         for fac, deploy_timeseries in self.deploy_dict.items():
             for time, n in enumerate(deploy_timeseries):
                 if n == 0:
                     continue
-                print(self.rownum)
                 deploy_row = {'build_times': time+1,
                               'prototypes': fac,
                               'lifetimes': self.lifetime_dict[fac],
@@ -506,7 +509,7 @@ class RegionWindow(Frame):
                     self.add_inst_row()
                 for key, val in deploy_row.items():
                     self.inst_entry_dict[key][-1].insert(END, str(val))
-                    
+
         self.demand_deploy_window.destroy()
 
 
@@ -657,8 +660,8 @@ class RegionWindow(Frame):
         messagebox.showinfo('Added', 'Added institution %s' %inst_name)
         self.region_dict[self.current_region][inst_name] = inst_array
         self.update_status_window()
+        print('Done updating the status window')
         self.add_inst_window.destroy()
-
 
     def check_if_int(self, string):
         try:
@@ -677,7 +680,7 @@ class RegionWindow(Frame):
 
     def add_inst_row(self):
         for indx, val in enumerate(self.cat_list):
-            self.inst_entry_dict[val].append(Entry(self.add_inst_window))
+            self.inst_entry_dict[val].append(Entry(self.add_inst_window_frame))
             self.inst_entry_dict[val][-1].grid(row=self.rownum, column=indx)
         self.rownum += 1
 

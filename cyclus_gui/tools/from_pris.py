@@ -297,23 +297,28 @@ def reactor_render(reactor_data, is_cyborg=False):
     ap1000_spec = {'template': pwr_template,
                    'kg_per_assembly': 446.0,
                    'assemblies_per_core': 157 / 1110.0,
-                   'assemblies_per_batch': 157 / 3330.0}
+                   'assemblies_per_batch': 157 / 3330.0,
+                   'power': 1110.0}
     bwr_spec = {'template': pwr_template,
                 'kg_per_assembly': 180,
                 'assemblies_per_core': 764 / 1000.0,
-                'assemblies_per_batch': 764 / 3000.0}
+                'assemblies_per_batch': 764 / 3000.0,
+                'power': 1000}
     candu_spec = {'template': candu_template,
                   'kg_per_assembly': 19.36,
                   'assemblies_per_core': 4560 / 700,
-                  'assemblies_per_batch': 240 / 760}
+                  'assemblies_per_batch': 240 / 760,
+                  'power': 700}
     pwr_spec = {'template': pwr_template,
                 'kg_per_assembly': 446.0,
                 'assemblies_per_core': 193 / 1000.0,
-                'assemblies_per_batch': 193 / 3000.0}
+                'assemblies_per_batch': 193 / 3000.0,
+                'power': 1000}
     epr_spec = {'template': pwr_template,
                 'kg_per_assembly': 467.0,
                 'assemblies_per_core': 216 / 1670.0,
-                'assemblies_per_batch': 72 / 1670.0}
+                'assemblies_per_batch': 72 / 1670.0,
+                'power': 1670.0}
 
     reactor_specs = {'AP1000': ap1000_spec,
                      'PHWR': candu_spec,
@@ -352,6 +357,19 @@ def reactor_render(reactor_data, is_cyborg=False):
                 n_assem_batch=int(
                     round(data['net_elec_capacity'] / 3000 * 193)),
                 capacity=data['net_elec_capacity'])
+        output_string += reactor_body
+
+    # add the facilities just for the hell of it
+    for reactor, spec in reactor_specs.items():
+        print('reactor', reactor)
+        reactor_body = spec['template'].render(
+            country='',
+            type=reactor,
+            reactor_name=reactor,
+            assem_size=spec['kg_per_assembly'],
+            n_assem_core=int(spec['assemblies_per_core'] * spec['power']),
+            n_assem_batch=int(spec['assemblies_per_batch'] * spec['power']),
+            capacity=spec['power'])
         output_string += reactor_body
     return output_string
 
