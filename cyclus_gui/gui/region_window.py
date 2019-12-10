@@ -146,7 +146,7 @@ class RegionWindow(Frame):
                 self.add_inst_row()
             for indx2, val2 in enumerate(self.cat_list):
                 self.inst_entry_dict[val2][-1].insert(END, val[indx2])
-        
+
 
     def del_fac(self, regionname, instname, fac_name):
         for indx, val in enumerate(self.region_dict[regionname][instname]):
@@ -391,16 +391,21 @@ class RegionWindow(Frame):
         print('current power ')
         print(self.current_power)
         print(self.lack)
+        self.lifetime_dict = {}
+        for indx, val in enumerate(list(np.array(self.demand_dict['facility']).flatten())):
+            self.lifetime_dict[val] = list(np.array(self.demand_dict['lifetime']).flatten())[indx]
+        print(self.lifetime_dict)
 
         for time in range(len(self.lack)):
             for indx, val in enumerate(self.demand_dict['facility']):
                 if int(self.demand_dict['starttime'][indx]) <= time and int(self.demand_dict['endtime'][indx]) >= time:
                     if len(val) == 1:
                         fac = val[0]
-                        while self.lack[time] >= self.power_dict[fac]:
+                        #while self.lack[time] >= self.power_dict[fac]:
+                        while self.lack[time] > 0:
                             self.deploy_dict[fac][time] += 1
-                            self.lack[time:time+int(self.demand_dict['lifetime'][indx][0])] -= self.power_dict[fac]
-                            self.deployed_power_dict[fac][time:time+int(self.demand_dict['lifetime'][indx][0])] += self.power_dict[fac]
+                            self.lack[time:time+int(self.lifetime_dict[fac])] -= self.power_dict[fac]
+                            self.deployed_power_dict[fac][time:time+int(self.lifetime_dict[fac])] += self.power_dict[fac]
                     else:
                         facs = val
                         # sort fac ascending order by power
@@ -408,10 +413,11 @@ class RegionWindow(Frame):
                         # there has got to be a better way
                         lack_split = {k:self.lack*v for k,v in zip(facs, [float(q) for q in self.demand_dict['ratio'][indx]])}
                         for indx2, fac in enumerate(facs):
-                            while lack_split[fac][time] >= self.power_dict[fac]:
+                            # while lack_split[fac][time] >= self.power_dict[fac]:
+                            while lack_split[fac][time] > 0:
                                 self.deploy_dict[fac][time] += 1
-                                self.lack[time:time+int(self.demand_dict['lifetime'][indx2])] -= self.power_dict[fac]
-                                self.deployed_power_dict[fac][time:time+int(self.demand_dict['lifetime'][indx][indx2])] += self.power_dict[fac]
+                                self.lack[time:time+int(self.lifetime_dict[fac])] -= self.power_dict[fac]
+                                self.deployed_power_dict[fac][time:time+int(self.lifetime_dict[fac])] += self.power_dict[fac]
 
 
     def visualize_power(self):
@@ -422,8 +428,6 @@ class RegionWindow(Frame):
         self.plot_window.geometry('+100+1000')
         # multiple tabs with multiple plots
         tab_parent = ttk.Notebook(self.plot_window)
-        
-
 
         power_tab = Frame(tab_parent)
         tab_parent.add(power_tab, text='Separate Power')
@@ -452,10 +456,10 @@ class RegionWindow(Frame):
         tab_parent.add(power_bar, text='Cumulative Power')
         f2 = matplotlib.figure.Figure()
         a2 = f2.add_subplot(111)
-        a2.bar(x, height=self.current_power, width=0.5, label='current power')
+        a2.bar(x, height=self.current_power, width=1, label='current power')
         prev = copy.deepcopy(self.current_power)
         for key, val in self.deployed_power_dict.items():
-            a2.bar(x, height=val, width=0.5, bottom=prev, label=key+' power')
+            a2.bar(x, height=val, width=1, bottom=prev, label=key+' power')
             prev += val
         a2.plot(x, self.demand, label='demand', linestyle='--', color='black')
         a2.set_title('Power capacity')
@@ -486,7 +490,24 @@ class RegionWindow(Frame):
 
 
     def submit_demand(self):
-        z=0
+        self.calculate_deploy_data()
+        for fac, deploy_timeseries in self.deploy_dict.items():
+            for time, n in enumerate(deploy_timeseries):
+                if n == 0:
+                    continue
+                print(self.rownum)
+                deploy_row = {'build_times': time+1,
+                              'prototypes': fac,
+                              'lifetimes': self.lifetime_dict[fac],
+                              'n_build': int(n)}
+                if self.rownum == 6 and self.inst_entry_dict['prototypes'][-1].get() == '':
+                    self.rownum += 1
+                else:
+                    self.add_inst_row()
+                for key, val in deploy_row.items():
+                    self.inst_entry_dict[key][-1].insert(END, str(val))
+                    
+        self.demand_deploy_window.destroy()
 
 
 
@@ -511,10 +532,6 @@ class RegionWindow(Frame):
         return current_power[1:]
 
 
-
-
-
-
     def is_any_in_list(self, list1, list2):
         # checks if at least one element in list1 is in list2
         for i in list1:
@@ -522,7 +539,6 @@ class RegionWindow(Frame):
                 return True
         
         return False
-
 
 
     def add_d3ploy(self, region_name, instname=''):
