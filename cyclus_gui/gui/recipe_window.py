@@ -54,10 +54,9 @@ class RecipeWindow(Frame):
         if os.path.exists(os.path.join(self.output_path, 'facility.xml')):
             with open(os.path.join(self.output_path, 'facility.xml'), 'r') as f:
                 xml_list = xmltodict.parse(f.read())['root']['facility']
+                if not isinstance(xml_list, list):
+                    xml_list = [xml_list]
                 for facility in xml_list:
-                    # if there's only one facility,
-                    if facility == 'name':
-                        facility = [facility]
                     for key, val in facility['config'].items():
                         for key2, val2 in val.items():
                             if 'recipe' in key2 and val2 not in already_in:
