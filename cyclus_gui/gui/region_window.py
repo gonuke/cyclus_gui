@@ -243,6 +243,7 @@ class RegionWindow(Frame):
 
         Button(self.demand_deploy_window, text='Done', command=lambda:self.submit_demand()).grid(row=0, column=0)
         Button(self.demand_deploy_window, text='Add row', command=lambda:self.add_demand_row()).grid(row=0, column=1)
+        Button(self.demand_deploy_window, text='Visualize', command=lambda:self.visualize_power()).grid(row=0, column=2)
 
         # Button(self.add_d3ploy_window, text='Done', command=lambda : self.submit_d3ploy(self.d3ploy_entry_dict['institution_name'].get())).grid(row=0, column=0)
         insts_label = Label(self.demand_deploy_window, text='Institutions')
@@ -321,7 +322,7 @@ class RegionWindow(Frame):
         if self.duration == 0:
             messagebox.showerror('Error', 'Your must set the simulation parameter, so we know what the duration of the simulation is!')
             return False
-        self.demand = np.zeros(self.duration)
+        self.demand = np.zeros(self.duration-1)
         for indx, val in enumerate(self.demand_dict['equation']):
             a = int(self.demand_dict['starttime'][indx])
             z = int(self.demand_dict['endtime'][indx]) + 1
@@ -360,8 +361,7 @@ class RegionWindow(Frame):
 
         return True
 
-
-    def submit_demand(self):
+    def calculate_deploy_data(self):
         # get power capacity values of every facility
         self.power_dict = {}
         if not self.check_deploy_input():
@@ -380,48 +380,113 @@ class RegionWindow(Frame):
                 continue
 
         # calculate current supply
-        current_power = self.get_current_power()
-        """
-        plt.plot(list(range(self.duration)), current_power)
-        if 'all' in self.insts:
-            which = 'all institutions'
-        else:
-            which = 'institutions ' + ' '.join(self.insts)
-        plt.title('Currently deployed power in %s' %which)
-        plt.xlabel('Timesteps')
-        plt.ylabel('Power Capacity')
-        plt.grid()
-        plt.show()
-        """
+        self.current_power = self.get_current_power()
+        
         # calculate lack
         # get deployment scheme to make up
         print(self.demand_dict['facility'])
-        deploy_dict = {k:np.zeros(self.duration) for k in self.demand_dict['facility']}
-        self.lack = np.array(self.demand) - np.array(current_power)
+        self.deploy_dict = {k:np.zeros(self.duration-1) for k in list(np.array(self.demand_dict['facility']).flatten())}
+        self.deployed_power_dict = {k:np.zeros(self.duration-1) for k in list(np.array(self.demand_dict['facility']).flatten())}
+        self.lack = np.array(self.demand) - np.array(self.current_power)
+        print('current power ')
+        print(self.current_power)
+        print(self.lack)
+
         for time in range(len(self.lack)):
             for indx, val in enumerate(self.demand_dict['facility']):
                 if int(self.demand_dict['starttime'][indx]) <= time and int(self.demand_dict['endtime'][indx]) >= time:
                     if len(val) == 1:
                         fac = val[0]
                         while self.lack[time] >= self.power_dict[fac]:
-                            deploy_dict[fac][time] += 1
-                            self.lack[time:time+int(self.demand_dict['lifetime'])] -= self.power_dict[fac]
+                            self.deploy_dict[fac][time] += 1
+                            self.lack[time:time+int(self.demand_dict['lifetime'][indx][0])] -= self.power_dict[fac]
+                            self.deployed_power_dict[fac][time:time+int(self.demand_dict['lifetime'][indx][0])] += self.power_dict[fac]
                     else:
                         facs = val
                         # sort fac ascending order by power
                         # facs.sort(key=lambda:i:self.power_dict[i], reverse=True)
                         # there has got to be a better way
-                        print(facs)
-                        print(self.demand_dict['ratio'][indx])
                         lack_split = {k:self.lack*v for k,v in zip(facs, [float(q) for q in self.demand_dict['ratio'][indx]])}
-                        print(lack_split)
                         for indx2, fac in enumerate(facs):
                             while lack_split[fac][time] >= self.power_dict[fac]:
-                                deploy_dict[fac][time] += 1
+                                self.deploy_dict[fac][time] += 1
                                 self.lack[time:time+int(self.demand_dict['lifetime'][indx2])] -= self.power_dict[fac]
+                                self.deployed_power_dict[fac][time:time+int(self.demand_dict['lifetime'][indx][indx2])] += self.power_dict[fac]
 
-        print('deploy dict:')
-        print(deploy_dict)
+
+    def visualize_power(self):
+        self.calculate_deploy_data()
+
+        self.plot_window = Toplevel(self.demand_deploy_window)
+        self.plot_window.title('Plots')
+        self.plot_window.geometry('+100+1000')
+        # multiple tabs with multiple plots
+        tab_parent = ttk.Notebook(self.plot_window)
+        
+
+
+        power_tab = Frame(tab_parent)
+        tab_parent.add(power_tab, text='Separate Power')
+        x = list(range(self.duration-1))
+        # stacked bar power plot
+        # with demand overlay
+        f1 = matplotlib.figure.Figure()
+        a1 = f1.add_subplot(111)
+        a1.plot(x, self.current_power, label='Current Power')
+        for key, val in self.deployed_power_dict.items():
+            a1.plot(x, val, label=key+' power')
+        if 'all' in self.insts:
+            which = 'all institutions'
+        else:
+            which = 'institutions ' + ' '.join(self.insts)
+        a1.set_title('Currently deployed power in %s' %which)
+        a1.set_xlabel('Timesteps')
+        a1.set_ylabel('Power Capacity')
+        a1.grid()
+        a1.legend()
+        canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(f1, power_tab)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
+        
+        power_bar = Frame(tab_parent)
+        tab_parent.add(power_bar, text='Cumulative Power')
+        f2 = matplotlib.figure.Figure()
+        a2 = f2.add_subplot(111)
+        a2.bar(x, height=self.current_power, width=0.5, label='current power')
+        prev = copy.deepcopy(self.current_power)
+        for key, val in self.deployed_power_dict.items():
+            a2.bar(x, height=val, width=0.5, bottom=prev, label=key+' power')
+            prev += val
+        a2.plot(x, self.demand, label='demand', linestyle='--', color='black')
+        a2.set_title('Power capacity')
+        a2.set_xlabel('Timesteps')
+        a2.set_ylabel('Power Capacity')
+        a2.grid()
+        a2.legend()
+        canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(f2, power_bar)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
+        
+        dep_plot = Frame(tab_parent)
+        tab_parent.add(dep_plot, text='Deployments')
+        f3 = matplotlib.figure.Figure()
+        a3 = f3.add_subplot(111)
+        for key, val in self.deploy_dict.items():
+            a3.scatter(x, val, label=key+' deployed', marker='x')
+        a3.set_title('Number of facilities deployed')
+        a3.set_xlabel('Timesteps')
+        a3.set_ylabel('Num. deployed')
+        a3.grid()
+        a3.legend()
+        canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(f3, dep_plot)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
+        
+        tab_parent.pack(expand=1, fill='both')
+
+
+    def submit_demand(self):
+        z=0
 
 
 
@@ -443,7 +508,7 @@ class RegionWindow(Frame):
                             current_power[int(fac[2]): int(fac[2])+int(fac[3])] += self.power_dict[fac[0]] * int(fac[1])
                         else:
                             continue
-        return current_power
+        return current_power[1:]
 
 
 
@@ -604,7 +669,7 @@ class RegionWindow(Frame):
     def close_window(self):
         self.master.destroy()
 
-    def guide(self):
+    def guide(self, text=''):
         string = """
         This is where you define how the prototypes you defined will be played
         in the simulation - when they enter, how many enters, and when they exit.
@@ -626,6 +691,9 @@ class RegionWindow(Frame):
 
         Once done, click Done in the region window.
         """
+        if text != '':
+            self.guide_window.destroy()
+            string = text
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Region guide')
         self.guide_window.geometry('+0+400')

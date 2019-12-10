@@ -1,7 +1,3 @@
-
-
-
-
 class XmlWindow():
     def __init__(self, master, output_path):
         self.master = Toplevel(master)
