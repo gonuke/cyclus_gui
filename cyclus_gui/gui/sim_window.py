@@ -120,7 +120,7 @@ class SimulationWindow():
 
         guide_string = """
         duration =
-        Number of timesteps in the simulation
+        Number of timesteps in the simulation 
 
         startmonth =
         Starting month of the simulation [1-12]

@@ -514,10 +514,19 @@ class PrototypeWindow(Frame):
         proto_guide_window_ = Toplevel(self.def_window)
         proto_guide_window_.title('%s documentation' %archetype)
         proto_guide_window_.geometry('+0+1000')
-        string = archetype + '\n'
+        string = '**The highlighted parameters mean that they are optional.**\n'
+        string += '**The non-highlighted parameters need to be filled in**\n'
+        string += '**The parameters with `Add` button next to it can take in multiple values**\n'
+        string += '**For descriptions of the parameters, hover your mouse over them!**\n\n\n'
+        string += archetype + '\n'
+
+        
         # documentation for archetype
         input_variables = self.param_dict[archetype]['oneormore'] + self.param_dict[archetype]['one']
         input_variables = [x.replace('*', '') for x in input_variables]
+        string += self.doc_dict[archetype]['arche'] + '\n\n'
+
+        """
         string += self.doc_dict[archetype]['arche'] + '\n\n' + '========== Parameters ==========\n'
         for key, val in self.doc_dict[archetype].items():
             if key not in input_variables or key == 'arche':
@@ -531,7 +540,8 @@ class PrototypeWindow(Frame):
                     default_val = "''"
                 string += ', default=%s' %default_val
             string += '):\n' + val + '\n\n' 
-        t = Text(proto_guide_window_)
+        """
+        t = ScrolledText(proto_guide_window_)
         t.pack()
         t.insert(END, string)
 
@@ -783,6 +793,8 @@ class PrototypeWindow(Frame):
         q.grid(row=rownum, column=1)
         CreateToolTip(q, text=self.generate_docstring(archetype, label))
         self.entry_dict[label] = {rownum : []}
+        self.entry_dict[label][rownum].append(Entry(self.def_window))
+        self.entry_dict[label][rownum][-1].grid(row=rownum, column=2)
         Button(master, text='Add', command=lambda label=label, rownum=rownum: self.add_entry(label, rownum)).grid(row=rownum, column=0)
 
 
