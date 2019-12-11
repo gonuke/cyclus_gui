@@ -41,12 +41,12 @@ class RegionWindow(Frame):
         self.region_dict = {}
         try:
             self.duration = int(xmltodict.parse(open(os.path.join(self.output_path, 'control.xml'), 'r').read())['control']['duration'])
-        except:
+        except Exception as e:
             self.duration = 0
         self.proto_dict = {}
         try:
             arches, w = read_xml(os.path.join(self.output_path, 'archetypes.xml'), 'arche')
-        except:
+        except Exception as e:
             arches = []
         self.libs = [x[0] for x in arches]
         Label(self.master, text='Region Name:').grid(row=0, column=0)
@@ -89,7 +89,7 @@ class RegionWindow(Frame):
     def update_status_window(self):
         try:
             self.status_window.destroy()
-        except:
+        except Exception as e:
             z=0
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined Regions')
@@ -338,12 +338,16 @@ class RegionWindow(Frame):
                 if a <= int(self.demand_dict['starttime'][indx-1]):
                     messagebox.showerror('Error', 'Your start and end times have to be sequential\nYour endtime=%s has to be more than the previous starttime=%s' %(str(self.demand_dict['starttime'][indx-1]), str(a)))
                     return False
-            times = list(range(a+1,z))
+            times = list(range(a+1,z+1))
             try:
+                print(val)
+                print(times)
+                print(a,z)
                 d = [eval(val) for t in times]
                 self.demand[a:z] = d
-            except:
-                messagebox.showerror('Error', 'Demand equation for the %s entry:\n%s\n is invalid!' %(str(indx+1), val))
+            except Exception as e:
+                print(e)
+                messagebox.showerror('Error', 'Demand equation for entry %s:\n%s\n is invalid!' %(str(indx+1), val))
                 return False
 
         # check facility exists?
@@ -377,7 +381,8 @@ class RegionWindow(Frame):
                 for i in self.power_varname:
                     try:
                         pow_ += float(val['config'][self.proto_dict[key]['archetype']][i])
-                    except:
+                    except Exception as e:
+                        print(e)
                         print('facility %s does not have parameter %s' %(key, i))
                 self.power_dict[key] = pow_
             else:
@@ -707,7 +712,8 @@ class RegionWindow(Frame):
         Once done, click done to add the institution into the region. The status
         window will reflect the changes you've made.
 
-        A prototype with a `(undefined)' next to the name means that the prototype has not
+        A prototype with a `(undefined)' next to the name ls
+        means that the prototype has not
         been defined by the prototype definition section.
 
         Once done, click Done in the region window.
