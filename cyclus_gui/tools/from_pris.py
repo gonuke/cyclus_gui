@@ -288,11 +288,13 @@ def reactor_render(reactor_data, is_cyborg=False):
     pwr_template = read_template(template_collections.pwr_template)
     mox_reactor_template = read_template(template_collections.mox_template)
     candu_template = read_template(template_collections.candu_template)
+    smr_template = read_template(template_collections.smr_template)
     output_string = ''
     if is_cyborg:
         pwr_template = read_template(template_collections.pwr_template_cyborg)
         mox_reactor_template = read_template(template_collections.mox_template_cyborg)
         candu_template = read_template(template_collections.candu_template_cyborg)
+        smr_template = read_template(template_collections.smr_template_cyborg)
 
     ap1000_spec = {'template': pwr_template,
                    'kg_per_assembly': 446.0,
@@ -319,13 +321,18 @@ def reactor_render(reactor_data, is_cyborg=False):
                 'assemblies_per_core': 216 / 1670.0,
                 'assemblies_per_batch': 72 / 1670.0,
                 'power': 1670.0}
+    smr_spec = {'template': pwr_template,
+                'kg_per_assembly': 446.0,
+                'assemblies_per_core':21 / 60
+                'assemblies_per_batch':7 / 60}
 
     reactor_specs = {'AP1000': ap1000_spec,
                      'PHWR': candu_spec,
                      'BWR': bwr_spec,
                      'CANDU': candu_spec,
                      'PWR': pwr_spec,
-                     'EPR': epr_spec}
+                     'EPR': epr_spec,
+                     'SMR': smr_spec}
 
     for data in reactor_data:
         # refine name string
@@ -361,7 +368,6 @@ def reactor_render(reactor_data, is_cyborg=False):
 
     # add the facilities just for the hell of it
     for reactor, spec in reactor_specs.items():
-        print('reactor', reactor)
         reactor_body = spec['template'].render(
             country='',
             type=reactor,
