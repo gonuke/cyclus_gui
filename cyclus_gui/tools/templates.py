@@ -113,7 +113,7 @@ class template_collections:
   </facility>
 """
 
-smr_template_cyborg = """
+    smr_template_cyborg = """
     <facility>
     <!-- {{ country }} -->
     <!-- {{ type }}    -->
@@ -136,7 +136,7 @@ smr_template_cyborg = """
 </facility>
 """
 
-mox_template_cyborg = """
+    mox_template_cyborg = """
      <facility>
     <!-- {{ country }} -->
     <!-- {{   type  }} -->
