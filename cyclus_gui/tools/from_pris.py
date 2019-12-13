@@ -322,9 +322,10 @@ def reactor_render(reactor_data, is_cyborg=False):
                 'assemblies_per_batch': 72 / 1670.0,
                 'power': 1670.0}
     smr_spec = {'template': pwr_template,
-                'kg_per_assembly': 446.0,
-                'assemblies_per_core':21 / 60
-                'assemblies_per_batch':7 / 60}
+                'kg_per_assembly': 249.76,
+                'assemblies_per_core':37 / 50,
+                'assemblies_per_batch':12 / 50,
+                'power': 50}
 
     reactor_specs = {'AP1000': ap1000_spec,
                      'PHWR': candu_spec,
