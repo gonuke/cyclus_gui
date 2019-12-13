@@ -64,6 +64,7 @@ class RegionWindow(Frame):
         if os.path.isfile(os.path.join(self.output_path, 'region.xml')):
             self.region_dict, self.n = read_xml(os.path.join(self.output_path, 'region.xml'),
                                                 'region')
+    
         if os.path.isfile(os.path.join(self.output_path, 'facility.xml')):
             self.show_defined_protos()
  
@@ -159,6 +160,7 @@ class RegionWindow(Frame):
 
 
     def done_region(self):
+        print(self.region_dict)
         if len(self.region_dict) == 0:
             messagebox.showerror('Error', 'No Regions were defined!')
             return

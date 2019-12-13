@@ -35,7 +35,10 @@ def read_xml(path, which):
     if which == 'region':
         region_dict = {}
         xml_list = check_list(obj['root']['region'])
-        proto_dict, arche, w = read_xml(path.replace('region.xml', 'facility.xml'), 'facility')
+        try:
+            proto_dict, arche, w = read_xml(path.replace('region.xml', 'facility.xml'), 'facility')
+        except:
+            print('facility xml not here')
 
         for region in xml_list:
             region_dict[region['name']] = {}
@@ -43,6 +46,7 @@ def read_xml(path, which):
             region['institution'] = check_list(region['institution'])
 
             for i in region['institution']:
+                print(i['name'])
                 inst_array = []
                 if 'DeployInst' in i['config'].keys():
                     print(i['config'])
@@ -71,11 +75,15 @@ def read_xml(path, which):
                     for i in init_facility:
                         n += 1
                         entry_list = [i['prototype'], i['number'], '1', '99999']
-                        if 'lifetime' in proto_dict[i['prototype']].keys():
-                            entry_list[3] = proto_dict[i['prototype']]['lifetime']
+                        try:                        
+                            if 'lifetime' in proto_dict[i['prototype']].keys():
+                                entry_list[3] = proto_dict[i['prototype']]['lifetime']
+                        except:
+                            z=0
                         inst_array.append(entry_list)
-            region_dict[region['name']][instname] = inst_array
+                region_dict[region['name']][instname] = inst_array
 
+        print(region_dict)
         return region_dict, n
 
 
