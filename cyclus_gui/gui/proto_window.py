@@ -129,15 +129,18 @@ class PrototypeWindow(Frame):
         Label(self.def_window, text='Prototype Name:').grid(row=1, column=0)
 
         if arche_long in self.param_dict.keys():
+            pprint(self.proto_dict[name]['config'][archetype])
+            
             self.def_entries(arche_long)
             for param, val in self.proto_dict[name]['config'][archetype].items():
+                if param == 'in_streams' or param == 'streams':
+                    continue
                 rownum = list(self.entry_dict[param].keys())[0]
                 if isinstance(val, dict):
                     try:
                         tag = self.tag_dict[arche_long][param]
                     except:
                         tag = self.tag_dict[arche_long][param+ '*']
-
                     if not isinstance(val[tag], list):
                         val[tag] = [val[tag]]
                     for ii_, v in enumerate(val[tag]):
@@ -388,10 +391,12 @@ class PrototypeWindow(Frame):
 
         self.proto_guide_window(archetype)
         oneormore = self.param_dict[archetype]['oneormore']
-        if 'streams' in oneormore:
-            oneormore.remove('streams')
-        if 'in_streams' in oneormore:
-            oneormore.remove('in_streams')
+        print('oneormore')
+        print(oneormore)
+        #if 'streams' in oneormore:
+        #    oneormore.remove('streams')
+        #if 'in_streams' in oneormore:
+        #    oneormore.remove('in_streams')
         one = self.param_dict[archetype]['one']
 
         for val in oneormore:
@@ -414,8 +419,10 @@ class PrototypeWindow(Frame):
 
         if archetype == 'cycamore:Mixer':
             Button(self.def_window, text='Add input Stream', command=lambda:self.add_mix_stream()).grid(row=start_row, columnspan=3)
+            #self.entry_dict['in_streams'] = {9999: {'stream': []}}
+            #######
+            print(self.entry_dict)
             self.update_mixer_status_window()
-            self.entry_dict['in_streams'] = {9999: {'stream': []}}
 
 
     def def_entries_unknown(self,archetype, name='', reopen=False):
@@ -771,6 +778,8 @@ class PrototypeWindow(Frame):
 
 
     def add_row_oneormore(self, label, master, rownum, archetype):
+        if label == 'in_streams' or label=='stream':
+            return 
         color = 'snow'
         if '*' in label:
             color = 'salmon1'
@@ -786,7 +795,9 @@ class PrototypeWindow(Frame):
         label = label.replace('*', '')
         q = Label(master, text=label, bg=color)
         q.grid(row=rownum, column=1)
-        CreateToolTip(q, text=self.generate_docstring(archetype, label))
+        try:
+            CreateToolTip(q, text=self.generate_docstring(archetype, label))
+        except: z=0
         self.entry_dict[label] = {rownum : []}
         self.entry_dict[label][rownum].append(Entry(self.def_window))
         self.entry_dict[label][rownum][-1].grid(row=rownum, column=2)
