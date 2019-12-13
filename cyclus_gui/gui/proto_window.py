@@ -133,7 +133,6 @@ class PrototypeWindow(Frame):
             for param, val in self.proto_dict[name]['config'][archetype].items():
                 rownum = list(self.entry_dict[param].keys())[0]
                 if isinstance(val, dict):
-                    
                     try:
                         tag = self.tag_dict[arche_long][param]
                     except:
@@ -141,8 +140,9 @@ class PrototypeWindow(Frame):
 
                     if not isinstance(val[tag], list):
                         val[tag] = [val[tag]]
-                    for v in val[tag]:
-                        self.add_entry(param, rownum)
+                    for ii_, v in enumerate(val[tag]):
+                        if ii_ != 0:
+                            self.add_entry(param, rownum)
                         self.entry_dict[param][rownum][-1].insert(END, v)
                 else:
                     if self.entry_dict[param][rownum].get() != val:
@@ -161,7 +161,7 @@ class PrototypeWindow(Frame):
             self.j = json.loads(jtxt)
 
         else:
-            messagebox.showinfo('Cyclus not found', 'Cyclus is not found, Using documentation from packaged json.')
+            messagebox.showinfo('Cyclus not found', 'We have automated documentation from packaged json, since Cyclus is not found on your computer.')
             with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), '../..', 'src/metadata.json'), 'r') as f:
                 jtxt = f.read()
             self.j = json.loads(jtxt)
