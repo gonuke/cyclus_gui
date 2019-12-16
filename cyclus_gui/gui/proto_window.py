@@ -96,7 +96,7 @@ class PrototypeWindow(Frame):
     def update_status_window(self):
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined facility prototypes')
-        self.status_window.geometry('+250+700')
+        self.status_window.geometry('+800+700')
         parent = self.status_window
         parent = assess_scroll_deny(len(self.proto_dict.keys())+2, self.status_window)
         
@@ -130,10 +130,13 @@ class PrototypeWindow(Frame):
 
         if arche_long in self.param_dict.keys():
             pprint(self.proto_dict[name]['config'][archetype])
-            
+            self.name = name
+            # empty fillable entries
             self.def_entries(arche_long)
+            
+            # initializes values
             for param, val in self.proto_dict[name]['config'][archetype].items():
-                if param == 'in_streams' or param == 'streams':
+                if param in ['in_streams', 'streams']:
                     continue
                 rownum = list(self.entry_dict[param].keys())[0]
                 if isinstance(val, dict):
@@ -338,7 +341,11 @@ class PrototypeWindow(Frame):
                             self.tag_dict[archetype] = {name: val_list[1].get()}
             self.entry_dict = new_entry_dict
         # .get() all the entries
+        print(self.entry_dict)
         for param, row_val_dict in self.entry_dict.items():
+            if 'item' in row_val_dict.keys() or 'stream' in row_val_dict.keys():
+                config_dict[archetype_name][param] = row_val_dict
+                continue
             for rownum, val_list in row_val_dict.items():
                 if isinstance(val_list, list):
                     val_list = [x.get() for x in val_list]
@@ -359,19 +366,17 @@ class PrototypeWindow(Frame):
                         except:
                             qq=0
                     val_list = {tag: val_list} 
-                if isinstance(val_list, dict):
-                    val_list = val_list
                 else:
                     val_list = val_list.get()
                     if val_list == '':
                         continue
-                    val_list 
                 # check for empty values    
                 config_dict[archetype_name][param] = val_list
         
         self.arche_dict[proto_name] = archetype
         self.proto_dict[proto_name] = {'archetype': archetype_name,
                                        'config': config_dict}
+        pprint(self.proto_dict[proto_name])
         messagebox.showinfo('Success', 'Successfully created %s facility %s' %(archetype_name, proto_name))
         self.update_loaded_modules()
         self.def_window.destroy()
@@ -393,17 +398,17 @@ class PrototypeWindow(Frame):
         oneormore = self.param_dict[archetype]['oneormore']
         print('oneormore')
         print(oneormore)
-        #if 'streams' in oneormore:
-        #    oneormore.remove('streams')
-        #if 'in_streams' in oneormore:
-        #    oneormore.remove('in_streams')
+        if 'streams' in oneormore:
+            oneormore.remove('streams')
+        if 'in_streams' in oneormore:
+            oneormore.remove('in_streams')
         one = self.param_dict[archetype]['one']
 
         for val in oneormore:
             start_row += 1
             self.add_row_oneormore(val, self.def_window, start_row, archetype)
 
-        for  val in one:
+        for val in one:
             start_row += 1
             self.add_row(val, self.def_window, start_row, archetype)   
             # add color for non-essential parameters
@@ -414,14 +419,16 @@ class PrototypeWindow(Frame):
             # special treatment for separations
             # add stream
             Button(self.def_window, text='Add output Stream', command=lambda:self.add_sep_stream()).grid(row=start_row, columnspan=3)
+            self.entry_dict['streams'] = {'item': []}
+            if 'streams' in self.proto_dict[self.name]['config'][archetype.split(':')[1]].keys():
+                self.entry_dict['streams']['item'] = self.proto_dict[self.name]['config'][archetype.split(':')[1]]['streams']['item']
             self.update_stream_status_window()
-            self.entry_dict['streams'] = {9999: {'item': []}}
 
         if archetype == 'cycamore:Mixer':
             Button(self.def_window, text='Add input Stream', command=lambda:self.add_mix_stream()).grid(row=start_row, columnspan=3)
-            #self.entry_dict['in_streams'] = {9999: {'stream': []}}
-            #######
-            print(self.entry_dict)
+            self.entry_dict['in_streams'] = {'stream': []}
+            if 'in_streams' in self.proto_dict[self.name]['config'][archetype.split(':')[1]].keys():
+                self.entry_dict['in_streams'] = {'stream': self.proto_dict[self.name]['config'][archetype.split(':')[1]]['in_streams']['stream']}
             self.update_mixer_status_window()
 
 
@@ -487,32 +494,66 @@ class PrototypeWindow(Frame):
         self.stream_status_window = Toplevel(self.def_window)
         Label(self.stream_status_window, text='Defined Streams').grid(row=0, columnspan=2)
         row=1
+        print('entry_dict')
+        print(self.entry_dict)
         if 'streams' in self.entry_dict.keys():
-            for st in self.entry_dict['streams'][9999]['item']:
+            if not isinstance(self.entry_dict['streams']['item'], list):
+                t = [self.entry_dict['streams']['item']]
+            else:
+                t = self.entry_dict['streams']['item']
+            for st in t:
                 Button(self.stream_status_window, text=st['commod'], command=lambda st=st:self.update_stream(st['commod'])).grid(row=row, column=0)
                 Button(self.stream_status_window, text='x', command=lambda st=st:self.delete_stream(st['commod'])).grid(row=row, column=1)
                 row += 1
 
+
     def update_stream(self, stream_name):
         self.add_sep_stream()
-        for indx, val in enumerate(self.entry_dict['streams'][9999]['item']):
+        if not isinstance(self.entry_dict['streams']['item'], list):
+            t = [self.entry_dict['streams']['item']]
+            notalist = True
+        else:
+            t = self.entry_dict['streams']['item']
+            notalist = False
+        for indx, val in enumerate(t):
             if stream_name == val['commod']:
                 it = indx
 
         self.commod_entry.insert(END, stream_name)
-        self.buf_entry.insert(END, self.entry_dict['streams'][9999]['item'][indx]['info']['buf_size'])
-        for indx, item in enumerate(self.entry_dict['streams'][9999]['item'][indx]['info']['efficiencies']['item']):
-            self.add_sep_row()
-            self.el_ef_entry_list[indx][0].insert(END, item['comp'])
-            self.el_ef_entry_list[indx][1].insert(END, item['eff'])
+        if notalist:
+            self.buf_entry.delete(0, END)
+            self.buf_entry.insert(END, self.entry_dict['streams']['item']['info']['buf_size'])
+            if not isinstance(self.entry_dict['streams']['item']['info']['efficiencies']['item'], list):
+                t = [self.entry_dict['streams']['item']['info']['efficiencies']['item']]
+            else:
+                t = self.entry_dict['streams']['item']['info']['efficiencies']['item']
+            for indx2, item in enumerate(t):
+                self.add_sep_row()
+                self.el_ef_entry_list[indx2][0].insert(END, item['comp'])
+                self.el_ef_entry_list[indx2][1].insert(END, item['eff'])
 
-        del self.entry_dict['streams'][9999]['item'][it]
+            # del self.entry_dict['streams']['item']
+
+        else:
+            self.buf_entry.delete(0, END)
+            self.buf_entry.insert(END, self.entry_dict['streams']['item'][indx]['info']['buf_size'])
+            if not isinstance(self.entry_dict['streams']['item'][indx]['info']['efficiencies']['item'], list):
+                t = [self.entry_dict['streams']['item'][indx]['info']['efficiencies']['item']]
+            else:
+                t = self.entry_dict['streams']['item'][indx]['info']['efficiencies']['item']
+            for indx2, item in enumerate(t):
+                self.add_sep_row()
+                self.el_ef_entry_list[indx2][0].insert(END, item['comp'])
+                self.el_ef_entry_list[indx2][1].insert(END, item['eff'])
+
+            # del self.entry_dict['streams']['item'][it]
+
 
     def delete_stream(self, stream_name):
         for indx, val in enumerate(self.entry_dict['streams'][9999]['item']):
             if stream_name == val['commod']:
                 kill = indx
-        del self.entry_dict['streams'][9999]['item'][kill]
+        del self.entry_dict['streams']['item'][kill]
         self.update_stream_status_window()
         return
 
@@ -592,13 +633,25 @@ class PrototypeWindow(Frame):
             messagebox.showerror('Error', 'You did not define a single stream')
             return
         done = False
-        for indx, val in enumerate(self.entry_dict['streams'][9999]['item']):
+        print(self.entry_dict['streams'])
+        if not isinstance(self.entry_dict['streams']['item'], list):
+            t = [self.entry_dict['streams']['item']]
+            notalist = True
+        else:
+            t = self.entry_dict['streams']['item']
+            notalist = False
+        for indx, val in enumerate(t):
             if val['commod'] == sep_stream_dict['commod']:
                 set_indx = indx
-                self.entry_dict['streams'][9999]['item'][set_indx] = sep_stream_dict
+                if notalist:
+                    self.entry_dict['streams']['item'] = sep_stream_dict
+                else:
+                    self.entry_dict['streams']['item'][set_indx] = sep_stream_dict
                 done = True
         if not done:
-            self.entry_dict['streams'][9999]['item'].append(sep_stream_dict)
+            if not isinstance(self.entry_dict['streams']['item'], list):
+                self.entry_dict['streams']['item'] = [self.entry_dict['streams']['item']]
+                self.entry_dict['streams']['item'].append(sep_stream_dict)
         messagebox.showinfo('Success', 'Succesfully added separation stream')
         self.sep_stream_window.destroy()
         self.update_stream_status_window()
@@ -622,7 +675,7 @@ class PrototypeWindow(Frame):
         Label(self.mixer_status_window, text='Defined Streams').grid(row=0, columnspan=2)
         row=1
         if 'in_streams' in self.entry_dict.keys():
-            for st in self.entry_dict['in_streams'][9999]['stream']:
+            for st in self.entry_dict['in_streams']['stream']:
                 text = ''
                 for n in st['commodities']['item']:
                     text += n['commodity']
@@ -683,6 +736,7 @@ class PrototypeWindow(Frame):
         
 
     def submit_mix_stream(self):
+        print(self.entry_dict)
         mix_stream_dict = {'info': {'mixing_ratio': self.mix_ratio_entry.get(),
                                     'buf_size': self.buf_entry.get()},
                            'commodities': {'item': []}}
