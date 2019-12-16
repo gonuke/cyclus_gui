@@ -326,6 +326,11 @@ def reactor_render(reactor_data, is_cyborg=False):
                 'assemblies_per_core':37 / 50,
                 'assemblies_per_batch':12 / 50,
                 'power': 50}
+    twelve_smr_spec = {'template': pwr_template,
+                       'kg_per_assembly': 249.76,
+                       'assemblies_per_core': 37 / 50 * 12,
+                       'assemblies_per_batch': 12 / 50 * 12,
+                       'power': 50 * 12}
 
     reactor_specs = {'AP1000': ap1000_spec,
                      'PHWR': candu_spec,
@@ -333,7 +338,8 @@ def reactor_render(reactor_data, is_cyborg=False):
                      'CANDU': candu_spec,
                      'PWR': pwr_spec,
                      'EPR': epr_spec,
-                     'SMR': smr_spec}
+                     'SMR': smr_spec,
+                     '12_SMR': twelve_smr_spec}
 
     for data in reactor_data:
         # refine name string
