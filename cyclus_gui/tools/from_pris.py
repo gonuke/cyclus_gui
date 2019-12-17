@@ -297,39 +297,39 @@ def reactor_render(reactor_data, is_cyborg=False):
         smr_template = read_template(template_collections.smr_template_cyborg)
 
     ap1000_spec = {'template': pwr_template,
-                   'kg_per_assembly': 446.0,
-                   'assemblies_per_core': 157 / 1110.0,
-                   'assemblies_per_batch': 157 / 3330.0,
+                   'kg_per_assembly': 446.0 * 52 / 1110.0,
+                   'assemblies_per_core': 3,
+                   'assemblies_per_batch': 1,
                    'power': 1110.0}
     bwr_spec = {'template': pwr_template,
-                'kg_per_assembly': 180,
-                'assemblies_per_core': 764 / 1000.0,
-                'assemblies_per_batch': 764 / 3000.0,
+                'kg_per_assembly': 180 * (764 / 3) / 1000,
+                'assemblies_per_core': 3,
+                'assemblies_per_batch': 1,
                 'power': 1000}
     candu_spec = {'template': candu_template,
-                  'kg_per_assembly': 19.36,
-                  'assemblies_per_core': 4560 / 700,
-                  'assemblies_per_batch': 240 / 760,
+                  'kg_per_assembly': 19.36 * 240 / 700,
+                  'assemblies_per_core': 19,
+                  'assemblies_per_batch': 1,
                   'power': 700}
     pwr_spec = {'template': pwr_template,
-                'kg_per_assembly': 446.0,
-                'assemblies_per_core': 193 / 1000.0,
-                'assemblies_per_batch': 193 / 3000.0,
+                'kg_per_assembly': 446.0 * (193/3) / 1000.0,
+                'assemblies_per_core': 3,
+                'assemblies_per_batch': 1,
                 'power': 1000}
     epr_spec = {'template': pwr_template,
-                'kg_per_assembly': 467.0,
-                'assemblies_per_core': 216 / 1670.0,
-                'assemblies_per_batch': 72 / 1670.0,
+                'kg_per_assembly': 467.0 * 72 / 1670.0,
+                'assemblies_per_core': 3,
+                'assemblies_per_batch': 1,
                 'power': 1670.0}
     smr_spec = {'template': smr_template,
-                'kg_per_assembly': 249.76,
-                'assemblies_per_core':37 / 50,
-                'assemblies_per_batch':12 / 50,
+                'kg_per_assembly': 249.76 * 12 / 50,
+                'assemblies_per_core': 3,
+                'assemblies_per_batch':1,
                 'power': 50}
     twelve_smr_spec = {'template': smr_template,
-                       'kg_per_assembly': 249.76,
-                       'assemblies_per_core': 37 / 50 * 12,
-                       'assemblies_per_batch': 12 / 50 * 12,
+                       'kg_per_assembly': 249.76 * 12 * 12 / (50*12),
+                       'assemblies_per_core': 3,
+                       'assemblies_per_batch': 1,
                        'power': 50 * 12}
 
     reactor_specs = {'AP1000': ap1000_spec,
@@ -365,11 +365,9 @@ def reactor_render(reactor_data, is_cyborg=False):
                 country=data['country'].decode('utf-8'),
                 reactor_name=name,
                 type=reactor_type,
-                assem_size=446.0,
-                n_assem_core=int(
-                    round(data['net_elec_capacity'] / 1000 * 193)),
-                n_assem_batch=int(
-                    round(data['net_elec_capacity'] / 3000 * 193)),
+                assem_size=446.0 * data['net_elec_capacity'] / 3000 *193,
+                n_assem_core=3,
+                n_assem_batch=1,
                 capacity=data['net_elec_capacity'])
         output_string += reactor_body
 
