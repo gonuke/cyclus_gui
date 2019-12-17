@@ -321,12 +321,12 @@ def reactor_render(reactor_data, is_cyborg=False):
                 'assemblies_per_core': 216 / 1670.0,
                 'assemblies_per_batch': 72 / 1670.0,
                 'power': 1670.0}
-    smr_spec = {'template': pwr_template,
+    smr_spec = {'template': smr_template,
                 'kg_per_assembly': 249.76,
                 'assemblies_per_core':37 / 50,
                 'assemblies_per_batch':12 / 50,
                 'power': 50}
-    twelve_smr_spec = {'template': pwr_template,
+    twelve_smr_spec = {'template': smr_template,
                        'kg_per_assembly': 249.76,
                        'assemblies_per_core': 37 / 50 * 12,
                        'assemblies_per_batch': 12 / 50 * 12,
