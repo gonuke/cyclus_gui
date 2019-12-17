@@ -333,7 +333,7 @@ class RegionWindow(Frame):
             a = int(self.demand_dict['starttime'][indx])
             z = int(self.demand_dict['endtime'][indx])
             if z > self.duration:
-                messagebox.showerror('Error', 'Your end time is higher than the duration of:\n %s' %(str(self.duration)))
+                messagebox.showerror('Error', 'Your end time has to be lower than the duration of:\n %s' %(str(self.duration)))
                 return False
             # check if times are sequential
             if val != self.demand_dict['equation'][0]:
@@ -392,7 +392,6 @@ class RegionWindow(Frame):
 
         # calculate current supply
         self.current_power = self.get_current_power()
-        
         # calculate lack
         # get deployment scheme to make up
         print(self.demand_dict['facility'])
@@ -401,11 +400,15 @@ class RegionWindow(Frame):
         self.lack = np.array(self.demand) - np.array(self.current_power)
         print('current power ')
         print(self.current_power)
+        print('lack')
         print(self.lack)
+        print('demand')
+        print(self.demand)
         self.lifetime_dict = {}
         for indx, val in enumerate(list(np.array(self.demand_dict['facility']).flatten())):
             self.lifetime_dict[val] = list(np.array(self.demand_dict['lifetime']).flatten())[indx]
         print(self.lifetime_dict)
+        f = True
 
         for time in range(len(self.lack)):
             for indx, val in enumerate(self.demand_dict['facility']):
@@ -419,15 +422,16 @@ class RegionWindow(Frame):
                             self.deployed_power_dict[fac][time:time+int(self.lifetime_dict[fac])] += self.power_dict[fac]
                     else:
                         facs = val
-                        # sort fac ascending order by power
-                        # facs.sort(key=lambda:i:self.power_dict[i], reverse=True)
-                        # there has got to be a better way
-                        lack_split = {k:self.lack*v for k,v in zip(facs, [float(q) for q in self.demand_dict['ratio'][indx]])}
+                        if f:
+                            self.lack_split = {k:self.lack*v for k,v in zip(facs, [float(q) for q in self.demand_dict['ratio'][indx]])}
+                            f = False
                         for indx2, fac in enumerate(facs):
                             # while lack_split[fac][time] >= self.power_dict[fac]:
-                            while lack_split[fac][time] > 0:
+                            while self.lack_split[fac][time] > 0:
+                                # print('Deploying %s %s at time %s' %(str(self.deploy_dict[fac][time]+1), fac, str(time)))
+                                # print(self.lack_split[fac][time])
                                 self.deploy_dict[fac][time] += 1
-                                self.lack[time:time+int(self.lifetime_dict[fac])] -= self.power_dict[fac]
+                                self.lack_split[fac][time:time+int(self.lifetime_dict[fac])] -= self.power_dict[fac]
                                 self.deployed_power_dict[fac][time:time+int(self.lifetime_dict[fac])] += self.power_dict[fac]
         return True
 

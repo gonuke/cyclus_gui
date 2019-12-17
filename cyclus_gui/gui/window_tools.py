@@ -6,7 +6,7 @@ from tkinter.scrolledtext import ScrolledText
 
 
 def assess_scroll_deny(length, window_obj):
-    view_hard_limit = 1e3
+    view_hard_limit = 3e3
     scroll_limit = 25
     if length > view_hard_limit:
         messagebox.showinfo('Too much', 'You have %s distinct values. Too much to show here.' %length)

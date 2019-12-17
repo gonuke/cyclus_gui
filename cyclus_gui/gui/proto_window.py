@@ -32,7 +32,7 @@ class PrototypeWindow(Frame):
         self.output_path = output_path
         self.master.geometry('+0+700')
         self.guide()
-        Label(self.master, text='Choose a facility archetype to add:').grid(row=0)
+        Label(self.master, text='Choose a facility archetype to add:', bg='yellow').grid(row=0)
         self.get_schema()
         self.proto_dict = {}
         self.arche_dict = {}
@@ -119,7 +119,7 @@ class PrototypeWindow(Frame):
         self.def_window = Toplevel(self.master)
         self.def_window.title('Define facility prototype')
         self.def_window.geometry('+700+1000')
-        Label(self.def_window, text='%s' %archetype).grid(row=0, columnspan=2)
+        Label(self.def_window, text='%s' %archetype, bg='lawn green').grid(row=0, columnspan=2)
         proto_name_entry = Entry(self.def_window)
         proto_name_entry.grid(row=1, column=1)
         proto_name_entry.insert(END, name)
@@ -296,7 +296,7 @@ class PrototypeWindow(Frame):
         self.def_window.title('Define facility prototype')
         self.def_window.geometry('+700+1000')
         archetype = self.tkvar.get()
-        Label(self.def_window, text='%s' %archetype).grid(row=0, columnspan=2)
+        Label(self.def_window, text='%s' %archetype, bg='lawn green').grid(row=0, columnspan=2)
 
         proto_name_entry = Entry(self.def_window)
         proto_name_entry.grid(row=1, column=1)
@@ -404,6 +404,31 @@ class PrototypeWindow(Frame):
             oneormore.remove('in_streams')
         one = self.param_dict[archetype]['one']
 
+        start_row += 1
+        if archetype == 'cycamore:Separations':
+            # special treatment for separations
+            # add stream
+            Label(self.def_window, text='Define Streams  ->->', bg='SteelBlue1').grid(row=start_row, column=1)
+            Button(self.def_window, text='Add output Stream', command=lambda:self.add_sep_stream()).grid(row=start_row, column=2)
+            self.entry_dict['streams'] = {'item': []}
+            try:
+                if 'streams' in self.proto_dict[self.name]['config'][archetype.split(':')[1]].keys():
+                    self.entry_dict['streams']['item'] = self.proto_dict[self.name]['config'][archetype.split(':')[1]]['streams']['item']
+            except:
+                print('its not reopen')
+            self.update_stream_status_window()
+
+        if archetype == 'cycamore:Mixer':
+            Label(self.def_window, text='Define Streams  ->->', bg='SteelBlue1').grid(row=start_row, column=1)
+            Button(self.def_window, text='Add input Stream', command=lambda:self.add_mix_stream()).grid(row=start_row, column=2)
+            self.entry_dict['in_streams'] = {'stream': []}
+            try:
+                if 'in_streams' in self.proto_dict[self.name]['config'][archetype.split(':')[1]].keys():
+                    self.entry_dict['in_streams'] = {'stream': self.proto_dict[self.name]['config'][archetype.split(':')[1]]['in_streams']['stream']}
+            except:
+                print('its not reopen')
+            self.update_mixer_status_window()
+
         for val in oneormore:
             start_row += 1
             self.add_row_oneormore(val, self.def_window, start_row, archetype)
@@ -414,28 +439,6 @@ class PrototypeWindow(Frame):
             # add color for non-essential parameters
 
 
-        start_row += 1
-        if archetype == 'cycamore:Separations':
-            # special treatment for separations
-            # add stream
-            Button(self.def_window, text='Add output Stream', command=lambda:self.add_sep_stream()).grid(row=start_row, columnspan=3)
-            self.entry_dict['streams'] = {'item': []}
-            try:
-                if 'streams' in self.proto_dict[self.name]['config'][archetype.split(':')[1]].keys():
-                    self.entry_dict['streams']['item'] = self.proto_dict[self.name]['config'][archetype.split(':')[1]]['streams']['item']
-            except:
-                print('its not reopen')
-            self.update_stream_status_window()
-
-        if archetype == 'cycamore:Mixer':
-            Button(self.def_window, text='Add input Stream', command=lambda:self.add_mix_stream()).grid(row=start_row, columnspan=3)
-            self.entry_dict['in_streams'] = {'stream': []}
-            try:
-                if 'in_streams' in self.proto_dict[self.name]['config'][archetype.split(':')[1]].keys():
-                    self.entry_dict['in_streams'] = {'stream': self.proto_dict[self.name]['config'][archetype.split(':')[1]]['in_streams']['stream']}
-            except:
-                print('its not reopen')
-            self.update_mixer_status_window()
 
 
     def def_entries_unknown(self,archetype, name='', reopen=False):
@@ -498,7 +501,9 @@ class PrototypeWindow(Frame):
         except:
             z=0
         self.stream_status_window = Toplevel(self.def_window)
-        Label(self.stream_status_window, text='Defined Streams').grid(row=0, columnspan=2)
+        self.stream_status_window.title('Defined Streams for Separations')
+        self.stream_status_window.geometry('+700+1300')
+        Label(self.stream_status_window, text='Defined Streams', bg='yellow').grid(row=0, columnspan=2)
         row=1
         if 'streams' in self.entry_dict.keys():
             t = self.make_a_list(self.entry_dict['streams']['item'])
@@ -514,7 +519,8 @@ class PrototypeWindow(Frame):
         for indx, val in enumerate(t):
             if stream_name == val['commod']:
                 it = indx
-
+        pprint(self.entry_dict['streams']['item'])
+        print(it)
         self.commod_entry.insert(END, stream_name)
         if notalist:
             self.buf_entry.delete(0, END)
@@ -529,8 +535,8 @@ class PrototypeWindow(Frame):
 
         else:
             self.buf_entry.delete(0, END)
-            self.buf_entry.insert(END, self.entry_dict['streams']['item'][indx]['info']['buf_size'])
-            t = self.make_a_list(self.entry_dict['streams']['item'][indx]['info']['efficiencies']['item'])
+            self.buf_entry.insert(END, self.entry_dict['streams']['item'][it]['info']['buf_size'])
+            t = self.make_a_list(self.entry_dict['streams']['item'][it]['info']['efficiencies']['item'])
             for indx2, item in enumerate(t):
                 self.add_sep_row()
                 self.el_ef_entry_list[indx2][0].insert(END, item['comp'])
@@ -556,10 +562,12 @@ class PrototypeWindow(Frame):
         proto_guide_window_ = Toplevel(self.def_window)
         proto_guide_window_.title('%s documentation' %archetype)
         proto_guide_window_.geometry('+0+1000')
-        string = '**The highlighted parameters mean that they are optional.**\n'
-        string += '**The non-highlighted parameters need to be filled in**\n'
+        string = '**The green highlighted parameters mean that they are essential.**\n'
+        string += '**The non-highlighted parameters are optional**\n'
+        string += '**Blue highlight parameters are special format.**\n'
         string += '**The parameters with `Add` button next to it can take in multiple values**\n'
-        string += '**For descriptions of the parameters, hover your mouse over them!**\n\n\n'
+        string += '**For descriptions of the parameters, hover your mouse over them!**\n'
+        string += '**Your window has to be active for the mouse-over to work.**\n\n\n'
         string += archetype + '\n'
 
         
@@ -661,20 +669,25 @@ class PrototypeWindow(Frame):
         except:
             z=0
         self.mixer_status_window = Toplevel(self.def_window)
-        Label(self.mixer_status_window, text='Defined Streams').grid(row=0, columnspan=2)
+        self.mixer_status_window.title('Defined Streams for Mixer')
+        self.mixer_status_window.geometry('+700+1300')
+        Label(self.mixer_status_window, text='Defined Streams', bg='yellow').grid(row=0, columnspan=2)
         row=1
         if 'in_streams' in self.entry_dict.keys():
             t = self.make_a_list(self.entry_dict['in_streams']['stream'])
             for st in t:
-                text = ''
+                text = '' 
                 w = self.make_a_list(st['commodities']['item'])
                 print(w)
                 for n in w:
                     text += n['commodity']
                     if n != w[-1]:
                         text += '\t'
-                Button(self.mixer_status_window, text=text, command=lambda text=text:self.update_mix_stream(text)).grid(row=row, column=0)
-                Button(self.mixer_status_window, text='x', command=lambda text=text:self.delete_mix_stream(text)).grid(row=row, column=1)
+                text += ' (%s)' %(st['info']['mixing_ratio'])
+                Button(self.mixer_status_window, text=text, anchor='w',
+                       command=lambda text=text:self.update_mix_stream(text)).grid(row=row, column=0)
+                Button(self.mixer_status_window, text='x', anchor='w',
+                       command=lambda text=text:self.delete_mix_stream(text)).grid(row=row, column=1)
                 row += 1
 
     def get_commodity_names_from_mix_stream(self, item_list):
@@ -800,9 +813,9 @@ class PrototypeWindow(Frame):
 
 
     def add_row(self, label, master, rownum, archetype):
-        color = 'snow'
+        color = 'green yellow'
         if '*' in label:
-            color = 'salmon1'
+            color = 'snow'
         if label == '':
             self.unknown_entry += 1
             label = self.unknown_entry
@@ -817,7 +830,7 @@ class PrototypeWindow(Frame):
         q.grid(row=rownum, column=1)        
         CreateToolTip(q, text=self.generate_docstring(archetype, label))
         self.entry_dict[label] = {rownum: Entry(self.def_window)}
-        if color == 'salmon1':
+        if color == 'snow':
             default_val = str(self.j['annotations'][':'+archetype]['vars'][label]['default'])
             self.entry_dict[label][rownum].insert(END, default_val)
         self.entry_dict[label][rownum].grid(row=rownum, column=2)
@@ -856,9 +869,9 @@ class PrototypeWindow(Frame):
     def add_row_oneormore(self, label, master, rownum, archetype):
         if label == 'in_streams' or label=='stream':
             return 
-        color = 'snow'
+        color = 'green yellow'
         if '*' in label:
-            color = 'salmon1'
+            color = 'snow'
         if label == '':
             self.unknown_entry += 1
             label = self.unknown_entry * -1
@@ -918,13 +931,15 @@ class PrototypeWindow(Frame):
         Click on the dropdown to select the archetype you want to add, 
         and two windows will pop up. One is the documentation for the
         archetype and the parameters, and the other is the one you should
-        fill out. The highlighted parameters have default values (specified in 
+        fill out. The non-highlighted parameters have default values (specified in 
         documentation window), thus are optional. The parameters with 'Add'
         button next to it are parameters with (potentially) more than one
         variables. You can add more values by clicking 'Add'. Fill out
         the facility name and the parameters, then click 'Done' to
         save the facility. The window with 'Defined Archetypes' will update
-        as you define facility prototypes. 
+        as you define facility prototypes.
+
+        You currently cannot edit two facilities simultaneously. 
 
         """
         Label(self.guide_window, text=guide_text, justify=LEFT).pack(padx=30, pady=30)
