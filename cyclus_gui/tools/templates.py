@@ -312,7 +312,7 @@ class template_collections:
          <leftoverbuf_size>1e100</leftoverbuf_size>
          <streams>
           <item>
-            <commod>Pu</commod>
+            <commod>pu</commod>
             <info>
               <buf_size>1e299</buf_size>
               <efficiencies>
@@ -323,7 +323,7 @@ class template_collections:
             </info>
           </item>
           <item>
-            <commod>Pu</commod>
+            <commod>u</commod>
             <info>
               <buf_size>1e299</buf_size>
               <efficiencies>

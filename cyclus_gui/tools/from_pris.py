@@ -353,11 +353,9 @@ def reactor_render(reactor_data, is_cyborg=False):
                 country=data['country'].decode('utf-8'),
                 type=reactor_type,
                 reactor_name=name,
-                assem_size=round(spec_dict['kg_per_assembly'], 3),
-                n_assem_core=int((spec_dict['assemblies_per_core']
-                                       * data['net_elec_capacity'])),
-                n_assem_batch=int((spec_dict['assemblies_per_batch']
-                                        * data['net_elec_capacity'])),
+                assem_size=round(spec_dict['kg_per_assembly'] * data['net_elec_capacity'], 3),
+                n_assem_core=spec_dict['assemblies_per_core'],
+                n_assem_batch=spec_dict['assemblies_per_batch'],
                 capacity=data['net_elec_capacity'])
         else:
             # assume 1000MWe pwr linear core size model if no match
@@ -377,9 +375,9 @@ def reactor_render(reactor_data, is_cyborg=False):
             country='',
             type=reactor,
             reactor_name=reactor,
-            assem_size=spec['kg_per_assembly'],
-            n_assem_core=int(spec['assemblies_per_core'] * spec['power']),
-            n_assem_batch=int(spec['assemblies_per_batch'] * spec['power']),
+            assem_size=spec['kg_per_assembly'] * spec['power'],
+            n_assem_core=spec['assemblies_per_core'],
+            n_assem_batch=spec['assemblies_per_batch'],
             capacity=spec['power'])
         output_string += reactor_body
     return output_string
