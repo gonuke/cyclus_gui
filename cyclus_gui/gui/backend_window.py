@@ -312,35 +312,15 @@ class BackendWindow(Frame):
 
 
     def get_iso_flow_dict(self, where_phrase, n_isos, time_col_name='Time'):
-        q = self.cur.execute('SELECT time, quantity, qualid FROM transactions INNER JOIN resources ON transactions.resourceid = resources.resourceid WHERE %s' %where_phrase).fetchall()
-        timeseries = []
-        nucid_dict = {}
+        q = self.cur.execute('SELECT time, quantity, resources.qualid, nucid, sum(quantity*massfrac) FROM transactions INNER JOIN resources ON transactions.resourceid = resources.resourceid INNER JOIN compositions on compositions.qualid = resources.qualid WHERE %s GROUP BY nucid, time' %where_phrase).fetchall()
+        uniq_ = self.cur.execute('SELECT DISTINCT(nucid) FROM transactions INNER JOIN resources ON resources.resourceid = transactions.resourceid INNER JOIN compositions ON compositions.qualid = resources.qualid WHERE %s' %where_phrase).fetchall()
+        timeseries_dict = {q['nucid']:np.zeros(self.duration) for q in uniq_}
+
         for row in q:
-            qualid = row['QualId']
-            w = self.cur.execute('SELECT nucid, massfrac FROM compositions WHERE qualid=%i' %qualid)
-            for row2 in w:
-                if row2['nucid'] not in nucid_dict.keys():
-                    nucid_dict[row2['nucid']] = 0
-                e = copy.deepcopy(dict(row))
-                e['nucid'] = row2['nucid']
-                e['Quantity'] = e['Quantity'] * row2['MassFrac']
-                nucid_dict[row2['nucid']] += e['Quantity']
-                timeseries.append(e)
-
+            timeseries_dict[row['nucid']][row['time']] = row['sum(quantity*massfrac)']
+        keys = sorted(timeseries_dict.keys(), key=lambda i:sum(timeseries_dict[i]), reverse=True)[:n_isos]
         x = np.arange(self.duration)
-        y = {}
-        # sort out top n isos
-        keys = sorted(nucid_dict, key=nucid_dict.__getitem__, reverse=True)[:n_isos]
-        for key in keys:
-            y[key] = np.zeros(self.duration)
-            for entry in timeseries:
-                if entry['nucid'] == key:
-                    y[key][int(entry[time_col_name])] += entry['Quantity']
-
-        y = {self.nucid_convert(k):v for k,v in y.items()}
-        return x, y
-
-
+        return x, {self.nucid_convert(k):v for k,v in timeseries_dict.items() if k in keys}
 
 
 

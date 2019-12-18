@@ -683,8 +683,8 @@ class PrototypeWindow(Frame):
                     text += n['commodity']
                     if n != w[-1]:
                         text += '\t'
-                text += ' (%s)' %(st['info']['mixing_ratio'])
-                Button(self.mixer_status_window, text=text, anchor='w',
+                disp_text = text + ' (%s)' %(st['info']['mixing_ratio'])
+                Button(self.mixer_status_window, text=disp_text, anchor='w',
                        command=lambda text=text:self.update_mix_stream(text)).grid(row=row, column=0)
                 Button(self.mixer_status_window, text='x', anchor='w',
                        command=lambda text=text:self.delete_mix_stream(text)).grid(row=row, column=1)
@@ -699,12 +699,15 @@ class PrototypeWindow(Frame):
 
 
     def update_mix_stream(self, text):
+        print(text)
         commodity_list = text.split()
         pprint(self.entry_dict)
         self.add_mix_stream()
         t, notalist = self.make_a_list(self.entry_dict['in_streams']['stream'], True)
 
         for indx, val in enumerate(t):
+            print(self.get_commodity_names_from_mix_stream(val['commodities']['item']))
+            print(commodity_list)
             if self.get_commodity_names_from_mix_stream(val['commodities']['item']) == commodity_list:
                 it = indx
 
