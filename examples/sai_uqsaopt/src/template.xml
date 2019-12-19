@@ -1,0 +1,21 @@
+<simulation>
+
+
+<control>
+    <duration>960</duration>
+    <startmonth>1</startmonth>
+    <startyear>2020</startyear>
+    <decay>lazy</decay>
+</control>
+
+$fuel_cycle_facilities.xml
+
+$reactors.xml
+
+$regions.xml
+
+$recipes.xml
+
+
+
+</simulation>
