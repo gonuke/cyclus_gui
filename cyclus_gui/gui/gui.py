@@ -240,9 +240,7 @@ class Cygui(Frame):
         2. By default deploys a `RandLand' region with `Fuel_Cycle_Facilities' institution with facilities:
            a. `nat_u_source' -> [natl_u]
            b. [natl_u] -> `enrichment' -> [uox]
-           c. [uox_waste, used_candu, mox_waste, tailings, reprocess_waste] -> `SomeSink'
-           d. [Pu, tailings] -> `mixer' -> mox (9% Pu, 91% tailings)
-           e. [uox_waste] -> `reprocessing' -> ['Pu', 'U']
+           d. [uox_waste, used_candu, mox_waste, tailings, reprocess_waste] -> `SomeSink'
         """
         self.guide(guide_text)
         try:
@@ -308,7 +306,18 @@ class Cygui(Frame):
             fp.main(self.pris_csv_path, init_date, duration, self.selected_countries,
                     output_file=outpath)
             self.load_xml_file(open(outpath, 'r'))
-            messagebox.showinfo('Successfully loaded file', 'Successfully loaded file with countries\n\n '+'\n'.join(self.selected_countries))
+
+            image_window = Toplevel(self.master)
+            image_window.title('Default material flow')
+            flowchart_image_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src', 'pris_flowchart.gif')
+            print(flowchart_image_path)
+            flow = PhotoImage(file=flowchart_image_path)
+            label = Label(image_window, image=flow)
+            label.image = flow
+            label.pack()
+            
+
+            messagebox.showinfo('Successfully loaded file', 'Successfully loaded file with countries\n\n '+'\n'.join(self.selected_countries) + '\n See the flowchart for commodity and facility default definitions.')
             
             self.load_from_pris_window.destroy()
         self.initialized['pris'] = False
