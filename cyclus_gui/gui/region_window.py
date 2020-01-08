@@ -342,11 +342,8 @@ class RegionWindow(Frame):
                     return False
             times = list(range(a+1,z+1))
             try:
-                print(val)
-                print(times)
-                print(a,z)
                 d = [eval(val) for t in times]
-                self.demand[a:z] = d
+                self.demand[a:min(self.duration-1, z)] = d
             except Exception as e:
                 print(e)
                 messagebox.showerror('Error', 'Demand equation for entry %s:\n%s\n is invalid!' %(str(indx+1), val))
