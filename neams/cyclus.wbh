@@ -1,0 +1,19 @@
+
+rule("bracket_open") {
+    pattern = "{"
+    bold = ture
+    forground {
+        red = 0
+        green = 128
+        blue = 0
+    }
+rule("bracket_close") {
+    pattern = "}"
+    bold = ture
+    forground {
+        red = 0
+        green = 128
+        blue = 0
+    }
+
+}
