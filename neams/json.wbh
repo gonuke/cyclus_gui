@@ -1,0 +1,55 @@
+rule("Quoted string") {
+
+    foreground {
+        red = 128
+        green = 0
+        blue = 0
+    }
+    pattern = """'[^']*'|"[^"]*""""
+}
+%rule("Keyword") {
+%    bold = true
+%    foreground {
+%        red = 0
+%        green = 0
+%        blue = 128
+%    }
+%    pattern = "\s*((read|end)\s+\S+|end\s*$)"
+%}
+rule("Number") {
+    bold = true
+    foreground {
+        red = 128
+        green = 0
+        blue = 0
+    }
+    pattern = "\b[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?\b"
+}
+rule("Boolean") {
+    bold = true
+    foreground {
+        red = 128
+        green = 0
+        blue = 128
+    }
+    pattern = "\b(true|false)\b"
+}
+rule("Null") {
+    bold = true
+    foreground {
+        red = 255
+        green = 255
+        blue = 255
+    }
+    pattern = "\b(true|false)\b"
+}
+
+rule("Curly") {
+    bold = true
+    foreground {
+        red = 255
+        green = 0
+        blue = 0
+    }
+    pattern = "{|}"
+}
