@@ -6,7 +6,7 @@ block_cipher = None
 
 
 a = Analysis(['gui.py'],
-             pathex=['/home/4ib/git/cyclus_gui'],
+             pathex=['/home/4ib/git/cyclus_gui/cyclus_gui/gui/'],
              binaries=[],
              datas=[('./src/*', './src/')],
              hiddenimports=[],
