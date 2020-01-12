@@ -26,7 +26,7 @@ class RecipeWindow(Frame):
         self.master = Toplevel(master)
         self.master.title('Define recipes')
         self.output_path = output_path
-        self.master.geometry('+0+900')
+        self.master.geometry('+0+450')
         self.scrape_for_recipes_in_facility()
         self.guide()
         browse_button = Button(self.master, text='Add From File [atomic]', command=lambda : self.askopenfile('atom')).grid(row=1)
@@ -83,7 +83,7 @@ class RecipeWindow(Frame):
 
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined Recipes')
-        self.status_window.geometry('+250+900')
+        self.status_window.geometry('+125+450')
         Label(self.status_window, text='Loaded recipes:', bg='yellow').grid(row=0, columnspan=2)
         row=1
         print(self.recipe_dict)
@@ -112,7 +112,7 @@ class RecipeWindow(Frame):
         """
         self.addrecipe_window = Toplevel(self.master)
         self.addrecipe_window.title('New recipe definition (%s)' %atom_or_mass)
-        self.addrecipe_window.geometry('+800+400')
+        self.addrecipe_window.geometry('+400+200')
 
         Button(self.addrecipe_window, text='Done!',
                command= lambda : self.send_input(self.name_entry, self.textfield, self.addrecipe_window, atom_or_mass)).grid(row=0, columnspan=2)
@@ -224,7 +224,7 @@ class RecipeWindow(Frame):
     def guide(self):
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Recipe guide')
-        self.guide_window.geometry('+0+400')
+        self.guide_window.geometry('+0+200')
         guide_string = """
         The format of recipes could be comma, space, or tab separated.
         For example:

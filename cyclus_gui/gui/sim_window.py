@@ -22,7 +22,7 @@ class SimulationWindow():
         self.master.title('Simulation definition')
         self.output_path = output_path
         # self.frame = Frame(self.master)
-        self.master.geometry('+0+500')
+        self.master.geometry('+0+300')
         self.guide()
         inputs = ['duration', 'startmonth', 'startyear', 'decay',
                   'explicit_inventory', 'dt']
@@ -116,7 +116,7 @@ class SimulationWindow():
 
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Simulation guide')
-        self.guide_window.geometry('+0+3500')
+        self.guide_window.geometry('+0+1500')
 
         guide_string = """
         duration =

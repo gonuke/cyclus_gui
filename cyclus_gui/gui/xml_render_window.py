@@ -10,7 +10,7 @@ class XmlWindow():
 
         self.xml_window_ = Toplevel(self.master)
         self.xml_window_.title('XML rendering')
-        self.xml_window_.geometry('+700+0')
+        self.xml_window_.geometry('+500+0')
 
         tab_parent = ttk.Notebook(self.xml_window_)
         file_paths = [os.path.join(output_path, x) for x in self.file_list]

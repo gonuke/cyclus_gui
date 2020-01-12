@@ -33,7 +33,7 @@ class RegionWindow(Frame):
         self.master = Toplevel(master)
         self.master.title('Define regions')
         self.output_path = output_path
-        self.master.geometry('+150+850')
+        self.master.geometry('+150+550')
         self.tot_entry_n = 0
         # self.load_prototypes()
         self.status_var = StringVar()
@@ -76,7 +76,7 @@ class RegionWindow(Frame):
                               'facility')
         defined_protos_window = Toplevel(self.master)
         defined_protos_window.title('Defined Prototypes')
-        defined_protos_window.geometry('+1000+900')
+        defined_protos_window.geometry('+5000+450')
         parent = defined_protos_window
         parent = assess_scroll_deny(n+2, defined_protos_window)
         Label(parent, text='Defined Prototypes', bg='yellow').grid(row=0, column=0)
@@ -94,7 +94,7 @@ class RegionWindow(Frame):
             z=0
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined Regions')
-        self.status_window.geometry('+500+920')
+        self.status_window.geometry('+250+460')
         parent = self.status_window
         parent = assess_scroll_deny(len(self.proto_dict.keys())+2, self.status_window)
         
@@ -205,7 +205,7 @@ class RegionWindow(Frame):
             return
         self.add_inst_window = Toplevel(self.master)
         self.add_inst_window.title('Add institution')
-        self.add_inst_window.geometry('+100+1000')
+        self.add_inst_window.geometry('+50+500')
         self.inst_dict = {}
         self.add_inst_window_frame = assess_scroll_deny(100,
                                                   self.add_inst_window)
@@ -245,7 +245,7 @@ class RegionWindow(Frame):
         """
         self.demand_deploy_window = Toplevel(self.master)
         self.demand_deploy_window.title('Demand deployment')
-        self.demand_deploy_window.geometry('+100+1000')
+        self.demand_deploy_window.geometry('+50+500')
 
         Button(self.demand_deploy_window, text='Done', command=lambda:self.submit_demand()).grid(row=0, column=0)
         Button(self.demand_deploy_window, text='Add row', command=lambda:self.add_demand_row()).grid(row=0, column=1)
@@ -438,7 +438,7 @@ class RegionWindow(Frame):
 
         self.plot_window = Toplevel(self.demand_deploy_window)
         self.plot_window.title('Plots')
-        self.plot_window.geometry('+100+1000')
+        self.plot_window.geometry('+50+500')
         # multiple tabs with multiple plots
         tab_parent = ttk.Notebook(self.plot_window)
 
@@ -560,7 +560,7 @@ class RegionWindow(Frame):
             return
         self.add_d3ploy_window = Toplevel(self.master)
         self.add_d3ploy_window.title('Add D3ploy Institution')
-        self.add_d3ploy_window.geometry('+100+1000')
+        self.add_d3ploy_window.geometry('+50+500')
         self.d3ploy_dict = {}
         if instname != '':
             self.add_d3ploy_window = assess_scroll_deny(len(self.d3ploy_dict.keys()),
@@ -726,6 +726,6 @@ class RegionWindow(Frame):
             string = text
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Region guide')
-        self.guide_window.geometry('+0+400')
+        self.guide_window.geometry('+0+200')
         Label(self.guide_window, text=string).pack(padx=30, pady=30)
 

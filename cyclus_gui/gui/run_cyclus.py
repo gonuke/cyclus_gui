@@ -25,7 +25,7 @@ class cyclus_run:
         # open new window
         self.master = Toplevel(master)
         self.master.title('Running Cyclus')
-        self.master.geometry('+1000+700')
+        self.master.geometry('+5000+300')
         # configure page
         columnspan = 5
         Label(self.master, text='Cyclus Run configuration').grid(row=0, columnspan=columnspan)

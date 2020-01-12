@@ -270,19 +270,20 @@ class Cygui(Frame):
 
 
     def select_countries(self):
-        self.country_select_window = Toplevel(self.load_from_pris_window)
-        self.selected_countries = []
-        self.country_select_window.title('Select Countries')
-        # get lists of countries
         self.pris_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src', 'pris.csv')
         with open(self.pris_csv_path, 'r') as f:
             q = f.readlines()
         country_list = sorted(list(set([w.split(',')[0] for w in q if 'Country' not in w])))
-        Label(self.country_select_window, text='Click on country to select:').grid(row=0, column=0)
+        self.country_select_window = Toplevel(self.load_from_pris_window)
+        self.country_select_window.title('Select Countries')
+        parent = assess_scroll_deny(len(country_list), self.country_select_window)
+        self.selected_countries = []
+        # get lists of countries
+        Label(parent, text='Click on country to select:').grid(row=0, column=0)
         self.button_color = {}
         self.button_loc = {}
         for indx, c in enumerate(country_list):
-            self.button_color[c] = Button(self.country_select_window, text=c, command=lambda country=c : self.add_country(country), fg='black')
+            self.button_color[c] = Button(parent, text=c, command=lambda country=c : self.add_country(country), fg='black')
             self.button_color[c].grid(row=indx+1, column=0)
             self.button_loc[c] = indx+1
 
@@ -370,7 +371,7 @@ class Cygui(Frame):
         except: z=0
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Guide')
-        self.guide_window.geometry('+500+0')
+        self.guide_window.geometry('+250+0')
         if guide_text == '':
             guide_text = """
             Welcome!
@@ -445,7 +446,7 @@ class Cygui(Frame):
 
         self.xml_window_ = Toplevel(self.master)
         self.xml_window_.title('XML rendering')
-        self.xml_window_.geometry('+700+0')
+        self.xml_window_.geometry('+350+0')
 
         tab_parent = ttk.Notebook(self.xml_window_)
         file_paths = [os.path.join(output_path, x) for x in self.file_list]

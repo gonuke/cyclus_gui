@@ -23,7 +23,7 @@ class ArchetypeWindow(Frame):
         """
         self.master = Toplevel(master)
         self.output_path = output_path
-        self.master.geometry('+0+900')
+        self.master.geometry('+0+450')
         self.guide()
         self.arche = [['agents', 'NullInst'], ['agents', 'NullRegion'], ['cycamore', 'Source'],
                       ['cycamore', 'Sink'], ['cycamore', 'DeployInst'], ['cycamore', 'Enrichment'],
@@ -89,7 +89,7 @@ class ArchetypeWindow(Frame):
             z=0
 
         self.status_window = Toplevel(self.master)
-        self.status_window.geometry('+700+1000')
+        self.status_window.geometry('+350+500')
         Label(self.status_window, text='Loaded modules:', bg='yellow').grid(row=0, columnspan=2)
         row = 1
         for i in self.arche:
@@ -167,7 +167,7 @@ class ArchetypeWindow(Frame):
     def guide(self):
 
         self.guide_window = Toplevel(self.master)
-        self.guide_window.geometry('+0+3500')
+        self.guide_window.geometry('+0+1750')
         guide_string = """
         All Cyclus and Cycamore archetypes are already added. If there are additional archetypes
         you would like to add, click the `Add Row' button, type in the library and archetype,

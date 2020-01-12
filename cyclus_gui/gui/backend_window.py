@@ -25,7 +25,7 @@ class BackendWindow(Frame):
         self.master = Toplevel(master)
         self.master.title('Backend Analysis')
         self.output_path = output_path
-        self.master.geometry('+0+700')
+        self.master.geometry('+0+350')
         self.configure_window()
         self.get_cursor()
         self.get_id_proto_dict()
@@ -57,7 +57,7 @@ class BackendWindow(Frame):
     def configure_window(self):
         self.config_window = Toplevel(self.master)
         self.config_window.title('Configuration')
-        self.config_window.geometry('+700+1000')
+        self.config_window.geometry('+350+500')
         parent = self.config_window
 
         columnspan = 4
@@ -130,7 +130,7 @@ class BackendWindow(Frame):
     def view_raw_tables(self):
         self.raw_table_window = Toplevel(self.master)
         self.raw_table_window.title('Navigate Raw Tables')
-        self.raw_table_window.geometry('+0+3500')
+        self.raw_table_window.geometry('+0+1750')
         # just like a sql query with ability to export and stuff
         self.guide_text.set('This not ready yet')
 
@@ -148,7 +148,7 @@ class BackendWindow(Frame):
                 which transaction to plot / export""")
         self.mat_selec_window = Toplevel(self.master)
         self.mat_selec_window.title('Which Selection')
-        self.mat_selec_window.geometry('+700+1000')
+        self.mat_selec_window.geometry('+350+500')
         parent = self.mat_selec_window
         Label(parent, text='Group by agent or prototype', bg='yellow').pack()
         Button(parent, text='Group by agent', command=lambda: self.view_material_flow(groupby='agent')).pack()
@@ -160,7 +160,7 @@ class BackendWindow(Frame):
         # show material trade between prototypes
         self.material_flow_window = Toplevel(self.master)
         self.material_flow_window.title('List of transactions to view')
-        self.material_flow_window.geometry('+700+1000')
+        self.material_flow_window.geometry('+350+500')
         parent = self.material_flow_window
 
         traders = self.cur.execute('SELECT DISTINCT senderid, receiverid, commodity FROM transactions').fetchall()
@@ -268,7 +268,7 @@ class BackendWindow(Frame):
             is not taken into account.""")
         self.commodity_tr_window = Toplevel(self.master)
         self.commodity_tr_window.title('Commodity Movement Window')
-        self.commodity_tr_window.geometry('+700+1000')
+        self.commodity_tr_window.geometry('+350+500')
         parent = self.commodity_tr_window
         
         commods = self.cur.execute('SELECT DISTINCT commodity FROM transactions').fetchall()
@@ -339,7 +339,7 @@ class BackendWindow(Frame):
 
         self.agent_dep_window = Toplevel(self.master)
         self.agent_dep_window.title('Facility Prototype Deployment / Exit Window')
-        self.agent_dep_window.geometry('+700+1000')
+        self.agent_dep_window.geometry('+350+500')
         parent = self.agent_dep_window
         # s = bwidget.ScrolledWindow(self.agent_dep_window, auto='vertical', scrollbar='vertical')
         # f = bwidget.ScrollableFrame(s, constrainedwidth=True)
@@ -426,7 +426,7 @@ class BackendWindow(Frame):
             """)
         self.ts_window = Toplevel(self.master)
         self.ts_window.title('Timeseries Window')
-        self.ts_window.geometry('+700+1000')
+        self.ts_window.geometry('+350+500')
         parent = self.ts_window
 
         tables = self.cur.execute('SELECT name FROM sqlite_master WHERE type="table"').fetchall()
@@ -455,7 +455,7 @@ class BackendWindow(Frame):
         agentname_list = [self.id_proto_dict[i] for i in agentid_list]
         self.ta_window = Toplevel(self.ts_window)
         self.ta_window.title('%s Timeseries Window' %timeseries.capitalize())
-        self.ta_window.geometry('+1000+1000')
+        self.ta_window.geometry('+500+500')
         parent = self.ta_window
 
         parent = assess_scroll_deny(len(agentname_list), self.ta_window)
@@ -520,7 +520,7 @@ class BackendWindow(Frame):
         # show material trade between prototypes
         self.inv_window = Toplevel(self.master)
         self.inv_window.title('Which Selection')
-        self.inv_window.geometry('+700+1000')
+        self.inv_window.geometry('+350+500')
         parent = self.inv_window
         Label(parent, text='Group by agent or prototype:', bg='yellow').pack()
         Button(parent, text='Group by agent', command=lambda: self.inv_inv_window(groupby='agent')).pack()
@@ -531,7 +531,7 @@ class BackendWindow(Frame):
         # show material trade between prototypes
         self.inv_inv_window_ = Toplevel(self.inv_window)
         self.inv_inv_window_.title('Groupby %s' %groupby)
-        self.inv_inv_window_.geometry('+1000+1000')
+        self.inv_inv_window_.geometry('+500+500')
         parent = self.inv_inv_window_
         if groupby == 'agent':
             parent = assess_scroll_deny(len(self.id_proto_dict.keys()), self.inv_inv_window_)
@@ -732,7 +732,7 @@ class BackendWindow(Frame):
     def guide(self):
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Backend Analysis Guide')
-        self.guide_window.geometry('+0+400')
+        self.guide_window.geometry('+0+200')
         txt = """
         Here you can perform backend analysis of the Cyclus run.
 

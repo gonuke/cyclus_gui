@@ -30,7 +30,7 @@ class PrototypeWindow(Frame):
         self.master = Toplevel(master)
         self.master.title('Add Facilities')
         self.output_path = output_path
-        self.master.geometry('+0+700')
+        self.master.geometry('+0+350')
         self.guide()
         Label(self.master, text='Choose a facility archetype to add:', bg='yellow').grid(row=0)
         self.get_schema()
@@ -63,7 +63,7 @@ class PrototypeWindow(Frame):
             self.region_dict, n = read_xml(os.path.join(self.output_path, 'region.xml'),
                                         'region')
         self.region_status_window = Toplevel(self.master)
-        self.region_status_window.geometry('+500+920')
+        self.region_status_window.geometry('+250+460')
         c_dict = {'Region': 'pale green',
                   'Institution': 'light salmon',
                   'Facility_proto': 'SkyBlue1',
@@ -96,7 +96,7 @@ class PrototypeWindow(Frame):
     def update_status_window(self):
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined facility prototypes')
-        self.status_window.geometry('+800+700')
+        self.status_window.geometry('+400+350')
         parent = self.status_window
         parent = assess_scroll_deny(len(self.proto_dict.keys())+2, self.status_window)
         
@@ -118,7 +118,7 @@ class PrototypeWindow(Frame):
     def reopen_def_window(self, name, archetype):
         self.def_window = Toplevel(self.master)
         self.def_window.title('Define facility prototype')
-        self.def_window.geometry('+700+1000')
+        self.def_window.geometry('+350+500')
         Label(self.def_window, text='%s' %archetype, bg='lawn green').grid(row=0, columnspan=2)
         proto_name_entry = Entry(self.def_window)
         proto_name_entry.grid(row=1, column=1)
@@ -294,7 +294,7 @@ class PrototypeWindow(Frame):
     def definition_window(self, *args):
         self.def_window = Toplevel(self.master)
         self.def_window.title('Define facility prototype')
-        self.def_window.geometry('+700+1000')
+        self.def_window.geometry('+350+500')
         archetype = self.tkvar.get()
         Label(self.def_window, text='%s' %archetype, bg='lawn green').grid(row=0, columnspan=2)
 
@@ -502,7 +502,7 @@ class PrototypeWindow(Frame):
             z=0
         self.stream_status_window = Toplevel(self.def_window)
         self.stream_status_window.title('Defined Streams for Separations')
-        self.stream_status_window.geometry('+700+1300')
+        self.stream_status_window.geometry('+350+650')
         Label(self.stream_status_window, text='Defined Streams', bg='yellow').grid(row=0, columnspan=2)
         row=1
         if 'streams' in self.entry_dict.keys():
@@ -561,7 +561,7 @@ class PrototypeWindow(Frame):
     def proto_guide_window(self, archetype):
         proto_guide_window_ = Toplevel(self.def_window)
         proto_guide_window_.title('%s documentation' %archetype)
-        proto_guide_window_.geometry('+0+1000')
+        proto_guide_window_.geometry('+0+500')
         string = '**The green highlighted parameters mean that they are essential.**\n'
         string += '**The non-highlighted parameters are optional**\n'
         string += '**Blue highlight parameters are special format.**\n'
@@ -670,7 +670,7 @@ class PrototypeWindow(Frame):
             z=0
         self.mixer_status_window = Toplevel(self.def_window)
         self.mixer_status_window.title('Defined Streams for Mixer')
-        self.mixer_status_window.geometry('+700+1300')
+        self.mixer_status_window.geometry('+350+650')
         Label(self.mixer_status_window, text='Defined Streams', bg='yellow').grid(row=0, columnspan=2)
         row=1
         if 'in_streams' in self.entry_dict.keys():
@@ -921,7 +921,7 @@ class PrototypeWindow(Frame):
 
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Facilities guide')
-        self.guide_window.geometry('+0+400')
+        self.guide_window.geometry('+0+200')
         guide_text = """
         Here you define archetypes with specific parameters to use in the simulation.
         An archetype is the code (general behavior of facility - e.g. reactor facility )
