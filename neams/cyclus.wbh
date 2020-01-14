@@ -1,19 +1,84 @@
-
-rule("bracket_open") {
-    pattern = "{"
-    bold = ture
-    forground {
+rule("simulation") {
+    pattern = "simulation"
+    bold = true
+    foreground {
         red = 0
-        green = 128
-        blue = 0
+        green = 0
+        blue = 255
     }
-rule("bracket_close") {
-    pattern = "}"
-    bold = ture
-    forground {
+}
+    
+    rule("control") {
+    pattern = "control"
+    bold = true
+    foreground {
         red = 0
-        green = 128
-        blue = 0
+        green = 0
+        blue = 255
     }
+}
+    
+    rule("archetypes") {
+    pattern = "archetypes"
+    bold = true
+    foreground {
+        red = 0
+        green = 0
+        blue = 255
+    }
+}
+    
+    rule("facility") {
+    pattern = "facility"
+    bold = true
+    foreground {
+        red = 0
+        green = 0
+        blue = 255
+    }
+}
+    
+    rule("region") {
+    pattern = "region"
+    bold = true
+    foreground {
+        red = 0
+        green = 0
+        blue = 255
+    }
+}
+    
+    rule("recipe") {
+    pattern = "recipe"
+    bold = true
+    foreground {
+        red = 0
+        green = 0
+        blue = 255
+    }
+}
+    
+    rule("Quoted string") {
+pattern = """'[^']*'|"[^"]*""""
+bold = true
+foreground {
+red = 255
+green = 130
+blue = 0
+}
+background {
+red = 255
+green = 130
+blue = 0
+alpha = 25
+}
+}
 
+rule("equal"){
+pattern="="
+background{
+red=192
+green=192
+blue=192
+}
 }

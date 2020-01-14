@@ -1,13 +1,27 @@
-{
-"simulation": {
-    "archetypes" : {
-    "spec": [ARCHETYPES_HERE_SHOULD_BE_AUTOFILLED_DONT_WORRY]
-    },
-    "control": {"duration": DURATION_HERE,
-                "startmonth": STARTMONTH_HERE,
-                "startyear": STARTYEAR_HERE},
-    "facility": [FACILITIES_HERE],
-    "recipe": [RECIPES_HERE],
-    "region": [REGIONS_HERE],
-}
+simulation{
+
+    control {
+        duration = 1234
+        startmonth = 1
+        startyear = 2020
+        explicit_inventory=0
+        dt=2629846
+        decay="lazy"
+    }
+    
+    archetypes {
+        spec ["this will be automatically filled"]
+    }
+
+    facility {
+        "write your facilities here"
+    }
+    
+    region {
+        "write your regions here"
+    }
+    
+    recipe {
+        "write your recipes here"
+    }
 }
