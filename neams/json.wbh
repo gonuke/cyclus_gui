@@ -7,15 +7,15 @@ rule("Quoted string") {
     }
     pattern = """'[^']*'|"[^"]*""""
 }
-%rule("Keyword") {
-%    bold = true
-%    foreground {
-%        red = 0
-%        green = 0
-%        blue = 128
-%    }
-%    pattern = "\s*((read|end)\s+\S+|end\s*$)"
-%}
+rule("Keyword") {
+    bold = true
+    foreground {
+        red = 0
+        green = 0
+        blue = 128
+    }
+    pattern = "\s*((read|end)\s+\S+|end\s*$)"
+}
 rule("Number") {
     bold = true
     foreground {

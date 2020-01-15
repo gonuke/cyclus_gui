@@ -1,14 +1,16 @@
-					%An institution that owns and operates a manually entered list 
-					%of facilities in the input file
-					%
-					%(optional) Latitude of the agent's geographical position. The 
-					%value should be expressed in degrees as a double.
-					latitude {}
-					%(optional) Longitude of the agent's geographical position. The 
-					%value should be expressed in degrees as a double.
-					longitude {}
-					%(optional) A set of facility prototypes that this institution 
-					%can build. All prototypes in this list must be based on an 
-					%archetype that implements the cyclus::toolkit::CommodityProducer 
-					%interface
-					prototypes {val {}}
+%An institution that owns and operates a manually entered list 
+%of facilities in the input file
+%
+ManagerInst {
+                         %(optional) Latitude of the agent's geographical position. The 
+                         %value should be expressed in degrees as a double.
+                         latitude=
+                         %(optional) Longitude of the agent's geographical position. The 
+                         %value should be expressed in degrees as a double.
+                         longitude=
+                         %(optional) A set of facility prototypes that this institution 
+                         %can build. All prototypes in this list must be based on an 
+                         %archetype that implements the cyclus::toolkit::CommodityProducer 
+                         %interface
+                         prototypes=val=
+}

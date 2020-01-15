@@ -69,7 +69,7 @@ simulation{
         MinOccurs=1
         config = {MinOccurs=1
                   MaxOccurs=1
-                  ValEnums = [KFacility Predator Prey Sink Source Enrichment FuelFab Mixer Reactor Separations Storage]
+                  ChildExactlyOne = [KFacility Predator Prey Sink Source Enrichment FuelFab Mixer Reactor Separations Storage]
                   KFacility=
 			{InputTmpl="KFacility"
 			 current_capacity={MaxOccurs=1 ValType=Real}

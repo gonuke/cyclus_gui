@@ -1,49 +1,51 @@
-			%Storage is a simple facility which accepts any number of commodities 
-			%and holds them for a user specified amount of time. 
-			%The commodities accepted are chosen based on the specified preferences 
-			%list. Once the desired amount of material has entered 
-			%the facility it is passed into a 'processing' buffer where 
-			%it is held until the residence time has passed. The material 
-			%is then passed into a 'ready' buffer where it is queued 
-			%for removal. Currently, all input commodities are lumped into 
-			%a single output commodity. Storage also has the functionality 
-			%to handle materials in discrete or continuous batches. 
-			%Discrete mode, which is the default, does not split or combine 
-			%material batches. Continuous mode, however, divides material 
-			%batches if necessary in order to push materials through 
-			%the facility as quickly as possible.
-			%
-			%(optional) Determines if Storage will divide resource objects. 
-			%Only controls material handling within this facility, has 
-			%no effect on DRE material handling. If true, batches are handled 
-			%as discrete quanta, neither split nor combined. Otherwise, 
-			%batches may be divided during processing. Default to false 
-			%(continuous))
-			discrete_handling {}
-			%(optional) preferences for each of the given commodities, in 
-			%the same order.Defauts to 1 if unspecified
-			in_commod_prefs {val {}}
-			%(optional) commodities accepted by this facility
-			in_commods {val {}}
-			%(optional) recipe accepted by this facility, if unspecified a 
-			%dummy recipe is used
-			in_recipe {}
-			%(optional) Latitude of the agent's geographical position. The 
-			%value should be expressed in degrees as a double.
-			latitude {}
-			%(optional) Longitude of the agent's geographical position. The 
-			%value should be expressed in degrees as a double.
-			longitude {}
-			%(optional) the maximum amount of material that can be in all 
-			%storage buffer stages
-			max_inv_size {}
-			%(optional) commodity produced by this facility. Multiple commodity 
-			%tracking is currently not supported, one output commodity 
-			%catches all input commodities.
-			out_commods {val {}}
-			%(optional) the minimum holding time for a received commodity 
-			%(timesteps).
-			residence_time {}
-			%(optional) the max amount that can be moved through the facility 
-			%per timestep (kg)
-			throughput {}
+%Storage is a simple facility which accepts any number of commodities 
+%and holds them for a user specified amount of time. 
+%The commodities accepted are chosen based on the specified preferences 
+%list. Once the desired amount of material has entered 
+%the facility it is passed into a 'processing' buffer where 
+%it is held until the residence time has passed. The material 
+%is then passed into a 'ready' buffer where it is queued 
+%for removal. Currently, all input commodities are lumped into 
+%a single output commodity. Storage also has the functionality 
+%to handle materials in discrete or continuous batches. 
+%Discrete mode, which is the default, does not split or combine 
+%material batches. Continuous mode, however, divides material 
+%batches if necessary in order to push materials through 
+%the facility as quickly as possible.
+%
+Storage {
+                %(optional) Determines if Storage will divide resource objects. 
+                %Only controls material handling within this facility, has 
+                %no effect on DRE material handling. If true, batches are handled 
+                %as discrete quanta, neither split nor combined. Otherwise, 
+                %batches may be divided during processing. Default to false 
+                %(continuous))
+                discrete_handling=
+                %(optional) preferences for each of the given commodities, in 
+                %the same order.Defauts to 1 if unspecified
+                in_commod_prefs=val=
+                %(optional) commodities accepted by this facility
+                in_commods=val=
+                %(optional) recipe accepted by this facility, if unspecified a 
+                %dummy recipe is used
+                in_recipe=
+                %(optional) Latitude of the agent's geographical position. The 
+                %value should be expressed in degrees as a double.
+                latitude=
+                %(optional) Longitude of the agent's geographical position. The 
+                %value should be expressed in degrees as a double.
+                longitude=
+                %(optional) the maximum amount of material that can be in all 
+                %storage buffer stages
+                max_inv_size=
+                %(optional) commodity produced by this facility. Multiple commodity 
+                %tracking is currently not supported, one output commodity 
+                %catches all input commodities.
+                out_commods=val=
+                %(optional) the minimum holding time for a received commodity 
+                %(timesteps).
+                residence_time=
+                %(optional) the max amount that can be moved through the facility 
+                %per timestep (kg)
+                throughput=
+}

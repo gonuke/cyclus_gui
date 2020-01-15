@@ -1,36 +1,38 @@
-			%A facility that represents predators in the Lotka-Volterra integration 
-			%tests
-			%
-			%(optional) age of predator at beginning of simulation
-			age {}
-			%(optional) whether or not simultaneous birth and death are allowed 
-			%(i.e., can a facility give birth and die in the same time 
-			%step?)
-			birth_and_death {}
-			%(optional) commodity that the predator supplies
-			commod {}
-			%(optional) how many units of prey consumed per time step
-			consumed {}
-			%(optional) flag for whether predator is currently dead
-			dead {}
-			%(optional) how many units of prey a predator consumes until it 
-			%is satisfied
-			full {}
-			%(optional) how many units of prey a predator can catch during 
-			%a hunt
-			hunt_cap {}
-			%(optional) whether or not to base hunting success on relative 
-			%predator/prey populations
-			hunt_factor {}
-			%(optional) how often a predator needs to hunt
-			hunt_freq {}
-			%(optional) how long a predator lives
-			lifespan {}
-			%(optional) number of predator children born at each birthing 
-			%instance
-			nchildren {}
-			%(optional) prey that the predator hunts
-			prey {}
-			%(optional) fraction of hunting success on a scale from 0 to 
-			%1
-			success {}
+%A facility that represents predators in the Lotka-Volterra integration 
+%tests
+%
+Predator {
+                %(optional) age of predator at beginning of simulation
+                age=
+                %(optional) whether or not simultaneous birth and death are allowed 
+                %(i.e., can a facility give birth and die in the same time 
+                %step?)
+                birth_and_death=
+                %(optional) commodity that the predator supplies
+                commod=
+                %(optional) how many units of prey consumed per time step
+                consumed=
+                %(optional) flag for whether predator is currently dead
+                dead=
+                %(optional) how many units of prey a predator consumes until it 
+                %is satisfied
+                full=
+                %(optional) how many units of prey a predator can catch during 
+                %a hunt
+                hunt_cap=
+                %(optional) whether or not to base hunting success on relative 
+                %predator/prey populations
+                hunt_factor=
+                %(optional) how often a predator needs to hunt
+                hunt_freq=
+                %(optional) how long a predator lives
+                lifespan=
+                %(optional) number of predator children born at each birthing 
+                %instance
+                nchildren=
+                %(optional) prey that the predator hunts
+                prey=
+                %(optional) fraction of hunting success on a scale from 0 to 
+                %1
+                success=
+}

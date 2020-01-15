@@ -1,5 +1,5 @@
-rule("simulation") {
-pattern = "simulation"
+rule(" simulation ") {
+pattern = " simulation "
 bold = true
 foreground {
     red = 0
@@ -8,8 +8,8 @@ foreground {
     }
 }
 
-        rule("control") {
-pattern = "control"
+        rule(" control ") {
+pattern = " control "
 bold = true
 foreground {
     red = 0
@@ -18,8 +18,8 @@ foreground {
     }
 }
 
-        rule("archetypes") {
-pattern = "archetypes"
+        rule(" archetypes ") {
+pattern = " archetypes "
 bold = true
 foreground {
     red = 0
@@ -28,8 +28,8 @@ foreground {
     }
 }
 
-        rule("facility") {
-pattern = "facility"
+        rule(" facility ") {
+pattern = " facility "
 bold = true
 foreground {
     red = 0
@@ -38,8 +38,8 @@ foreground {
     }
 }
 
-        rule("region") {
-pattern = "region"
+        rule(" region ") {
+pattern = " region "
 bold = true
 foreground {
     red = 0
@@ -48,8 +48,8 @@ foreground {
     }
 }
 
-        rule("recipe") {
-pattern = "recipe"
+        rule(" recipe ") {
+pattern = " recipe "
 bold = true
 foreground {
     red = 0
@@ -80,6 +80,16 @@ background{
     red=192
     green=192
     blue=192
+    }
+}
+
+rule("Comment") {
+    pattern = "^%.*"
+    italic = true
+    foreground {
+        red = 0
+        green = 128
+        blue = 0
     }
 }
 

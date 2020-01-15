@@ -1,32 +1,34 @@
-					%Builds and manages agents (facilities) according to a manually 
-					%specified deployment schedule. Deployed agents are automatically 
-					%decommissioned at the end of their lifetime.  The user 
-					%specifies a list of prototypes for each and corresponding 
-					%build times, number to build, and (optionally) lifetimes.  The 
-					%same prototype can be specified multiple times with any combination 
-					%of the same or different build times, build number, 
-					%and lifetimes. 
-					%
-					%(optional) Time step on which to deploy agents given in prototype 
-					%list (same order).
-					build_times {val {}}
-					%(optional) Latitude of the agent's geographical position. The 
-					%value should be expressed in degrees as a double.
-					latitude {}
-					%(optional) Lifetimes for each prototype in prototype list (same 
-					%order). These lifetimes override the lifetimes in the original 
-					%prototype definition. If unspecified, lifetimes from the 
-					%original prototype definitions are used. Although a new prototype 
-					%is created in the Prototypes table for each lifetime 
-					%with the suffix '_life_[lifetime]', all deployed agents themselves 
-					%will have the same original prototype name (and so 
-					%will the Agents tables).
-					lifetimes {val {}}
-					%(optional) Longitude of the agent's geographical position. The 
-					%value should be expressed in degrees as a double.
-					longitude {}
-					%(optional) Number of each prototype given in prototype list that 
-					%should be deployed (same order).
-					n_build {val {}}
-					%(optional) Ordered list of prototypes to build.
-					prototypes {val {}}
+%Builds and manages agents (facilities) according to a manually 
+%specified deployment schedule. Deployed agents are automatically 
+%decommissioned at the end of their lifetime.  The user 
+%specifies a list of prototypes for each and corresponding 
+%build times, number to build, and (optionally) lifetimes.  The 
+%same prototype can be specified multiple times with any combination 
+%of the same or different build times, build number, 
+%and lifetimes. 
+%
+DeployInst {
+                         %(optional) Time step on which to deploy agents given in prototype 
+                         %list (same order).
+                         build_times=val=
+                         %(optional) Latitude of the agent's geographical position. The 
+                         %value should be expressed in degrees as a double.
+                         latitude=
+                         %(optional) Lifetimes for each prototype in prototype list (same 
+                         %order). These lifetimes override the lifetimes in the original 
+                         %prototype definition. If unspecified, lifetimes from the 
+                         %original prototype definitions are used. Although a new prototype 
+                         %is created in the Prototypes table for each lifetime 
+                         %with the suffix '_life_[lifetime]', all deployed agents themselves 
+                         %will have the same original prototype name (and so 
+                         %will the Agents tables).
+                         lifetimes=val=
+                         %(optional) Longitude of the agent's geographical position. The 
+                         %value should be expressed in degrees as a double.
+                         longitude=
+                         %(optional) Number of each prototype given in prototype list that 
+                         %should be deployed (same order).
+                         n_build=val=
+                         %(optional) Ordered list of prototypes to build.
+                         prototypes=val=
+}

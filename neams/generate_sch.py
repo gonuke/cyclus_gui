@@ -41,8 +41,8 @@ foreground {
 
     def make_basic_son(self):
         highlight_str = ''
-        for i in ['simulation', 'control', 'archetypes',
-                  'facility', 'region', 'recipe']:
+        for i in ['simulation ', ' control ', ' archetypes ',
+                  ' facility ', ' region ', ' recipe ']:
             highlight_str += self.highlight_maker(i, i)
         # highlight_str += highlight_maker('brack_open', '{', 'red')
         # highlight_str += highlight_maker('brack_close', '}', 'red')
@@ -73,6 +73,16 @@ background{
     }
 }
 
+rule("Comment") {
+    pattern = "^%.*"
+    italic = true
+    foreground {
+        red = 0
+        green = 128
+        blue = 0
+    }
+}
+
 '''
         return highlight_str
 
@@ -94,7 +104,7 @@ class generate_schema:
                                 'int': 'Int',
                                 'token': 'String'
                                 }
-        self.sch_str = sch_str = """simulation{
+        self.sch_str = sch_str = """simulation {
     Description="Agent-based fuel cycle simulator"
     InputTmpl="init_template"
     control {
@@ -230,26 +240,34 @@ $$spec_string
 
 
     facility {
-        config {"autocomplete here"}     
+        config {
+                %% autocomplete here
+                }     
     }
     facility {
-        config {"there can be multiple facilities"}     
+        config {
+                % there can be multiple facilities
+                }     
     }
 
     
     region {
-        config {"autocomplete here"}
+        config {
+                %% autocomplete here
+                }
     }
     region {
-        config {"there can be multiple regions"}
+        config {
+                % there can be multiple regions
+                }
     }
 
     
     recipe {
-        "write your recipes here"
+        %%write your recipes here
     }
     recipe {
-        "there can be multiple recipes"
+        %there can be multiple recipes
     }
 }"""
         self.get_cyclus_files()
@@ -286,11 +304,11 @@ $$spec_string
                 self.schema_dict[name].update(self.read_element(i['element'], optional=True))
 
             if self.type_dict[name] == 'facility':
-                tab = '\t'*3
+                tab = ' ' * 16
             elif self.type_dict[name] == 'region':
-                tab = '\t'*3
+                tab = ' ' * 16
             elif self.type_dict[name] == 'institution':
-                tab = '\t'*5
+                tab = ' ' * 25
             self.template_dict[name] = self.schema_dict_string_to_template(self.schema_dict[name], arche, tab)
 
             # fill in init_template to have the archetypes
@@ -325,7 +343,7 @@ $$spec_string
             self.sch_str = self.sch_str.replace('$$%s_schema' %key, val)
 
         poss_arches = [x for x, y in self.type_dict.items() if y=='facility']
-        self.sch_str = self.sch_str.replace('$$facility_enums', 'ValEnums = [' + ' '.join(poss_arches) + ']')
+        self.sch_str = self.sch_str.replace('$$facility_enums', 'ChildExactlyOne = [' + ' '.join(poss_arches) + ']')
 
 
 
@@ -410,7 +428,8 @@ $$spec_string
         s = s.replace('"', '')
         s = s.split('\n')
         n = self.reasonable_linebreak(self.meta_dict['annotations'][key]['doc']).split('\n') + ['']
-        n = [tab+'%'+w for w in n]
+        n = ['%'+w for w in n]
+        n.append(name + ' {')
         for i in s:
             var = i.strip().split()[0]
             if var == 'streams':
@@ -430,11 +449,12 @@ $$spec_string
             try:
                 doc = self.reasonable_linebreak(optional + ' ' +self.meta_dict['annotations'][key]['vars'][var]['doc'] ).split('\n')
             except:
-                doc = optional + 'no doc available.'
+                doc = [optional + 'no doc available.']
             for j in doc:
-                n.append(tab+'%' + j)
-            n.append(tab + i.strip())
+                n.append(tab+ '\t%' + j)
+            n.append(tab + i.strip().replace(' {', '=').replace('}', ''))
 
+        n.append('}')
         return '\n'.join(n)
 
 
@@ -504,3 +524,7 @@ extensions = [cyclus]
     with open(highlight_path, 'w') as f:
         f.write(h_.highlight_str)
 
+
+
+if __name__ == '__main__':
+    main()

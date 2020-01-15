@@ -1,54 +1,56 @@
-			%Separations processes feed material into one or more streams 
-			%containing specific elements and/or nuclides.  It uses mass-based 
-			%efficiencies.
-			%
-			%User defined separations streams are specified 
-			%as groups of component-efficiency pairs where 'component' 
-			%means either a particular element or a particular nuclide. 
-			% Each component's paired efficiency represents the mass 
-			%fraction of that component in the feed that is separated into 
-			%that stream.  The efficiencies of a particular component 
-			%across all streams must sum up to less than or equal to one. 
-			% If less than one, the remainining material is sent to a waste 
-			%inventory and (potentially) traded away from there.
-			%
-			%The 
-			%facility receives material into a feed inventory that it processes 
-			%with a specified throughput each time step.  Each output 
-			%stream has a corresponding output inventory size/limit. 
-			% If the facility is unable to reduce its stocks by trading 
-			%and hits this limit for any of its output streams, further processing/separations 
-			%of feed material will halt until room 
-			%is again available in the output streams.
-			%
-			%(optional) Feed commodity request preferences for each of the 
-			%given feed commodities (same order). If unspecified, default 
-			%is to use 1.0 for all preferences.
-			feed_commod_prefs {val {}}
-			%(optional) Ordered list of commodities on which to request feed 
-			%material to separate. Order only matters for matching up 
-			%with feed commodity preferences if specified.
-			feed_commods {val {}}
-			%(optional) Name for recipe to be used in feed requests. Empty 
-			%string results in use of a dummy recipe.
-			feed_recipe {}
-			%(optional) Maximum amount of feed material to keep on hand.
-			feedbuf_size {}
-			%(optional) Latitude of the agent's geographical position. The 
-			%value should be expressed in degrees as a double.
-			latitude {}
-			%(optional) Commodity on which to trade the leftover separated 
-			%material stream. This MUST NOT be the same as any commodity 
-			%used to define the other separations streams.
-			leftover_commod {}
-			%(optional) Maximum amount of leftover separated material (not 
-			%included in any other stream) that can be stored. If full, 
-			%the facility halts operation until space becomes available.
-			%
-			leftoverbuf_size {}
-			%(optional) Longitude of the agent's geographical position. The 
-			%value should be expressed in degrees as a double.
-			longitude {}
-			%(optional) Maximum quantity of feed material that can be processed 
-			%per time step.
-			throughput {}
+%Separations processes feed material into one or more streams 
+%containing specific elements and/or nuclides.  It uses mass-based 
+%efficiencies.
+%
+%User defined separations streams are specified 
+%as groups of component-efficiency pairs where 'component' 
+%means either a particular element or a particular nuclide. 
+% Each component's paired efficiency represents the mass 
+%fraction of that component in the feed that is separated into 
+%that stream.  The efficiencies of a particular component 
+%across all streams must sum up to less than or equal to one. 
+% If less than one, the remainining material is sent to a waste 
+%inventory and (potentially) traded away from there.
+%
+%The 
+%facility receives material into a feed inventory that it processes 
+%with a specified throughput each time step.  Each output 
+%stream has a corresponding output inventory size/limit. 
+% If the facility is unable to reduce its stocks by trading 
+%and hits this limit for any of its output streams, further processing/separations 
+%of feed material will halt until room 
+%is again available in the output streams.
+%
+Separations {
+                %(optional) Feed commodity request preferences for each of the 
+                %given feed commodities (same order). If unspecified, default 
+                %is to use 1.0 for all preferences.
+                feed_commod_prefs=val=
+                %(optional) Ordered list of commodities on which to request feed 
+                %material to separate. Order only matters for matching up 
+                %with feed commodity preferences if specified.
+                feed_commods=val=
+                %(optional) Name for recipe to be used in feed requests. Empty 
+                %string results in use of a dummy recipe.
+                feed_recipe=
+                %(optional) Maximum amount of feed material to keep on hand.
+                feedbuf_size=
+                %(optional) Latitude of the agent's geographical position. The 
+                %value should be expressed in degrees as a double.
+                latitude=
+                %(optional) Commodity on which to trade the leftover separated 
+                %material stream. This MUST NOT be the same as any commodity 
+                %used to define the other separations streams.
+                leftover_commod=
+                %(optional) Maximum amount of leftover separated material (not 
+                %included in any other stream) that can be stored. If full, 
+                %the facility halts operation until space becomes available.
+                %
+                leftoverbuf_size=
+                %(optional) Longitude of the agent's geographical position. The 
+                %value should be expressed in degrees as a double.
+                longitude=
+                %(optional) Maximum quantity of feed material that can be processed 
+                %per time step.
+                throughput=
+}

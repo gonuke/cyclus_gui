@@ -1,41 +1,43 @@
-			%This facility acts as a source of material with a fixed throughput 
-			%(per
-			%time step) capacity and a lifetime capacity defined 
-			%by a total inventory
-			%size.  It offers its material as a single 
-			%commodity. If a composition
-			%recipe is specified, it provides 
-			%that single material composition to
-			%requesters.  If unspecified, 
-			%the source provides materials with the exact
-			%requested 
-			%compositions.  The inventory size and throughput both 
-			%default to
-			%infinite.  Supplies material results in corresponding 
-			%decrease in
-			%inventory, and when the inventory size reaches 
-			%zero, the source can provide
-			%no more material.
-			%
-			%
-			%(optional) Total amount of material this source has remaining. 
-			%Every trade decreases this value by the supplied material 
-			%quantity.  When it reaches zero, the source cannot provide any 
-			% more material.
-			inventory_size {}
-			%(optional) Latitude of the agent's geographical position. The 
-			%value should be expressed in degrees as a double.
-			latitude {}
-			%(optional) Longitude of the agent's geographical position. The 
-			%value should be expressed in degrees as a double.
-			longitude {}
-			%(optional) Output commodity on which the source offers mater
-			%ial.
-			outcommod {}
-			%(optional) Name of composition recipe that this source provides 
-			%regardless of requested composition. If empty, source creates 
-			%and provides whatever compositions are requested.
-			outrecipe {}
-			%(optional) amount of commodity that can be supplied at each time 
-			%step
-			throughput {}
+%This facility acts as a source of material with a fixed throughput 
+%(per
+%time step) capacity and a lifetime capacity defined 
+%by a total inventory
+%size.  It offers its material as a single 
+%commodity. If a composition
+%recipe is specified, it provides 
+%that single material composition to
+%requesters.  If unspecified, 
+%the source provides materials with the exact
+%requested 
+%compositions.  The inventory size and throughput both 
+%default to
+%infinite.  Supplies material results in corresponding 
+%decrease in
+%inventory, and when the inventory size reaches 
+%zero, the source can provide
+%no more material.
+%
+%
+Source {
+                %(optional) Total amount of material this source has remaining. 
+                %Every trade decreases this value by the supplied material 
+                %quantity.  When it reaches zero, the source cannot provide any 
+                % more material.
+                inventory_size=
+                %(optional) Latitude of the agent's geographical position. The 
+                %value should be expressed in degrees as a double.
+                latitude=
+                %(optional) Longitude of the agent's geographical position. The 
+                %value should be expressed in degrees as a double.
+                longitude=
+                %(optional) Output commodity on which the source offers mater
+                %ial.
+                outcommod=
+                %(optional) Name of composition recipe that this source provides 
+                %regardless of requested composition. If empty, source creates 
+                %and provides whatever compositions are requested.
+                outrecipe=
+                %(optional) amount of commodity that can be supplied at each time 
+                %step
+                throughput=
+}
