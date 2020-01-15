@@ -22,35 +22,35 @@
 %is again available in the output streams.
 %
 Separations {
-                %(optional) Feed commodity request preferences for each of the 
-                %given feed commodities (same order). If unspecified, default 
-                %is to use 1.0 for all preferences.
+                	%(optional) Feed commodity request preferences for each of the 
+                	%given feed commodities (same order). If unspecified, default 
+                	%is to use 1.0 for all preferences.
                 feed_commod_prefs=val=
-                %(optional) Ordered list of commodities on which to request feed 
-                %material to separate. Order only matters for matching up 
-                %with feed commodity preferences if specified.
+                	%(optional) Ordered list of commodities on which to request feed 
+                	%material to separate. Order only matters for matching up 
+                	%with feed commodity preferences if specified.
                 feed_commods=val=
-                %(optional) Name for recipe to be used in feed requests. Empty 
-                %string results in use of a dummy recipe.
+                	%(optional) Name for recipe to be used in feed requests. Empty 
+                	%string results in use of a dummy recipe.
                 feed_recipe=
-                %(optional) Maximum amount of feed material to keep on hand.
+                	%(optional) Maximum amount of feed material to keep on hand.
                 feedbuf_size=
-                %(optional) Latitude of the agent's geographical position. The 
-                %value should be expressed in degrees as a double.
+                	%(optional) Latitude of the agent's geographical position. The 
+                	%value should be expressed in degrees as a double.
                 latitude=
-                %(optional) Commodity on which to trade the leftover separated 
-                %material stream. This MUST NOT be the same as any commodity 
-                %used to define the other separations streams.
+                	%(optional) Commodity on which to trade the leftover separated 
+                	%material stream. This MUST NOT be the same as any commodity 
+                	%used to define the other separations streams.
                 leftover_commod=
-                %(optional) Maximum amount of leftover separated material (not 
-                %included in any other stream) that can be stored. If full, 
-                %the facility halts operation until space becomes available.
-                %
+                	%(optional) Maximum amount of leftover separated material (not 
+                	%included in any other stream) that can be stored. If full, 
+                	%the facility halts operation until space becomes available.
+                	%
                 leftoverbuf_size=
-                %(optional) Longitude of the agent's geographical position. The 
-                %value should be expressed in degrees as a double.
+                	%(optional) Longitude of the agent's geographical position. The 
+                	%value should be expressed in degrees as a double.
                 longitude=
-                %(optional) Maximum quantity of feed material that can be processed 
-                %per time step.
+                	%(optional) Maximum quantity of feed material that can be processed 
+                	%per time step.
                 throughput=
 }

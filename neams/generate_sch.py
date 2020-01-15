@@ -74,7 +74,7 @@ background{
 }
 
 rule("Comment") {
-    pattern = "^%.*"
+    pattern = "%.*"
     italic = true
     foreground {
         red = 0
@@ -184,11 +184,13 @@ class generate_schema:
         MinOccurs=1
         config= {MinOccurs=1
                  MaxOccurs=1
+                 $$region_enums
                  $$region_schema
                  }
         institution={MinOccurs=1
                     config={MinOccurs=1
-                             MaxOccurs=1
+                            MaxOccurs=1
+                            $$institution_enums
                              $$institution_schema}
                     initialfacilitiylist={MaxOccurs=1
                                           entry={MinOccurs=1
@@ -255,11 +257,31 @@ $$spec_string
         config {
                 %% autocomplete here
                 }
+        institution {
+                config{
+                        % define institution here
+                       }
+        }
+        institution {
+                config{
+                        % define institution here
+                       }
+        }
     }
     region {
         config {
                 % there can be multiple regions
                 }
+        institution {
+                config{
+                        % define institution here
+                       }
+        }
+        institution {
+                config{
+                        % define institution here
+                       }
+        }
     }
 
     
@@ -294,6 +316,7 @@ $$spec_string
             self.type_dict[name] = self.meta_dict['annotations'][arche]['entity']
             self.schema_dict[name] = {'InputTmpl': '"%s"' %name}
             if 'NullRegion' in arche or 'NullInst' in arche:
+                self.template_dict[name] = name
                 continue
             d = xmltodict.parse(self.meta_dict['schema'][arche])['interleave']
             k = self.check_if_list(d['element'])
@@ -342,8 +365,10 @@ $$spec_string
         for key, val in schema_str_dict.items():
             self.sch_str = self.sch_str.replace('$$%s_schema' %key, val)
 
-        poss_arches = [x for x, y in self.type_dict.items() if y=='facility']
-        self.sch_str = self.sch_str.replace('$$facility_enums', 'ChildExactlyOne = [' + ' '.join(poss_arches) + ']')
+        for t in ['facility', 'institution', 'region']:
+            poss_arches = [x for x, y in self.type_dict.items() if y==t]
+            self.sch_str = self.sch_str.replace('$$%s_enums' %t, 'ChildExactlyOne = [' + ' '.join(poss_arches) + ']')
+
 
 
 

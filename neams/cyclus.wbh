@@ -1,5 +1,5 @@
-rule(" simulation ") {
-pattern = " simulation "
+rule("simulation ") {
+pattern = "simulation "
 bold = true
 foreground {
     red = 0
@@ -84,7 +84,7 @@ background{
 }
 
 rule("Comment") {
-    pattern = "^%.*"
+    pattern = "%.*"
     italic = true
     foreground {
         red = 0

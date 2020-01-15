@@ -14,38 +14,38 @@
 %the facility as quickly as possible.
 %
 Storage {
-                %(optional) Determines if Storage will divide resource objects. 
-                %Only controls material handling within this facility, has 
-                %no effect on DRE material handling. If true, batches are handled 
-                %as discrete quanta, neither split nor combined. Otherwise, 
-                %batches may be divided during processing. Default to false 
-                %(continuous))
+                	%(optional) Determines if Storage will divide resource objects. 
+                	%Only controls material handling within this facility, has 
+                	%no effect on DRE material handling. If true, batches are handled 
+                	%as discrete quanta, neither split nor combined. Otherwise, 
+                	%batches may be divided during processing. Default to false 
+                	%(continuous))
                 discrete_handling=
-                %(optional) preferences for each of the given commodities, in 
-                %the same order.Defauts to 1 if unspecified
+                	%(optional) preferences for each of the given commodities, in 
+                	%the same order.Defauts to 1 if unspecified
                 in_commod_prefs=val=
-                %(optional) commodities accepted by this facility
+                	%(optional) commodities accepted by this facility
                 in_commods=val=
-                %(optional) recipe accepted by this facility, if unspecified a 
-                %dummy recipe is used
+                	%(optional) recipe accepted by this facility, if unspecified a 
+                	%dummy recipe is used
                 in_recipe=
-                %(optional) Latitude of the agent's geographical position. The 
-                %value should be expressed in degrees as a double.
+                	%(optional) Latitude of the agent's geographical position. The 
+                	%value should be expressed in degrees as a double.
                 latitude=
-                %(optional) Longitude of the agent's geographical position. The 
-                %value should be expressed in degrees as a double.
+                	%(optional) Longitude of the agent's geographical position. The 
+                	%value should be expressed in degrees as a double.
                 longitude=
-                %(optional) the maximum amount of material that can be in all 
-                %storage buffer stages
+                	%(optional) the maximum amount of material that can be in all 
+                	%storage buffer stages
                 max_inv_size=
-                %(optional) commodity produced by this facility. Multiple commodity 
-                %tracking is currently not supported, one output commodity 
-                %catches all input commodities.
+                	%(optional) commodity produced by this facility. Multiple commodity 
+                	%tracking is currently not supported, one output commodity 
+                	%catches all input commodities.
                 out_commods=val=
-                %(optional) the minimum holding time for a received commodity 
-                %(timesteps).
+                	%(optional) the minimum holding time for a received commodity 
+                	%(timesteps).
                 residence_time=
-                %(optional) the max amount that can be moved through the facility 
-                %per timestep (kg)
+                	%(optional) the max amount that can be moved through the facility 
+                	%per timestep (kg)
                 throughput=
 }

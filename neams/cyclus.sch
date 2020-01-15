@@ -1,4 +1,4 @@
-simulation{
+simulation {
     Description="Agent-based fuel cycle simulator"
     InputTmpl="init_template"
     control {
@@ -295,6 +295,7 @@ simulation{
         MinOccurs=1
         config= {MinOccurs=1
                  MaxOccurs=1
+                 ChildExactlyOne = [NullRegion GrowthRegion]
                  NullRegion=
 			{InputTmpl="NullRegion"}
 		GrowthRegion=
@@ -325,7 +326,8 @@ simulation{
                  }
         institution={MinOccurs=1
                     config={MinOccurs=1
-                             MaxOccurs=1
+                            MaxOccurs=1
+                            ChildExactlyOne = [NullInst DeployInst ManagerInst]
                              NullInst=
 					{InputTmpl="NullInst"}
 				DeployInst=

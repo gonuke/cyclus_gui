@@ -55,98 +55,98 @@
 %burnt compositions.
 %
 Reactor {
-                %(optional) Mass (kg) of a single assembly.
+                	%(optional) Mass (kg) of a single assembly.
                 assem_size=
-                %(optional) Number of time steps since the start of the last cycle. 
-                %Only set this if you know what you are doing
+                	%(optional) Number of time steps since the start of the last cycle. 
+                	%Only set this if you know what you are doing
                 cycle_step=
-                %(optional) The duration of a full operational cycle (excluding 
-                %refueling time) in time steps.
+                	%(optional) The duration of a full operational cycle (excluding 
+                	%refueling time) in time steps.
                 cycle_time=
-                %(optional) If true, the archetype transmutes all assemblies upon 
-                %decommissioning If false, the archetype only transmutes 
-                %half.
+                	%(optional) If true, the archetype transmutes all assemblies upon 
+                	%decommissioning If false, the archetype only transmutes 
+                	%half.
                 decom_transmute_all=
-                %(optional) Ordered list of input commodities on which to requesting 
-                %fuel.
+                	%(optional) Ordered list of input commodities on which to requesting 
+                	%fuel.
                 fuel_incommods=val=
-                %(optional) Fresh fuel recipes to request for each of the given 
-                %fuel input commodities (same order).
+                	%(optional) Fresh fuel recipes to request for each of the given 
+                	%fuel input commodities (same order).
                 fuel_inrecipes=val=
-                %(optional) Output commodities on which to offer spent fuel originally 
-                %received as each particular input commodity (same 
-                %order).
+                	%(optional) Output commodities on which to offer spent fuel originally 
+                	%received as each particular input commodity (same 
+                	%order).
                 fuel_outcommods=val=
-                %(optional) Spent fuel recipes corresponding to the given fuel 
-                %input commodities (same order). Fuel received via a particular 
-                %input commodity is transmuted to the recipe specified here 
-                %after being burned during a cycle.
+                	%(optional) Spent fuel recipes corresponding to the given fuel 
+                	%input commodities (same order). Fuel received via a particular 
+                	%input commodity is transmuted to the recipe specified here 
+                	%after being burned during a cycle.
                 fuel_outrecipes=val=
-                %(optional) The preference for each type of fresh fuel requested 
-                %corresponding to each input commodity (same order).  If no 
-                %preferences are specified, 1.0 is used for all fuel requests 
-                %(default).
+                	%(optional) The preference for each type of fresh fuel requested 
+                	%corresponding to each input commodity (same order).  If no 
+                	%preferences are specified, 1.0 is used for all fuel requests 
+                	%(default).
                 fuel_prefs=val=
-                %(optional) Latitude of the agent's geographical position. The 
-                %value should be expressed in degrees as a double.
+                	%(optional) Latitude of the agent's geographical position. The 
+                	%value should be expressed in degrees as a double.
                 latitude=
-                %(optional) Longitude of the agent's geographical position. The 
-                %value should be expressed in degrees as a double.
+                	%(optional) Longitude of the agent's geographical position. The 
+                	%value should be expressed in degrees as a double.
                 longitude=
-                %(optional) Number of assemblies that constitute a single batch. 
-                % This is the number of assemblies discharged from the core 
-                %fully burned each cycle.Batch size is equivalent to ``n_assem_batch 
-                %/ n_assem_core``.
+                	%(optional) Number of assemblies that constitute a single batch. 
+                	% This is the number of assemblies discharged from the core 
+                	%fully burned each cycle.Batch size is equivalent to ``n_assem_batch 
+                	%/ n_assem_core``.
                 n_assem_batch=
-                %(optional) Number of assemblies that constitute a full core.
-                %
+                	%(optional) Number of assemblies that constitute a full core.
+                	%
                 n_assem_core=
-                %(optional) Number of fresh fuel assemblies to keep on-hand if 
-                %possible.
+                	%(optional) Number of fresh fuel assemblies to keep on-hand if 
+                	%possible.
                 n_assem_fresh=
-                %(optional) Number of spent fuel assemblies that can be stored 
-                %on-site before reactor operation stalls.
+                	%(optional) Number of spent fuel assemblies that can be stored 
+                	%on-site before reactor operation stalls.
                 n_assem_spent=
-                %(optional) Amount of electrical power the facility produces when 
-                %operating normally.
+                	%(optional) Amount of electrical power the facility produces when 
+                	%operating normally.
                 power_cap=
-                %(optional) The name of the 'power' commodity used in conjunction 
-                %with a deployment curve.
+                	%(optional) The name of the 'power' commodity used in conjunction 
+                	%with a deployment curve.
                 power_name=
-                %(optional) The input commodity for a particular fuel preference 
-                %change.  Same order as and direct correspondence to the specified 
-                %preference change times.
+                	%(optional) The input commodity for a particular fuel preference 
+                	%change.  Same order as and direct correspondence to the specified 
+                	%preference change times.
                 pref_change_commods=val=
-                %(optional) A time step on which to change the request preference 
-                %for a particular fresh fuel type.
+                	%(optional) A time step on which to change the request preference 
+                	%for a particular fresh fuel type.
                 pref_change_times=val=
-                %(optional) The new/changed request preference for a particular 
-                %fresh fuel. Same order as and direct correspondence to the 
-                %specified preference change times.
+                	%(optional) The new/changed request preference for a particular 
+                	%fresh fuel. Same order as and direct correspondence to the 
+                	%specified preference change times.
                 pref_change_values=val=
-                %(optional) The input commodity indicating fresh fuel for which 
-                %recipes will be changed. Same order as and direct correspondence 
-                %to the specified recipe change times.
+                	%(optional) The input commodity indicating fresh fuel for which 
+                	%recipes will be changed. Same order as and direct correspondence 
+                	%to the specified recipe change times.
                 recipe_change_commods=val=
-                %(optional) The new input recipe to use for this recipe change. 
-                %Same order as and direct correspondence to the specified recipe 
-                %change times.
+                	%(optional) The new input recipe to use for this recipe change. 
+                	%Same order as and direct correspondence to the specified recipe 
+                	%change times.
                 recipe_change_in=val=
-                %(optional) The new output recipe to use for this recipe change. 
-                %Same order as and direct correspondence to the specified 
-                %recipe change times.
+                	%(optional) The new output recipe to use for this recipe change. 
+                	%Same order as and direct correspondence to the specified 
+                	%recipe change times.
                 recipe_change_out=val=
-                %(optional) A time step on which to change the input-output recipe 
-                %pair for a requested fresh fuel.
+                	%(optional) A time step on which to change the input-output recipe 
+                	%pair for a requested fresh fuel.
                 recipe_change_times=val=
-                %(optional) The duration of a full refueling period - the minimum 
-                %time between the end of a cycle and the start of the next 
-                %cycle.
+                	%(optional) The duration of a full refueling period - the minimum 
+                	%time between the end of a cycle and the start of the next 
+                	%cycle.
                 refuel_time=
-                %(optional) Ordered vector of the quantity of side product the 
-                %reactor produces with power
+                	%(optional) Ordered vector of the quantity of side product the 
+                	%reactor produces with power
                 side_product_quantity=val=
-                %(optional) Ordered vector of side product the reactor produces 
-                %with power
+                	%(optional) Ordered vector of side product the reactor produces 
+                	%with power
                 side_products=val=
 }
