@@ -9,19 +9,47 @@ simulation{
         decay="lazy"
     }
     
-    archetypes {
-        spec ["this will be automatically filled"]
+    archetypes { % This part is automatically filled! No need to worry
+               spec = {lib="agents" name="KFacility"}
+               spec = {lib="agents" name="Predator"}
+               spec = {lib="agents" name="Prey"}
+               spec = {lib="agents" name="Sink"}
+               spec = {lib="agents" name="Source"}
+               spec = {lib="cycamore" name="DeployInst"}
+               spec = {lib="cycamore" name="Enrichment"}
+               spec = {lib="cycamore" name="FuelFab"}
+               spec = {lib="cycamore" name="GrowthRegion"}
+               spec = {lib="cycamore" name="ManagerInst"}
+               spec = {lib="cycamore" name="Mixer"}
+               spec = {lib="cycamore" name="Reactor"}
+               spec = {lib="cycamore" name="Separations"}
+               spec = {lib="cycamore" name="Sink"}
+               spec = {lib="cycamore" name="Source"}
+               spec = {lib="cycamore" name="Storage"}
+
     }
 
+
     facility {
-        "write your facilities here"
+        config {"autocomplete here"}     
     }
+    facility {
+        config {"there can be multiple facilities"}     
+    }
+
     
     region {
-        "write your regions here"
+        config {"autocomplete here"}
     }
+    region {
+        config {"there can be multiple regions"}
+    }
+
     
     recipe {
         "write your recipes here"
+    }
+    recipe {
+        "there can be multiple recipes"
     }
 }
