@@ -171,6 +171,9 @@ class generate_schema:
     }
     
     facility {
+        name= {MinOccurs=1
+               MaxOccurs=1
+               ValType=String}
         Description="Facility definition block"
         MinOccurs=1
         config = {MinOccurs=1
@@ -181,6 +184,9 @@ class generate_schema:
     
     region{
         Description="Region definition block"
+        name= {MinOccurs=1
+               MaxOccurs=1
+               ValType=String}
         MinOccurs=1
         config= {MinOccurs=1
                  MaxOccurs=1
@@ -188,10 +194,13 @@ class generate_schema:
                  $$region_schema
                  }
         institution={MinOccurs=1
+                     name= {MinOccurs=1
+                            MaxOccurs=1
+                            ValType=String}
                     config={MinOccurs=1
                             MaxOccurs=1
                             $$institution_enums
-                             $$institution_schema}
+                            $$institution_schema}
                     initialfacilitiylist={MaxOccurs=1
                                           entry={MinOccurs=1
                                                  number={MaxOccurs=1
