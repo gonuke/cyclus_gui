@@ -5,22 +5,42 @@
 %inventory of mixed material quantities.
 %
 Mixer {
-                	%(optional)no doc available.
-                in_streams=stream=commodities=item=commodity=
-                	%(optional) Latitude of the agent's geographical position. The 
-                	%value should be expressed in degrees as a double.
-                latitude=
-                	%(optional) Longitude of the agent's geographical position. The 
-                	%value should be expressed in degrees as a double.
-                longitude=
-                	%(optional) Maximum amount of mixed material that can be stored. 
-                	%If full, the facility halts operation until space becomes 
-                	%available.
-                out_buf_size=
-                	%(optional) Commodity on which to offer/supply mixed fuel mat
-                	%erial.
-                out_commod=
-                	%(optional) Maximum number of kg of fuel material that can be 
-                	%mixed per time step.
-                throughput=
+                	% [] no doc available.
+                in_streams {stream {commodities {item {commodity =
+
+                                                       pref =
+                                                      }
+                                                }
+                                   }
+                           }
+
+info {buf_size = mixing_ratio =
+                                                      }
+                                                }
+                                   }
+                           }
+
+                	%(optional) [double] Latitude of the agent's geographical position. 
+                	%The value should be expressed in degrees as a double.
+                	%
+                latitude =0.0
+
+                	%(optional) [double] Longitude of the agent's geographical position. 
+                	%The value should be expressed in degrees as a double
+                	%.
+                longitude =0.0
+
+                	%(optional) [double] Maximum amount of mixed material that can 
+                	%be stored. If full, the facility halts operation until space 
+                	%becomes available.
+                out_buf_size =1e+299
+
+                	% [std::string] Commodity on which to offer/supply mixed fuel 
+                	%material.
+                out_commod =
+
+                	%(optional) [double] Maximum number of kg of fuel material that 
+                	%can be mixed per time step.
+                throughput =1e+299
+
 }

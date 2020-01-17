@@ -22,35 +22,75 @@
 %is again available in the output streams.
 %
 Separations {
-                	%(optional) Feed commodity request preferences for each of the 
-                	%given feed commodities (same order). If unspecified, default 
-                	%is to use 1.0 for all preferences.
-                feed_commod_prefs=val=
-                	%(optional) Ordered list of commodities on which to request feed 
-                	%material to separate. Order only matters for matching up 
-                	%with feed commodity preferences if specified.
-                feed_commods=val=
-                	%(optional) Name for recipe to be used in feed requests. Empty 
-                	%string results in use of a dummy recipe.
-                feed_recipe=
-                	%(optional) Maximum amount of feed material to keep on hand.
-                feedbuf_size=
-                	%(optional) Latitude of the agent's geographical position. The 
-                	%value should be expressed in degrees as a double.
-                latitude=
-                	%(optional) Commodity on which to trade the leftover separated 
-                	%material stream. This MUST NOT be the same as any commodity 
-                	%used to define the other separations streams.
-                leftover_commod=
-                	%(optional) Maximum amount of leftover separated material (not 
-                	%included in any other stream) that can be stored. If full, 
-                	%the facility halts operation until space becomes available.
+                	%(optional) [['std::vector', 'double']] Feed commodity request 
+                	%preferences for each of the given feed commodities (same order). 
+                	%If unspecified, default is to use 1.0 for all prefere
+                	%nces.
+                feed_commod_prefs {val =}   % The value can be multiple values of val 
+
+                	% [['std::vector', 'std::string']] Ordered list of commodities 
+                	%on which to request feed material to separate. Order only matters 
+                	%for matching up with feed commodity preferences if s
+                	%pecified.
+                feed_commods {val =}
+
+                	%(optional) [std::string] Name for recipe to be used in feed requests. 
+                	%Empty string results in use of a dummy recipe.
+                feed_recipe =""
+
+                	% [double] Maximum amount of feed material to keep on hand.
+                feedbuf_size =
+
+                	%(optional) [double] Latitude of the agent's geographical position. 
+                	%The value should be expressed in degrees as a double.
                 	%
-                leftoverbuf_size=
-                	%(optional) Longitude of the agent's geographical position. The 
-                	%value should be expressed in degrees as a double.
-                longitude=
-                	%(optional) Maximum quantity of feed material that can be processed 
-                	%per time step.
-                throughput=
+                latitude =0.0
+
+                	%(optional) [std::string] Commodity on which to trade the leftover 
+                	%separated material stream. This MUST NOT be the same as 
+                	%any commodity used to define the other separations streams
+                	%.
+                leftover_commod ="default-waste-stream"
+
+                	%(optional) [double] Maximum amount of leftover separated material 
+                	%(not included in any other stream) that can be stored. 
+                	%If full, the facility halts operation until space becomes a
+                	%vailable.
+                leftoverbuf_size =1e+299
+
+                	%(optional) [double] Longitude of the agent's geographical position. 
+                	%The value should be expressed in degrees as a double
+                	%.
+                longitude =0.0
+
+                	% [['std::map', 'std::string', ['std::pair', 'double', ['std::map', 
+                	%'int', 'double']]]] Output streams for separations. Each 
+                	%stream must have a unique name identifying the commodity 
+                	%on  which its material is traded, a max buffer capacity in kg 
+                	%(neg values indicate infinite size), and a set of component 
+                	%efficiencies. 'comp' is a component to be separated into the 
+                	%stream (e.g. U, Pu, etc.) and 'eff' is the mass fraction 
+                	%of the component that is separated from the feed into this output 
+                	%stream. If any stream buffer is full, the facility halts 
+                	%operation until space becomes available. The sum total of 
+                	%all component efficiencies across streams must be less than 
+                	%or equal to 1 (e.g. sum of U efficiencies for all streams must 
+                	%be <= 1).
+                streams {item {commod =
+
+                               info {buf_size =
+
+                                     efficiencies {item {comp =
+
+                                                         eff =
+                                                        }
+                                                  }
+                                    }
+                              }
+                        }
+
+                	%(optional) [double] Maximum quantity of feed material that can 
+                	%be processed per time step.
+                throughput =1e+299
+
 }

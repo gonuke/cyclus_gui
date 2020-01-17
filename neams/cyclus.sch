@@ -65,6 +65,9 @@ simulation {
     }
     
     facility {
+        name= {MinOccurs=1
+               MaxOccurs=1
+               ValType=String}
         Description="Facility definition block"
         MinOccurs=1
         config = {MinOccurs=1
@@ -292,6 +295,9 @@ simulation {
     
     region{
         Description="Region definition block"
+        name= {MinOccurs=1
+               MaxOccurs=1
+               ValType=String}
         MinOccurs=1
         config= {MinOccurs=1
                  MaxOccurs=1
@@ -325,10 +331,13 @@ simulation {
 
                  }
         institution={MinOccurs=1
+                     name= {MinOccurs=1
+                            MaxOccurs=1
+                            ValType=String}
                     config={MinOccurs=1
                             MaxOccurs=1
                             ChildExactlyOne = [NullInst DeployInst ManagerInst]
-                             NullInst=
+                            NullInst=
 					{InputTmpl="NullInst"}
 				DeployInst=
 					{InputTmpl="DeployInst"

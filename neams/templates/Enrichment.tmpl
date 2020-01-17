@@ -34,37 +34,53 @@
 %commodity.
 %
 Enrichment {
-                	%(optional) feed commodity that the enrichment facility accep
-                	%ts
-                feed_commod=
-                	%(optional) recipe for enrichment facility feed commodity
-                feed_recipe=
-                	%(optional) amount of natural uranium stored at the enrichment 
+                	% [std::string] feed commodity that the enrichment facility a
+                	%ccepts
+                feed_commod =
+
+                	% [std::string] recipe for enrichment facility feed commodity
+                	%
+                feed_recipe =
+
+                	%(optional) [double] amount of natural uranium stored at the enrichment 
                 	%facility at the beginning of the simulation (kg)
-                initial_feed=
-                	%(optional) Latitude of the agent's geographical position. The 
-                	%value should be expressed in degrees as a double.
-                latitude=
-                	%(optional) Longitude of the agent's geographical position. The 
-                	%value should be expressed in degrees as a double.
-                longitude=
-                	%(optional) maximum allowed weight fraction of U235 in produc
-                	%t
-                max_enrich=
-                	%(optional) maximum total inventory of natural uranium in the 
-                	%enrichment facility (kg)
-                max_feed_inventory=
-                	%(optional) turn on preference ordering for input material so 
-                	%that EF chooses higher U235 content first
-                order_prefs=
-                	%(optional) product commodity that the enrichment facility ge
-                	%nerates
-                product_commod=
-                	%(optional) separative work unit (SWU) capacity of enrichment 
+                initial_feed =0
+
+                	%(optional) [double] Latitude of the agent's geographical position. 
+                	%The value should be expressed in degrees as a double.
+                	%
+                latitude =0.0
+
+                	%(optional) [double] Longitude of the agent's geographical position. 
+                	%The value should be expressed in degrees as a double
+                	%.
+                longitude =0.0
+
+                	%(optional) [double] maximum allowed weight fraction of U235 in 
+                	%product
+                max_enrich =1.0
+
+                	%(optional) [double] maximum total inventory of natural uranium 
+                	%in the enrichment facility (kg)
+                max_feed_inventory =1e+299
+
+                	%(optional) [bool] turn on preference ordering for input material 
+                	%so that EF chooses higher U235 content first
+                order_prefs =1
+
+                	% [std::string] product commodity that the enrichment facility 
+                	%generates
+                product_commod =
+
+                	%(optional) [double] separative work unit (SWU) capacity of enrichment 
                 	%facility (kgSWU/timestep) 
-                swu_capacity=
-                	%(optional) tails assay from the enrichment process
-                tails_assay=
-                	%(optional) tails commodity supplied by enrichment facility
-                tails_commod=
+                swu_capacity =1e+299
+
+                	%(optional) [double] tails assay from the enrichment process
+                tails_assay =0.003
+
+                	% [std::string] tails commodity supplied by enrichment facili
+                	%ty
+                tails_commod =
+
 }

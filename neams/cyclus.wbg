@@ -1,0 +1,13 @@
+name= Cyclus
+enabled = true
+
+parser = waspson
+schema = "/Users/4ib/Desktop/git/cyclus_gui/neams/cyclus.sch"
+validator = wasp
+
+templates = "/Users/4ib/Desktop/git/cyclus_gui/neams/templates/"
+
+highlighter = "/Users/4ib/Desktop/git/cyclus_gui/neams/cyclus.wbh"
+
+extensions = [cyclus]
+maxDepth = 10

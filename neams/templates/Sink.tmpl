@@ -13,23 +13,36 @@
 %
 %
 Sink {
-                	%(optional) capacity the sink facility can accept at each time 
-                	%step
-                capacity=
-                	%(optional) preferences for each of the given commodities, in 
-                	%the same order.Defauts to 1 if unspecified
-                in_commod_prefs=val=
-                	%(optional) commodities that the sink facility accepts
-                in_commods=val=
-                	%(optional) Latitude of the agent's geographical position. The 
-                	%value should be expressed in degrees as a double.
-                latitude=
-                	%(optional) Longitude of the agent's geographical position. The 
-                	%value should be expressed in degrees as a double.
-                longitude=
-                	%(optional) total maximum inventory size of sink facility
-                max_inv_size=
-                	%(optional) name of recipe to use for material requests, where 
-                	%the default (empty string) is to accept everything
-                recipe_name=
+                	%(optional) [double] capacity the sink facility can accept at 
+                	%each time step
+                capacity =1e+299
+
+                	%(optional) [['std::vector', 'double']] preferences for each of 
+                	%the given commodities, in the same order.Defauts to 1 if 
+                	%unspecified
+                in_commod_prefs {val =}   % The value can be multiple values of val 
+
+                	% [['std::vector', 'std::string']] commodities that the sink facility 
+                	%accepts
+                in_commods {val =}
+
+                	%(optional) [double] Latitude of the agent's geographical position. 
+                	%The value should be expressed in degrees as a double.
+                	%
+                latitude =0.0
+
+                	%(optional) [double] Longitude of the agent's geographical position. 
+                	%The value should be expressed in degrees as a double
+                	%.
+                longitude =0.0
+
+                	%(optional) [double] total maximum inventory size of sink fac
+                	%ility
+                max_inv_size =1e+299
+
+                	%(optional) [std::string] name of recipe to use for material requests, 
+                	%where the default (empty string) is to accept ever
+                	%ything
+                recipe_name =""
+
 }

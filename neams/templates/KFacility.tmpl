@@ -3,30 +3,41 @@
 %based on a power law with respect to time.
 %
 KFacility {
-                	%(optional) number of output commodity units that can be supplied 
-                	%at the current time step (infinite capacity can be represented 
-                	%by a very large number )
-                current_capacity=
-                	%(optional) number of commodity units that can be taken at each 
+                	%(optional) [double] number of output commodity units that can 
+                	%be supplied at the current time step (infinite capacity can 
+                	%be represented by a very large number )
+                current_capacity =0
+
+                	% [double] number of commodity units that can be taken at each 
                 	%timestep (infinite capacity can be represented by a very large 
                 	%number)
-                in_capacity=
-                	%(optional) commodity that the k-facility consumes
-                in_commod=
-                	%(optional) conversion factor that governs the behavior of the 
+                in_capacity =
+
+                	% [std::string] commodity that the k-facility consumes
+                in_commod =
+
+                	% [double] conversion factor that governs the behavior of the 
                 	%k-facility's input commodity capacity
-                k_factor_in=
-                	%(optional) conversion factor that governs the behavior of the 
+                k_factor_in =
+
+                	% [double] conversion factor that governs the behavior of the 
                 	%k-facility's output commodity capacity
-                k_factor_out=
-                	%(optional) total maximum inventory size of the k-facility
-                max_inv_size=
-                	%(optional) number of commodity units that can be supplied at 
-                	%each timestep (infinite capacity can be represented by a very 
+                k_factor_out =
+
+                	%(optional) [double] total maximum inventory size of the k-fa
+                	%cility
+                max_inv_size =1e+299
+
+                	% [double] number of commodity units that can be supplied at each 
+                	%timestep (infinite capacity can be represented by a very 
                 	%large number)
-                out_capacity=
-                	%(optional) commodity that the k-facility supplies
-                out_commod=
-                	%(optional) recipe name for the k-facility's in-commodity
-                recipe_name=
+                out_capacity =
+
+                	% [std::string] commodity that the k-facility supplies
+                out_commod =
+
+                	% [std::string] recipe name for the k-facility's in-commodity
+                	%
+                recipe_name =
+
 }

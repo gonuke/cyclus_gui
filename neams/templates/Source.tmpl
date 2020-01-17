@@ -19,25 +19,34 @@
 %
 %
 Source {
-                	%(optional) Total amount of material this source has remaining. 
-                	%Every trade decreases this value by the supplied material 
-                	%quantity.  When it reaches zero, the source cannot provide any 
-                	% more material.
-                inventory_size=
-                	%(optional) Latitude of the agent's geographical position. The 
-                	%value should be expressed in degrees as a double.
-                latitude=
-                	%(optional) Longitude of the agent's geographical position. The 
-                	%value should be expressed in degrees as a double.
-                longitude=
-                	%(optional) Output commodity on which the source offers mater
-                	%ial.
-                outcommod=
-                	%(optional) Name of composition recipe that this source provides 
-                	%regardless of requested composition. If empty, source creates 
-                	%and provides whatever compositions are requested.
-                outrecipe=
-                	%(optional) amount of commodity that can be supplied at each time 
-                	%step
-                throughput=
+                	%(optional) [double] Total amount of material this source has 
+                	%remaining. Every trade decreases this value by the supplied 
+                	%material quantity.  When it reaches zero, the source cannot 
+                	%provide any  more material.
+                inventory_size =1e+299
+
+                	%(optional) [double] Latitude of the agent's geographical position. 
+                	%The value should be expressed in degrees as a double.
+                	%
+                latitude =0.0
+
+                	%(optional) [double] Longitude of the agent's geographical position. 
+                	%The value should be expressed in degrees as a double
+                	%.
+                longitude =0.0
+
+                	% [std::string] Output commodity on which the source offers m
+                	%aterial.
+                outcommod =
+
+                	%(optional) [std::string] Name of composition recipe that this 
+                	%source provides regardless of requested composition. If empty, 
+                	%source creates and provides whatever compositions are r
+                	%equested.
+                outrecipe =""
+
+                	%(optional) [double] amount of commodity that can be supplied 
+                	%at each time step
+                throughput =1e+299
+
 }

@@ -1,5 +1,5 @@
-rule("simulation ") {
-pattern = "simulation "
+rule("simulation") {
+pattern = "simulation"
 bold = true
 foreground {
     red = 0

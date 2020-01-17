@@ -2,6 +2,7 @@ import xmltodict
 import copy
 import numpy as np
 import json
+import re
 import os
 import subprocess
 import pprint
@@ -41,7 +42,7 @@ foreground {
 
     def make_basic_son(self):
         highlight_str = ''
-        for i in ['simulation ', ' control ', ' archetypes ',
+        for i in ['simulation', ' control ', ' archetypes ',
                   ' facility ', ' region ', ' recipe ']:
             highlight_str += self.highlight_maker(i, i)
         # highlight_str += highlight_maker('brack_open', '{', 'red')
@@ -251,11 +252,13 @@ $$spec_string
 
 
     facility {
+        name="facility_name"
         config {
-                %% autocomplete here
+                % autocomplete here
                 }     
     }
     facility {
+        name="facility_name"
         config {
                 % there can be multiple facilities
                 }     
@@ -263,30 +266,36 @@ $$spec_string
 
     
     region {
+        name="region_name"
         config {
-                %% autocomplete here
+                % autocomplete here
                 }
         institution {
+                name="inst_name"
                 config{
                         % define institution here
                        }
         }
         institution {
+                name="inst_name"
                 config{
                         % define institution here
                        }
         }
     }
     region {
+        name="region_name"
         config {
                 % there can be multiple regions
                 }
         institution {
+                name="inst_name"
                 config{
                         % define institution here
                        }
         }
         institution {
+                name="inst_name"
                 config{
                         % define institution here
                        }
@@ -295,7 +304,11 @@ $$spec_string
 
     
     recipe {
-        %%write your recipes here
+        % this is an example
+        basis="mass"
+        name="natl_u"
+        nuclide={comp=0.997 id="u238"}
+        nuclide={comp=0.003 id="u235"}
     }
     recipe {
         %there can be multiple recipes
@@ -450,6 +463,7 @@ $$spec_string
 
     def schema_dict_string_to_template(self, d, key, tab='\t'):
         name = key.split(':')[-1]
+        prev_bracket_location = 0
         c = copy.deepcopy(d)
         d = {name: d}
         s = pprint.pformat(self.delete_keys_from_dict(c, ['MaxOccurs', 'MinOccurs', 'ValType']))
@@ -464,31 +478,84 @@ $$spec_string
         n = self.reasonable_linebreak(self.meta_dict['annotations'][key]['doc']).split('\n') + ['']
         n = ['%'+w for w in n]
         n.append(name + ' {')
+        if 'Separations' in key:
+          print('\n'.join(s))
         for i in s:
             var = i.strip().split()[0]
-            if var == 'streams':
-                var = 'streams_'
+            # print(self.schema_dict[name].keys())
+            # if var == 'streams':
+            #    var = 'streams_'
             if var == 'InputTmpl':
                 continue
             if var not in self.schema_dict[name].keys():
                 # multiline variables with weird things
-                print('skipping', var)
-                continue
-            # see if optional
-           
-            if 'MinOccur' not in d[name][var]:
-                optional = '(optional)'
+                skipallthat = True
             else:
-                optional = ''
-            try:
-                doc = self.reasonable_linebreak(optional + ' ' +self.meta_dict['annotations'][key]['vars'][var]['doc'] ).split('\n')
-            except:
-                doc = [optional + 'no doc available.']
-            for j in doc:
-                n.append(tab+ '\t%' + j)
-            n.append(tab + i.strip().replace(' {', '=').replace('}', ''))
+                skipallthat = False
+
+            if not skipallthat:
+              # see if optional
+              if 'MinOccurs' not in self.schema_dict[name][var]:
+                  optional = '(optional)'
+              else:
+                  optional = ''
+              t = ''
+              try:
+                  if var == 'streams':
+                    t = self.meta_dict['annotations'][key]['vars']['streams_']['type']
+                    doc = self.reasonable_linebreak(optional + ' [%s] ' %t +self.meta_dict['annotations'][key]['vars']['streams_']['doc'] ).split('\n')
+                    
+                  else:
+                    t = self.meta_dict['annotations'][key]['vars'][var]['type']
+                    doc = self.reasonable_linebreak(optional + ' [%s] ' %t +self.meta_dict['annotations'][key]['vars'][var]['doc'] ).split('\n')
+              except:
+                  doc = [optional + ' [%s] '%t + 'no doc available.']
+              for j in doc:
+                  #if j == doc[0]:
+                  n.append(tab+ '\t%' + j)
+              line = tab + i.strip().replace('{}', '=')
+              n.append(line)
+              # this is saved just for later
+              prev_bracket_location = line.rfind('{') + 1
+              #if i.count('{') == 1:
+              #  n.append(tab + i.strip().replace(' {', '=').replace('}', ''))
+              #else:
+              #  n.append(tab + i.strip().replace('{}', '='))
+              if optional:
+                default = self.meta_dict['annotations'][key]['vars'][var]['default']
+                if isinstance(default, str):
+                  default = '"' + default + '"'
+                if isinstance(default, list):
+                  result = re.search('{(.*)}', n[-1]).group(1)
+                  default = '   %% The value can be multiple values of %s' %result.strip().replace('=', '')
+                n[-1] = n[-1] + str(default)
+
+
+            else:
+              # if the variable has some sort of nested input structure
+              line = ' '*prev_bracket_location + i.strip().replace('{}', '=')
+              prev_bracket_location = line.rfind('{') + 1
+              count = line.count('}') - 1
+              locs = []
+              indices = []
+              k = 1
+              while count > 0:
+                # close them brackets in the appropriate location newline
+                  indices = [w for w, va in enumerate(n[-k]) if va == '{']
+                  count -= len(indices)
+                  line = line.replace('}', '', len(indices))
+                  locs.extend(indices[::-1])
+                  k +=1
+                  if 'Separations' in key:
+                    print(indices)
+              n.append(line)
+              for j in locs:
+                n.append(' '*j + '}')        
+            n.append('')
 
         n.append('}')
+        if 'Separations' in key:
+          print('\n'.join(n))
         return '\n'.join(n)
 
 
@@ -540,10 +607,14 @@ templates = "%s"
 highlighter = "%s"
 
 extensions = [cyclus]
+maxDepth = 10
 """ %(schema_path, template_dir, highlight_path)
 
     # write the files
     with open(grammar_path, 'w') as f:
+        f.write(grammar_str)
+    # extra copy for giggles
+    with open(schema_path.replace('.sch', '.wbg'), 'w') as f:
         f.write(grammar_str)
 
     s_ = generate_schema(cyclus_cmd)

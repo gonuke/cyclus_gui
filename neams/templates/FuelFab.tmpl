@@ -59,54 +59,80 @@
 %
 %
 FuelFab {
-                	%(optional) Filler stream commodity request preferences for each 
-                	%of the given filler commodities (same order). If unspecified, 
-                	%default is to use 1.0 for all preferences.
-                fill_commod_prefs=val=
-                	%(optional) Ordered list of commodities on which to requesting 
-                	%filler stream material.
-                fill_commods=val=
-                	%(optional) Name of recipe to be used in filler material stream 
+                	%(optional) [['std::vector', 'double']] Filler stream commodity 
+                	%request preferences for each of the given filler commodities 
+                	%(same order). If unspecified, default is to use 1.0 for all 
+                	%preferences.
+                fill_commod_prefs {val =}   % The value can be multiple values of val 
+
+                	% [['std::vector', 'std::string']] Ordered list of commodities 
+                	%on which to requesting filler stream material.
+                fill_commods {val =}
+
+                	% [std::string] Name of recipe to be used in filler material stream 
                 	%requests.
-                fill_recipe=
-                	%(optional) Size of filler material stream inventory.
-                fill_size=
-                	%(optional) Fissile stream commodity request preferences for each 
-                	%of the given fissile commodities (same order). If unspecified, 
-                	%default is to use 1.0 for all preferences.
-                fiss_commod_prefs=val=
-                	%(optional) Ordered list of commodities on which to requesting 
-                	%fissile stream material.
-                fiss_commods=val=
-                	%(optional) Name for recipe to be used in fissile stream requests. 
-                	%Empty string results in use of an empty dummy recipe.
-                fiss_recipe=
-                	%(optional) Size of fissile material stream inventory.
-                fiss_size=
-                	%(optional) Latitude of the agent's geographical position. The 
-                	%value should be expressed in degrees as a double.
-                latitude=
-                	%(optional) Longitude of the agent's geographical position. The 
-                	%value should be expressed in degrees as a double.
-                longitude=
-                	%(optional) Commodity on which to offer/supply mixed fuel mat
-                	%erial.
-                outcommod=
-                	%(optional) The type of cross-sections to use for composition 
-                	%property calculation. Use 'fission_spectrum_ave' for fast reactor 
-                	%compositions or 'thermal' for thermal reactors.
-                spectrum=
-                	%(optional) Maximum number of kg of fuel material that can be 
-                	%supplied per time step.
-                throughput=
-                	%(optional) Commodity on which to request material for top-up 
-                	%stream. This MUST be set if 'topup_size > 0'.
-                topup_commod=
-                	%(optional) Top-up material stream request preference.
-                topup_pref=
-                	%(optional) Name of recipe to be used in top-up material stream 
-                	%requests. This MUST be set if 'topup_size > 0'.
-                topup_recipe=
-                	%(optional) Size of top-up material stream inventory.
-                topup_size=
+                fill_recipe =
+
+                	% [double] Size of filler material stream inventory.
+                fill_size =
+
+                	%(optional) [['std::vector', 'double']] Fissile stream commodity 
+                	%request preferences for each of the given fissile commodities 
+                	%(same order). If unspecified, default is to use 1.0 for 
+                	%all preferences.
+                fiss_commod_prefs {val =}   % The value can be multiple values of val 
+
+                	% [['std::vector', 'std::string']] Ordered list of commodities 
+                	%on which to requesting fissile stream material.
+                fiss_commods {val =}
+
+                	%(optional) [std::string] Name for recipe to be used in fissile 
+                	%stream requests. Empty string results in use of an empty dummy 
+                	%recipe.
+                fiss_recipe =""
+
+                	% [double] Size of fissile material stream inventory.
+                fiss_size =
+
+                	%(optional) [double] Latitude of the agent's geographical position. 
+                	%The value should be expressed in degrees as a double.
+                	%
+                latitude =0.0
+
+                	%(optional) [double] Longitude of the agent's geographical position. 
+                	%The value should be expressed in degrees as a double
+                	%.
+                longitude =0.0
+
+                	% [std::string] Commodity on which to offer/supply mixed fuel 
+                	%material.
+                outcommod =
+
+                	% [std::string] The type of cross-sections to use for composition 
+                	%property calculation. Use 'fission_spectrum_ave' for fast 
+                	%reactor compositions or 'thermal' for thermal reactors.
+                spectrum =
+
+                	%(optional) [double] Maximum number of kg of fuel material that 
+                	%can be supplied per time step.
+                throughput =1e+299
+
+                	%(optional) [std::string] Commodity on which to request material 
+                	%for top-up stream. This MUST be set if 'topup_size > 0'.
+                	%
+                topup_commod =""
+
+                	%(optional) [double] Top-up material stream request preferenc
+                	%e.
+                topup_pref =1.0
+
+                	%(optional) [std::string] Name of recipe to be used in top-up 
+                	%material stream requests. This MUST be set if 'topup_size > 
+                	%0'.
+                topup_recipe =""
+
+                	%(optional) [double] Size of top-up material stream inventory
+                	%.
+                topup_size =0
+
 }
