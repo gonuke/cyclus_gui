@@ -697,7 +697,8 @@ class WorkbenchRuntimeEnvironment(object):
             args.extend(self.additional)
         # request list of supported arguments to pass to the executable
         args.extend(self.run_args(options))
-
+        print('args')
+        print(args)
         if self.is_remote:
             self.echo(1, "#### Executing '", " ".join(args), "' on remote server %s " %self.remote_server_address)
             rtncode = 0
@@ -707,37 +708,47 @@ class WorkbenchRuntimeEnvironment(object):
                 # upload file
                 duplicate_hash = True
                 # just in case the hash exists
+                n =0 
                 import os
-                while duplicate_hash:
+                while duplicate_hash and n < 3:
                     rnd_dir = os.path.join('/home/', self.remote_server_username, str(uuid.uuid4()))
                     remote_input_path = os.path.join(rnd_dir, 'input.xml')
                     remote_output_path = remote_input_path.replace('.xml', '.sqlite')
                     output = self.remote_execute('mkdir %s' %rnd_dir)
                     print('error', output)
-                    break
+                    n+=1
                     if not output:
                         # empty output means nothing went wrong,  
                         duplicate_hash = False
                 self.echo(1, '# Uploading input file to %s' %self.remote_server_address)
                 self.echo(1, '# To path "%s"' %remote_input_path)
                 ftp = self.ssh.open_sftp()
-                ftp.put(self.inputs ,remote_input_path)
+                ftp.put(options.input ,remote_input_path)
 
                 self.echo(1, '# Now running %s...' %self.app_name())
                 output = self.remote_execute('%s %s -o %s --warn-limit 0' %(self.executable, remote_input_path, remote_output_path))
                 # this is super wonky, consider changing
                 if output == 0 or ('Error' not in output and 'error' not in output and 'Abort' not in output and 'fatal' not in output and 'Invalid' not in output):
+                    
+                    self.echo(1, '############################' )
                     self.echo(1, '# %s ran successfully!' %self.app_name())
+                    self.echo(1, '############################' )
+                    
                     self.echo(1, '# Now downloading output file')
-                    pre, ext = os.path.splitext(self.inputs)
+                    pre, ext = os.path.splitext(options.input)
                     ftp.get(remote_output_path, os.path.join(self.working_directory, pre + '.out'))
                     # this is super wonky, consider changing
                     time.sleep(5)
                     self.echo(1, '# Download complete (%s)' %os.path.join(self.working_directory, pre + '.out'))
 
+                else:
+                    self.echo(1, '# Run Failed! See the following output')
+                    self.echo(1, output)
+
             except Exception as e:
                 self.echo(0, 'Something Went Wrong')
                 self.echo(0, 'See Error below:')
+                print(e)
                 self.echo(0, e)
                 sys.exit(1)
 
@@ -777,10 +788,9 @@ class WorkbenchRuntimeEnvironment(object):
                 import os
                 rtncode = os.system(" ".join(args))
 
-        self.echo(1, "# Finished running ", self.app_name(), " with exit code ",
-                  str(proc.returncode))
-        self.echo(1, "#### Run ", self.app_name(), " ####")
-        self.echo(1)
+                self.echo(1, "# Finished running ", self.app_name(), " with exit code ",
+                          str(proc.returncode))
+                self.echo(1)
 
     def run_args(self, options):
         """returns a list of arguments to pass to the given executable"""
