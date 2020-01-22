@@ -478,8 +478,6 @@ $$spec_string
         n = self.reasonable_linebreak(self.meta_dict['annotations'][key]['doc']).split('\n') + ['']
         n = ['%'+w for w in n]
         n.append(name + ' {')
-        if 'Separations' in key:
-          print('\n'.join(s))
         for i in s:
             var = i.strip().split()[0]
             # print(self.schema_dict[name].keys())
@@ -546,16 +544,12 @@ $$spec_string
                   line = line.replace('}', '', len(indices))
                   locs.extend(indices[::-1])
                   k +=1
-                  if 'Separations' in key:
-                    print(indices)
               n.append(line)
               for j in locs:
                 n.append(' '*j + '}')        
             n.append('')
 
         n.append('}')
-        if 'Separations' in key:
-          print('\n'.join(n))
         return '\n'.join(n)
 
 
