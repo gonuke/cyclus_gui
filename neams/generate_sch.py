@@ -339,6 +339,7 @@ $$spec_string
             self.schema_dict[name] = {'InputTmpl': '"%s"' %name}
             if 'NullRegion' in arche or 'NullInst' in arche:
                 self.template_dict[name] = name+'= null'
+                self.schema_dict[name] = {'ExistsIn': ['null']}
                 continue
             d = xmltodict.parse(self.meta_dict['schema'][arche])['interleave']
             k = self.check_if_list(d['element'])
