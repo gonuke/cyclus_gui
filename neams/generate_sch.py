@@ -202,7 +202,7 @@ class generate_schema:
                             MaxOccurs=1
                             $$institution_enums
                             $$institution_schema}
-                    initialfacilitiylist={MaxOccurs=1
+                    initialfacilitylist={MaxOccurs=1
                                           entry={MinOccurs=1
                                                  number={MaxOccurs=1
                                                          ValType=Int}
@@ -339,7 +339,6 @@ $$spec_string
             self.schema_dict[name] = {'InputTmpl': '"%s"' %name}
             if 'NullRegion' in arche or 'NullInst' in arche:
                 self.template_dict[name] = name+'= null'
-                self.schema_dict[name] = {'ExistsIn': ['null']}
                 continue
             d = xmltodict.parse(self.meta_dict['schema'][arche])['interleave']
             k = self.check_if_list(d['element'])
