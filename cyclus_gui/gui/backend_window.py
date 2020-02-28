@@ -9,10 +9,12 @@ import shutil
 import json
 import copy
 import sqlite3 as lite
+import networkx as nx
 import numpy as np
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+import pandas as pd
 from window_tools import *
 
 
@@ -31,6 +33,7 @@ class BackendWindow(Frame):
         self.get_id_proto_dict()
         self.get_start_times()
 
+
         self.guide()
         self.el_z_dict = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10, 'Na': 11, 'Mg': 12, 'Al': 13, 'Si': 14, 'P': 15, 'S': 16, 'Cl': 17, 'Ar': 18, 'K': 19, 'Ca': 20, 'Sc': 21, 'Ti': 22, 'V': 23, 'Cr': 24, 'Mn': 25, 'Fe': 26, 'Co': 27, 'Ni': 28, 'Cu': 29, 'Zn': 30, 'Ga': 31, 'Ge': 32, 'As': 33, 'Se': 34, 'Br': 35, 'Kr': 36, 'Rb': 37, 'Sr': 38, 'Y': 39, 'Zr': 40, 'Nb': 41, 'Mo': 42, 'Tc': 43, 'Ru': 44, 'Rh': 45, 'Pd': 46, 'Ag': 47, 'Cd': 48, 'In': 49, 'Sn': 50, 'Sb': 51, 'Te': 52, 'I': 53, 'Xe': 54, 'Cs': 55, 'Ba': 56, 'La': 57, 'Ce': 58, 'Pr': 59, 'Nd': 60, 'Pm': 61, 'Sm': 62, 'Eu': 63, 'Gd': 64, 'Tb': 65, 'Dy': 66, 'Ho': 67, 'Er': 68, 'Tm': 69, 'Yb': 70, 'Lu': 71, 'Hf': 72, 'Ta': 73, 'W': 74, 'Re': 75, 'Os': 76, 'Ir': 77, 'Pt': 78, 'Au': 79, 'Hg': 80, 'Tl': 81, 'Pb': 82, 'Bi': 83, 'Po': 84, 'At': 85, 'Rn': 86, 'Fr': 87, 'Ra': 88, 'Ac': 89, 'Th': 90, 'Pa': 91, 'U': 92, 'Np': 93, 'Pu': 94, 'Am': 95, 'Cm': 96, 'Bk': 97, 'Cf': 98, 'Es': 99, 'Fm': 100, 'Md': 101, 'No': 102, 'Lr': 103}
         self.z_el_dict = {v:k for k, v in self.el_z_dict.items()}
@@ -38,6 +41,9 @@ class BackendWindow(Frame):
 
         # raw_table_button = Button(self.master, text='Navigate Raw Tables', command=lambda : self.view_raw_tables())
         # raw_table_button.pack()
+
+        material_flow_plot = Button(self.master, text='Visualize Trade', command=lambda: self.plot_flow())
+        material_flow_plot.pack()
 
         material_flow_button = Button(self.master, text='Get Material Flow', command=lambda : self.material_flow_selection())
         material_flow_button.pack()
@@ -592,8 +598,123 @@ class BackendWindow(Frame):
             self.plot(x, y, '%s Inventory' %name, '%s_inv' %name)
         elif action == 'export':
             self.export(x, y, '%s_inv.csv' %name)
-        
 
+
+    def plot_flow(self):
+        transactions = self.cur.execute('SELECT * FROM transactions').fetchall()
+        agentids = self.cur.execute('SELECT * FROM agententry').fetchall()
+
+        ids = [q['agentid'] for q in agentids]
+        ps = [q['prototype'] for q in agentids]
+        id_dict = {k:v for k,v in zip(ids, ps)}
+
+        transaction_columns = [w['name'] for w in self.cur.execute('pragma table_info(transactions)').fetchall()]
+        # make transactions table to pandas dataframe for easier parsing
+        df = pd.DataFrame(transactions)
+        df.columns = transaction_columns
+        df['receiver']  = [id_dict[q] for q in df['ReceiverId']]
+        df['sender'] = [id_dict[q] for q in df['SenderId']]
+
+        only_sender = []
+        s = list(set(df['sender']))
+        r = list(set(df['receiver']))
+        for i in s:
+            if i not in r and i not in only_sender:
+                only_sender.append(i)
+        flow = [only_sender]
+        while True:
+            commods = list(set(df[df['sender'].isin(flow[-1])]['Commodity']))
+            if commods == []:
+                break
+            d = {}
+            rs = []
+            for commod in commods:
+                d[commod] = list(set(df[df['Commodity'] == commod]['receiver']))
+                rs.extend(d[commod])
+            flow.append(rs)
+
+        already = []
+        flow_clean = []
+        for i in flow:
+            i = [q for q in i if q not in already]
+            already.extend(i)
+            flow_clean.append(i)
+        flow_clean = [q for q in flow_clean if len(q) != 0]
+
+
+        max_col = max([len(q) for q in flow_clean])
+        maxx = 5 * max_col
+        maxy = 14 * len(flow_clean)
+        y_coords = np.linspace(0, maxx, len(flow_clean))
+        x_coords = np.linspace(0, maxy, max([len(q) for q in flow_clean]))
+        xgap = x_coords[1] - x_coords[0]
+        ygap = y_coords[1] - y_coords[0]
+
+        uniq_commods = list(set(df['Commodity']))
+        commod_color_dict = {k:v for k,v in zip(uniq_commods, np.linspace(0, 1, len(uniq_commods)))}
+        uniq_arches_query = self.cur.execute('SELECT * FROM Agententry WHERE Kind=="Facility"').fetchall()
+        uniq_arches = list(set(q['Spec'] for q in uniq_arches_query))
+        protos = list(set([q['Prototype'] for q in uniq_arches_query]))
+        arche_color = {k:v for k,v in zip(uniq_arches, np.linspace(0,1,len(uniq_arches)))}
+        proto_arche_dict = {k:v for k,v in zip([q['Prototype'] for q in uniq_arches_query], [q['Spec'] for q in uniq_arches_query])}
+        proto_color_dict = {proto:arche_color[proto_arche_dict[proto]] for proto in protos}
+
+
+        stairs = 10
+        steps = list(np.linspace(-1.0 * ygap / 2, ygap / 2, stairs))
+        # repeat it. quite hacky
+        steps = steps * (int(max_col / len(steps)) + 1)
+
+        # actually building 
+        colormap = 'tab20'
+        plt.rcParams['image.cmap'] = colormap
+        plt.figure(figsize=(5 * len(flow_clean), 0.5*max_col))
+        G = nx.Graph()
+        
+        for indx, val in enumerate(flow_clean):
+            n = len(val)
+            if not n == len(x_coords):
+                new_x_coords = x_coords[::int(len(x_coords)/(n+1))][1:]
+                grad = False
+            else:
+                val = val[::-1]
+                new_x_coords = x_coords
+                grad = True
+            for indx2, val2 in enumerate(val):
+                if grad:
+                    p = steps[indx2]
+                else:
+                    p = 0
+                G.add_node(val2, pos=(new_x_coords[indx2], y_coords[indx]+p), color=proto_color_dict[val2])
+
+        pos = nx.get_node_attributes(G, 'pos')
+
+        trades = df.drop_duplicates(subset=['sender', 'receiver'])
+        for indx, row in trades.iterrows():
+            G.add_edge(row['sender'], row['receiver'], color=matplotlib.cm.get_cmap(colormap)(commod_color_dict[row['Commodity']]))
+
+        edges = G.edges()
+        edge_colors = [G[u][v]['color'] for u, v in edges]
+        nodes = G.nodes()
+        node_colors = list(nx.get_node_attributes(G, 'color').values())
+
+        # this is for legend
+        f = plt.figure(1)
+        ax = f.add_subplot(1,1,1)
+        for key, val in arche_color.items():
+            ax.scatter([0],[0], c=[matplotlib.cm.get_cmap(colormap)(val)], label=key)
+        for key, val in commod_color_dict.items():
+            ax.plot([0],[0], color=matplotlib.cm.get_cmap(colormap)(val), label=key)
+
+        nx.draw(G, pos, with_labels=True, edge_color=edge_colors, node_color=node_colors, ax=ax)
+        plt.text(0.5, 0, '*Note that only one node per unique prototype name is shown.', fontdict={'color':'red'})
+        plt.legend(loc='upper left')
+        plt.show()
+
+
+    ############################################################
+    ############################################################
+    ############################################################
     # helper functions
 
     def plot(self, x, y, ylabel, title='', xlabel='Date'):
