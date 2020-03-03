@@ -215,10 +215,10 @@ class Cygui(Frame):
         for part in elements:
             with open(os.path.join(output_path, part+'.xml'), 'w') as f:
                 if part in ['facility', 'region', 'recipe']:
-                    f.write('<root>')
+                    f.write('\n<root>')
                 f.write(xmltodict.unparse({part: xml_dict[part]}, pretty=True, full_document=False))
                 if part in ['facility', 'region', 'recipe']:
-                    f.write('</root>')
+                    f.write('\n</root>')
 
 
     def load_from_pris(self):
@@ -344,6 +344,12 @@ class Cygui(Frame):
             for i in self.file_list:
                 skipfront = 0
                 skipback = 0
+                with open(os.path.join(output_path,i), 'r') as f:
+                    x = f.read()
+                    x = x.replace('<root>', '')
+                    x = x.replace('</root>', '')
+                    input_file += x + '\n\n'
+                """
                 with open(os.path.join(output_path, i), 'r') as f:
                     x = f.readlines()
                     if 'facility' in i:
@@ -357,6 +363,7 @@ class Cygui(Frame):
                         lines = x[skipfront:skipback]
                     input_file += ''.join(lines)
                     input_file += '\n\n\n'
+                """
             input_file += '\n</simulation>'
             with open(os.path.join(output_path, 'input.xml'), 'w') as f:
                 f.write(input_file)

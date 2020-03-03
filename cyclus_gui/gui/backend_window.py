@@ -622,6 +622,7 @@ class BackendWindow(Frame):
             if i not in r and i not in only_sender:
                 only_sender.append(i)
         flow = [only_sender]
+        cache = []
         while True:
             commods = list(set(df[df['sender'].isin(flow[-1])]['Commodity']))
             if commods == []:
@@ -631,6 +632,10 @@ class BackendWindow(Frame):
             for commod in commods:
                 d[commod] = list(set(df[df['Commodity'] == commod]['receiver']))
                 rs.extend(d[commod])
+            if (all(x in cache for x in rs)):
+                break
+            rs = [x for x in rs if x not in cache]
+            cache.extend(rs)
             flow.append(rs)
 
         already = []
@@ -707,8 +712,8 @@ class BackendWindow(Frame):
             ax.plot([0],[0], color=matplotlib.cm.get_cmap(colormap)(val), label=key)
 
         nx.draw(G, pos, with_labels=True, edge_color=edge_colors, node_color=node_colors, ax=ax)
-        plt.text(0.5, 0, '*Note that only one node per unique prototype name is shown.', fontdict={'color':'red'})
-        plt.legend(loc='upper left')
+        plt.text(0.5, 0, '*Only one node per unique prototype name is shown.', fontdict={'color':'red'})
+        plt.legend(loc='lower right', fancybox=True, framealpha=0.5, ncol=2)
         plt.show()
 
 
