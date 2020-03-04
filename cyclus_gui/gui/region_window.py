@@ -12,9 +12,9 @@ import copy
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-from read_xml import *
-from window_tools import *
-from hovertip import CreateToolTip
+from cyclus_gui.gui.read_xml import *
+from cyclus_gui.gui.window_tools import *
+from cyclus_gui.gui.hovertip import CreateToolTip
 
 class RegionWindow(Frame):
     def __init__(self, master, output_path):

@@ -9,19 +9,18 @@ import os
 import shutil
 import json
 import copy
-from sim_window import SimulationWindow
-from arche_window import ArchetypeWindow
-from proto_window import PrototypeWindow
-from region_window import RegionWindow
-from recipe_window import RecipeWindow
-from backend_window import BackendWindow
+from cyclus_gui.gui.sim_window import SimulationWindow
+from cyclus_gui.gui.arche_window import ArchetypeWindow
+from cyclus_gui.gui.proto_window import PrototypeWindow
+from cyclus_gui.gui.region_window import RegionWindow
+from cyclus_gui.gui.recipe_window import RecipeWindow
+from cyclus_gui.gui.backend_window import BackendWindow
 import subprocess
 import copy
-from run_cyclus import cyclus_run
+from cyclus_gui.gui.run_cyclus import cyclus_run
 import cyclus_gui.tools.from_pris as fp
-from hovertip import CreateToolTip
-from window_tools import *
-from threading import Timer
+from cyclus_gui.gui.hovertip import CreateToolTip
+from cyclus_gui.gui.window_tools import *
 
 
 uniq_id = str(uuid.uuid4())[:3]
@@ -283,18 +282,18 @@ class Cygui(Frame):
         self.button_color = {}
         self.button_loc = {}
         for indx, c in enumerate(country_list):
-            self.button_color[c] = Button(parent, text=c, command=lambda country=c : self.add_country(country), fg='black')
+            self.button_color[c] = Button(parent, text=c, command=lambda country=c : self.add_country(country, parent), fg='black')
             self.button_color[c].grid(row=indx+1, column=0)
             self.button_loc[c] = indx+1
 
 
-    def add_country(self, country):
+    def add_country(self, country, parent):
         if country in self.selected_countries:
             self.selected_countries.remove(country)
-            self.button_color[country] = Button(self.country_select_window, text=country, command=lambda country=country: self.add_country(country), fg='black').grid(row=self.button_loc[country], column=0)
+            self.button_color[country] = Button(parent, text=country, command=lambda country=country: self.add_country(country, parent), fg='black').grid(row=self.button_loc[country], column=0)
         else:
             self.selected_countries.append(country)
-            self.button_color[country] = Button(self.country_select_window, text=country, command=lambda country=country: self.add_country(country), fg='green', foreground='green').grid(row=self.button_loc[country], column=0)
+            self.button_color[country] = Button(parent, text=country, command=lambda country=country: self.add_country(country, parent), fg='green', foreground='green').grid(row=self.button_loc[country], column=0)
 
 
     def gen_pris(self):

@@ -7,7 +7,7 @@ import uuid
 import os
 import shutil
 import json
-from read_xml import *
+from cyclus_gui.gui.read_xml import *
 
 
 class RecipeWindow(Frame):

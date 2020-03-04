@@ -10,7 +10,7 @@ import json
 import copy
 import urllib.request
 import subprocess
-from read_xml import *
+from cyclus_gui.gui.read_xml import *
 
 
 class ArchetypeWindow(Frame):

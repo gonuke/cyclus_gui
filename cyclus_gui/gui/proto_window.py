@@ -9,9 +9,9 @@ import os
 import shutil
 import json
 import copy
-from window_tools import *
-from read_xml import *
-from hovertip import CreateToolTip
+from cyclus_gui.gui.window_tools import *
+from cyclus_gui.gui.read_xml import *
+from cyclus_gui.gui.hovertip import CreateToolTip
 
 class PrototypeWindow(Frame):
     def __init__(self, master, output_path):

@@ -15,7 +15,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import pandas as pd
-from window_tools import *
+from cyclus_gui.gui.window_tools import *
 
 
 class BackendWindow(Frame):
