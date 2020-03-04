@@ -19,6 +19,7 @@ import subprocess
 import copy
 from cyclus_gui.gui.run_cyclus import cyclus_run
 import cyclus_gui.tools.from_pris as fp
+import cyclus_gui.tools.pris_data as pris_data
 from cyclus_gui.gui.hovertip import CreateToolTip
 from cyclus_gui.gui.window_tools import *
 
@@ -269,9 +270,12 @@ class Cygui(Frame):
 
 
     def select_countries(self):
-        self.pris_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src', 'pris.csv')
-        with open(self.pris_csv_path, 'r') as f:
-            q = f.readlines()
+        #self.pris_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src', 'pris.csv')
+        #print('PRIS CSV PATH')
+        #print(self.pris_csv_path)
+        #with open(self.pris_csv_path, 'r') as f:
+        #    q = f.readlines()
+        q = pris_data.pris_data()
         country_list = sorted(list(set([w.split(',')[0] for w in q if 'Country' not in w])))
         self.country_select_window = Toplevel(self.load_from_pris_window)
         self.country_select_window.title('Select Countries')
