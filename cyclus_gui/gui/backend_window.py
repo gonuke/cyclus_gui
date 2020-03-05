@@ -23,18 +23,20 @@ class BackendWindow(Frame):
         """
         does backend analysis
         """
-
+        self.screen_width = master.winfo_screenwidth()
+        self.screen_height = master.winfo_screenheight()
+        
         self.master = Toplevel(master)
         self.master.title('Backend Analysis')
         self.output_path = output_path
-        self.master.geometry('+0+350')
+        self.master.geometry('+0+%s' %int(self.screen_height/4))
         self.configure_window()
         self.get_cursor()
         self.get_id_proto_dict()
         self.get_start_times()
 
 
-        self.guide()
+        self.metaguide()
         self.el_z_dict = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10, 'Na': 11, 'Mg': 12, 'Al': 13, 'Si': 14, 'P': 15, 'S': 16, 'Cl': 17, 'Ar': 18, 'K': 19, 'Ca': 20, 'Sc': 21, 'Ti': 22, 'V': 23, 'Cr': 24, 'Mn': 25, 'Fe': 26, 'Co': 27, 'Ni': 28, 'Cu': 29, 'Zn': 30, 'Ga': 31, 'Ge': 32, 'As': 33, 'Se': 34, 'Br': 35, 'Kr': 36, 'Rb': 37, 'Sr': 38, 'Y': 39, 'Zr': 40, 'Nb': 41, 'Mo': 42, 'Tc': 43, 'Ru': 44, 'Rh': 45, 'Pd': 46, 'Ag': 47, 'Cd': 48, 'In': 49, 'Sn': 50, 'Sb': 51, 'Te': 52, 'I': 53, 'Xe': 54, 'Cs': 55, 'Ba': 56, 'La': 57, 'Ce': 58, 'Pr': 59, 'Nd': 60, 'Pm': 61, 'Sm': 62, 'Eu': 63, 'Gd': 64, 'Tb': 65, 'Dy': 66, 'Ho': 67, 'Er': 68, 'Tm': 69, 'Yb': 70, 'Lu': 71, 'Hf': 72, 'Ta': 73, 'W': 74, 'Re': 75, 'Os': 76, 'Ir': 77, 'Pt': 78, 'Au': 79, 'Hg': 80, 'Tl': 81, 'Pb': 82, 'Bi': 83, 'Po': 84, 'At': 85, 'Rn': 86, 'Fr': 87, 'Ra': 88, 'Ac': 89, 'Th': 90, 'Pa': 91, 'U': 92, 'Np': 93, 'Pu': 94, 'Am': 95, 'Cm': 96, 'Bk': 97, 'Cf': 98, 'Es': 99, 'Fm': 100, 'Md': 101, 'No': 102, 'Lr': 103}
         self.z_el_dict = {v:k for k, v in self.el_z_dict.items()}
         Label(self.master, text='Choose backend analysis type:').pack()
@@ -63,7 +65,7 @@ class BackendWindow(Frame):
     def configure_window(self):
         self.config_window = Toplevel(self.master)
         self.config_window.title('Configuration')
-        self.config_window.geometry('+350+500')
+        self.config_window.geometry('+%s+%s' %(int(self.screen_width/1.5), int(self.screen_height/3)))
         parent = self.config_window
 
         columnspan = 4
@@ -136,13 +138,14 @@ class BackendWindow(Frame):
     def view_raw_tables(self):
         self.raw_table_window = Toplevel(self.master)
         self.raw_table_window.title('Navigate Raw Tables')
-        self.raw_table_window.geometry('+0+1750')
+        self.raw_table_window.geometry('+%s+%s' %(int(self.screen_width/4), int(self.screen_height/2)))
+
         # just like a sql query with ability to export and stuff
-        self.guide_text.set('This not ready yet')
+        self.guide('This not ready yet')
 
 
     def material_flow_selection(self):
-        self.guide_text.set("""
+        self.guide("""
             Material Flow:
             
             Material flow can be plotted/exported by agent or prototype
@@ -154,7 +157,7 @@ class BackendWindow(Frame):
                 which transaction to plot / export""")
         self.mat_selec_window = Toplevel(self.master)
         self.mat_selec_window.title('Which Selection')
-        self.mat_selec_window.geometry('+350+500')
+        self.mat_selec_window.geometry('+%s+%s' %(int(self.screen_width/9999), int(self.screen_height/2)))
         parent = self.mat_selec_window
         Label(parent, text='Group by agent or prototype', bg='yellow').pack()
         Button(parent, text='Group by agent', command=lambda: self.view_material_flow(groupby='agent')).pack()
@@ -166,7 +169,7 @@ class BackendWindow(Frame):
         # show material trade between prototypes
         self.material_flow_window = Toplevel(self.master)
         self.material_flow_window.title('List of transactions to view')
-        self.material_flow_window.geometry('+350+500')
+        self.material_flow_window.geometry('+%s+%s' %(int(self.screen_width/4), int(self.screen_height/2)))
         parent = self.material_flow_window
 
         traders = self.cur.execute('SELECT DISTINCT senderid, receiverid, commodity FROM transactions').fetchall()
@@ -266,7 +269,7 @@ class BackendWindow(Frame):
             
 
     def commodity_transfer_window(self):
-        self.guide_text.set("""
+        self.guide("""
             Commodity transfer:
             
             You can plot/export the aggregated transaction
@@ -274,7 +277,7 @@ class BackendWindow(Frame):
             is not taken into account.""")
         self.commodity_tr_window = Toplevel(self.master)
         self.commodity_tr_window.title('Commodity Movement Window')
-        self.commodity_tr_window.geometry('+350+500')
+        self.commodity_tr_window.geometry('+%s+%s' %(int(self.screen_width/4), int(self.screen_height/2)))
         parent = self.commodity_tr_window
         
         commods = self.cur.execute('SELECT DISTINCT commodity FROM transactions').fetchall()
@@ -334,7 +337,7 @@ class BackendWindow(Frame):
         """
         plots / exports prototype entry and exit
         """
-        self.guide_text.set("""
+        self.guide("""
             Facility Prototype Deployment:
             
             You can plot / export different facility prototype deployment:
@@ -345,7 +348,7 @@ class BackendWindow(Frame):
 
         self.agent_dep_window = Toplevel(self.master)
         self.agent_dep_window.title('Facility Prototype Deployment / Exit Window')
-        self.agent_dep_window.geometry('+350+500')
+        self.agent_dep_window.geometry('+%s+%s' %(int(self.screen_width/4), int(self.screen_height/2)))
         parent = self.agent_dep_window
         # s = bwidget.ScrolledWindow(self.agent_dep_window, auto='vertical', scrollbar='vertical')
         # f = bwidget.ScrollableFrame(s, constrainedwidth=True)
@@ -417,7 +420,7 @@ class BackendWindow(Frame):
 
 
     def timeseries_window(self):
-        self.guide_text.set("""
+        self.guide("""
             Timeseries
             
             Cyclus has a useful tool of `timeseries', where
@@ -432,7 +435,7 @@ class BackendWindow(Frame):
             """)
         self.ts_window = Toplevel(self.master)
         self.ts_window.title('Timeseries Window')
-        self.ts_window.geometry('+350+500')
+        self.ts_window.geometry('+%s+%s' %(int(self.screen_width/4), int(self.screen_height/2)))
         parent = self.ts_window
 
         tables = self.cur.execute('SELECT name FROM sqlite_master WHERE type="table"').fetchall()
@@ -461,7 +464,7 @@ class BackendWindow(Frame):
         agentname_list = [self.id_proto_dict[i] for i in agentid_list]
         self.ta_window = Toplevel(self.ts_window)
         self.ta_window.title('%s Timeseries Window' %timeseries.capitalize())
-        self.ta_window.geometry('+500+500')
+        self.ta_window.geometry('+%s+%s' %(int(self.screen_width/3), int(self.screen_height/2)))
         parent = self.ta_window
 
         parent = assess_scroll_deny(len(agentname_list), self.ta_window)
@@ -510,7 +513,7 @@ class BackendWindow(Frame):
             messagebox.showerror('Dont have it', 'This simulation was run without `explicit_inventory` turned on in the simulation definition. Turn that on and run the simulation again to view the inventory.')
             return
 
-        self.guide_text.set("""
+        self.guide("""
             Inventory
             
             If you have `explicit_inventory' on when running the
@@ -526,7 +529,8 @@ class BackendWindow(Frame):
         # show material trade between prototypes
         self.inv_window = Toplevel(self.master)
         self.inv_window.title('Which Selection')
-        self.inv_window.geometry('+350+500')
+        self.inv_window.geometry('+%s+%s' %(int(self.screen_width/99999), int(self.screen_height/2)))
+
         parent = self.inv_window
         Label(parent, text='Group by agent or prototype:', bg='yellow').pack()
         Button(parent, text='Group by agent', command=lambda: self.inv_inv_window(groupby='agent')).pack()
@@ -537,7 +541,8 @@ class BackendWindow(Frame):
         # show material trade between prototypes
         self.inv_inv_window_ = Toplevel(self.inv_window)
         self.inv_inv_window_.title('Groupby %s' %groupby)
-        self.inv_inv_window_.geometry('+500+500')
+        self.inv_inv_window_.geometry('+%s+%s' %(int(self.screen_width/1.5), int(self.screen_height/1.5)))
+
         parent = self.inv_inv_window_
         if groupby == 'agent':
             parent = assess_scroll_deny(len(self.id_proto_dict.keys()), self.inv_inv_window_)
@@ -854,11 +859,10 @@ class BackendWindow(Frame):
             messagebox.showerror('You put in %s for the number of isotopes\n It should be an integer' %n_isos)
             return -1
 
-
-    def guide(self):
-        self.guide_window = Toplevel(self.master)
-        self.guide_window.title('Backend Analysis Guide')
-        self.guide_window.geometry('+0+200')
+    def metaguide(self):
+        self.metaguide_window = Toplevel(self.master)
+        self.metaguide_window.title('Backend Analysis Guide')
+        self.metaguide_window.geometry('+%s+0' %(int(self.screen_width/1.5)))
         txt = """
         Here you can perform backend analysis of the Cyclus run.
 
@@ -874,6 +878,35 @@ class BackendWindow(Frame):
         the total mass flow.
 
         """
+        self.metaguide_text = StringVar()
+        self.metaguide_text.set(txt)
+
+        Label(self.metaguide_window, textvariable=self.metaguide_text, justify=LEFT).pack(padx=30, pady=30)
+
+    def guide(self, txt=''):
+        try:
+            self.guide_window.destroy()
+        except:
+            z = 0
+        self.guide_window = Toplevel(self.master)
+        self.guide_window.title('Backend Analysis Guide')
+        self.guide_window.geometry('+%s+%s' %(int(self.screen_width/1.5), int(self.screen_height/2)))
+        if txt == '':
+            txt = """
+            Here you can perform backend analysis of the Cyclus run.
+
+            For more advanced users, you can navigate the tables yourself,
+            using a sql query.
+
+            For more beginner-level users, you can use the get material
+            flow to obtain material flow, composition, etc for between
+            facilities.
+
+            The configure window has variables you can set for plot/export
+            settings. If you leave `plot top n isos' blank, it will plot/export
+            the total mass flow.
+
+            """
         self.guide_text = StringVar()
         self.guide_text.set(txt)
 

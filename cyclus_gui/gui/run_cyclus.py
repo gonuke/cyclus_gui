@@ -18,14 +18,15 @@ import os
 
 class cyclus_run:
     def __init__(self, master, input_path, output_path):
-
+        self.screen_width = master.winfo_screenwidth()
+        self.screen_height = master.winfo_screenheight()
         self.input_path = input_path
         self.output_path = output_path
 
         # open new window
         self.master = Toplevel(master)
         self.master.title('Running Cyclus')
-        self.master.geometry('+5000+300')
+        self.master.geometry('+0+%s' %int(self.screen_height/4))
         # configure page
         columnspan = 5
         Label(self.master, text='Cyclus Run configuration').grid(row=0, columnspan=columnspan)

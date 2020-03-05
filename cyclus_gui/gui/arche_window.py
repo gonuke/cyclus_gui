@@ -21,9 +21,12 @@ class ArchetypeWindow(Frame):
         [0] = library
         [1] = archetype name
         """
+
+        self.screen_width = master.winfo_screenwidth()
+        self.screen_height = master.winfo_screenheight()
         self.master = Toplevel(master)
         self.output_path = output_path
-        self.master.geometry('+0+450')
+        self.master.geometry('+0+%s' %(int(self.screen_height//3)))
         self.guide()
         self.arche = [['agents', 'NullInst'], ['agents', 'NullRegion'], ['cycamore', 'Source'],
                       ['cycamore', 'Sink'], ['cycamore', 'DeployInst'], ['cycamore', 'Enrichment'],
@@ -89,7 +92,7 @@ class ArchetypeWindow(Frame):
             z=0
 
         self.status_window = Toplevel(self.master)
-        self.status_window.geometry('+350+500')
+        self.status_window.geometry('+%s+0' %int(self.screen_width/3))
         Label(self.status_window, text='Loaded modules:', bg='yellow').grid(row=0, columnspan=2)
         row = 1
         for i in self.arche:
@@ -167,7 +170,7 @@ class ArchetypeWindow(Frame):
     def guide(self):
 
         self.guide_window = Toplevel(self.master)
-        self.guide_window.geometry('+0+1750')
+        self.guide_window.geometry('+%s+0' %int(self.screen_width/1.2))
         guide_string = """
         All Cyclus and Cycamore archetypes are already added. If there are additional archetypes
         you would like to add, click the `Add Row' button, type in the library and archetype,

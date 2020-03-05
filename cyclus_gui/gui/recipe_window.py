@@ -23,10 +23,12 @@ class RecipeWindow(Frame):
     """
 
     def __init__(self, master, output_path):
+        self.screen_width = master.winfo_screenwidth()
+        self.screen_height = master.winfo_screenheight()
         self.master = Toplevel(master)
         self.master.title('Define recipes')
         self.output_path = output_path
-        self.master.geometry('+0+450')
+        self.master.geometry('+0+%s' %int(self.screen_height/4))
         self.scrape_for_recipes_in_facility()
         self.guide()
         browse_button = Button(self.master, text='Add From File [atomic]', command=lambda : self.askopenfile('atom')).grid(row=1)
@@ -83,7 +85,7 @@ class RecipeWindow(Frame):
 
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined Recipes')
-        self.status_window.geometry('+125+450')
+        self.status_window.geometry('+%s+0' %int(self.screen_width/3))
         Label(self.status_window, text='Loaded recipes:', bg='yellow').grid(row=0, columnspan=2)
         row=1
         print(self.recipe_dict)
@@ -112,7 +114,8 @@ class RecipeWindow(Frame):
         """
         self.addrecipe_window = Toplevel(self.master)
         self.addrecipe_window.title('New recipe definition (%s)' %atom_or_mass)
-        self.addrecipe_window.geometry('+400+200')
+        self.addrecipe_window.geometry('+%s+%s' %(int(self.screen_width/4), int(self.screen_height/1.8)))
+        
 
         Button(self.addrecipe_window, text='Done!',
                command= lambda : self.send_input(self.name_entry, self.textfield, self.addrecipe_window, atom_or_mass)).grid(row=0, columnspan=2)
@@ -181,6 +184,9 @@ class RecipeWindow(Frame):
 
     def askopenfile(self, base):
         file = filedialog.askopenfile(parent=self.master, mode='r', title='Choose a file')
+        if not file:
+            # nonetype, user cancelled
+            return
         filename = os.path.splitext(os.path.basename(file.name))[0] + '_' + base
         data = file.read()
         
@@ -224,7 +230,7 @@ class RecipeWindow(Frame):
     def guide(self):
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Recipe guide')
-        self.guide_window.geometry('+0+200')
+        self.guide_window.geometry('+%s+0' %int(self.screen_width/1.5))
         guide_string = """
         The format of recipes could be comma, space, or tab separated.
         For example:

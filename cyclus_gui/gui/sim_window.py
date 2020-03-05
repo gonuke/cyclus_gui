@@ -18,11 +18,13 @@ class SimulationWindow():
         val: value
     """
     def __init__(self, master, output_path):
+        self.screen_width = master.winfo_screenwidth()
+        self.screen_height = master.winfo_screenheight()
         self.master = Toplevel(master)
         self.master.title('Simulation definition')
         self.output_path = output_path
         # self.frame = Frame(self.master)
-        self.master.geometry('+0+300')
+        self.master.geometry('+0+%s' %int(self.screen_height/3))
         self.guide()
         inputs = ['duration', 'startmonth', 'startyear', 'decay',
                   'explicit_inventory', 'dt']
@@ -116,7 +118,7 @@ class SimulationWindow():
 
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Simulation guide')
-        self.guide_window.geometry('+0+1500')
+        self.guide_window.geometry('+%s+0' %int(self.screen_width/1.5))
 
         guide_string = """
         duration =

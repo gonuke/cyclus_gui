@@ -30,7 +30,9 @@ class PrototypeWindow(Frame):
         self.master = Toplevel(master)
         self.master.title('Add Facilities')
         self.output_path = output_path
-        self.master.geometry('+0+350')
+        self.screen_width = master.winfo_screenwidth()
+        self.screen_height = master.winfo_screenheight()
+        self.master.geometry('+0+%s' %int(self.screen_height/4))
         self.guide()
         Label(self.master, text='Choose a facility archetype to add:', bg='yellow').grid(row=0)
         self.get_schema()
@@ -63,7 +65,7 @@ class PrototypeWindow(Frame):
             self.region_dict, n = read_xml(os.path.join(self.output_path, 'region.xml'),
                                         'region')
         self.region_status_window = Toplevel(self.master)
-        self.region_status_window.geometry('+250+460')
+        self.region_status_window.geometry('+%s+0' %int(self.screen_width/3))
         c_dict = {'Region': 'pale green',
                   'Institution': 'light salmon',
                   'Facility_proto': 'SkyBlue1',
@@ -96,7 +98,7 @@ class PrototypeWindow(Frame):
     def update_status_window(self):
         self.status_window = Toplevel(self.master)
         self.status_window.title('Defined facility prototypes')
-        self.status_window.geometry('+400+350')
+        self.status_window.geometry('+%s+0' %int(self.screen_width/4))
         parent = self.status_window
         parent = assess_scroll_deny(len(self.proto_dict.keys())+2, self.status_window)
         
@@ -118,7 +120,7 @@ class PrototypeWindow(Frame):
     def reopen_def_window(self, name, archetype):
         self.def_window = Toplevel(self.master)
         self.def_window.title('Define facility prototype')
-        self.def_window.geometry('+350+500')
+        self.def_window.geometry('+%s+%s' %(int(self.screen_width/4), int(self.screen_height)/3))
         Label(self.def_window, text='%s' %archetype, bg='lawn green').grid(row=0, columnspan=2)
         proto_name_entry = Entry(self.def_window)
         proto_name_entry.grid(row=1, column=1)
@@ -293,7 +295,7 @@ class PrototypeWindow(Frame):
     def definition_window(self, *args):
         self.def_window = Toplevel(self.master)
         self.def_window.title('Define facility prototype')
-        self.def_window.geometry('+350+500')
+        self.def_window.geometry('+%s+%s' %(int(self.screen_width/7), int(self.screen_height/2.5)))
         archetype = self.tkvar.get()
         Label(self.def_window, text='%s' %archetype, bg='lawn green').grid(row=0, columnspan=2)
 
@@ -501,7 +503,7 @@ class PrototypeWindow(Frame):
             z=0
         self.stream_status_window = Toplevel(self.def_window)
         self.stream_status_window.title('Defined Streams for Separations')
-        self.stream_status_window.geometry('+350+650')
+        self.stream_status_window.geometry('+0+%s' %int(self.screen_height/2))
         Label(self.stream_status_window, text='Defined Streams', bg='yellow').grid(row=0, columnspan=2)
         row=1
         if 'streams' in self.entry_dict.keys():
@@ -560,7 +562,7 @@ class PrototypeWindow(Frame):
     def proto_guide_window(self, archetype):
         proto_guide_window_ = Toplevel(self.def_window)
         proto_guide_window_.title('%s documentation' %archetype)
-        proto_guide_window_.geometry('+0+500')
+        proto_guide_window_.geometry('+%s+%s' %(int(self.screen_width/1.5), int(self.screen_height/2)))
         string = '**The green highlighted parameters mean that they are essential.**\n'
         string += '**The non-highlighted parameters are optional**\n'
         string += '**Blue highlight parameters are special format.**\n'
@@ -598,7 +600,7 @@ class PrototypeWindow(Frame):
     def add_sep_stream(self):
         self.sep_stream_window = Toplevel(self.def_window)
         self.sep_stream_window.title('Stream definition')
-
+        self.sep_stream_window.geometry('+%s+%s' %(int(self.screen_width/3), int(self.screen_height/1.5)))
         Label(self.sep_stream_window, text='Commodity name').grid(row=0, column=0)
         self.commod_entry = Entry(self.sep_stream_window)
         self.commod_entry.grid(row=0, column=1)
@@ -669,7 +671,7 @@ class PrototypeWindow(Frame):
             z=0
         self.mixer_status_window = Toplevel(self.def_window)
         self.mixer_status_window.title('Defined Streams for Mixer')
-        self.mixer_status_window.geometry('+350+650')
+        self.mixer_status_window.geometry('+0+%s' %int(self.screen_height/2))
         Label(self.mixer_status_window, text='Defined Streams', bg='yellow').grid(row=0, columnspan=2)
         row=1
         if 'in_streams' in self.entry_dict.keys():
@@ -744,6 +746,7 @@ class PrototypeWindow(Frame):
 
     def add_mix_stream(self):
         self.mix_stream_window = Toplevel(self.def_window)
+        self.mix_stream_window.geometry('+%s+%s' %(int(self.screen_width/3), int(self.screen_height/1.5)))
         self.mix_stream_window.title('Mixture stream definition')
         Label(self.mix_stream_window, text='Mixing Ratio (<1.0)').grid(row=0, column=0)
         self.mix_ratio_entry = Entry(self.mix_stream_window)
@@ -920,7 +923,7 @@ class PrototypeWindow(Frame):
 
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Facilities guide')
-        self.guide_window.geometry('+0+200')
+        self.guide_window.geometry('+%s+0' %int(self.screen_width/1.5))
         guide_text = """
         Here you define archetypes with specific parameters to use in the simulation.
         An archetype is the code (general behavior of facility - e.g. reactor facility )

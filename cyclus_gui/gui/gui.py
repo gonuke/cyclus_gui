@@ -24,7 +24,14 @@ from cyclus_gui.gui.hovertip import CreateToolTip
 from cyclus_gui.gui.window_tools import *
 import platform
 
-if 'windows' in platform.system().lower():
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+import networkx as nx
+
+os_ = platform.system()
+print('Your OS is:', os_)
+if 'windows' in os_.lower():
     windows=True
 else:
     windows=False
@@ -32,6 +39,7 @@ else:
 
 uniq_id = str(uuid.uuid4())[:3]
 file_path = os.path.abspath('.')
+
 
 # generate unique id
 folders = os.listdir(file_path)
@@ -58,7 +66,14 @@ class Cygui(Frame):
         self.master = master
         # self.master.geometry('+0+0')
         self.init_window()
+        self.uniq_id = uniq_id
+        
+        print('Your screen resolution is:')
+        self.screen_width = master.winfo_screenwidth()
+        self.screen_height = master.winfo_screenheight()
+        print(self.screen_width, self.screen_height)
         self.guide()
+
 
     def init_window(self):
         self.master.title('GUI')
@@ -75,7 +90,7 @@ class Cygui(Frame):
         columnspan=5
         q = Label(root, text='Cyclus Helper', bg='yellow')
         q.grid(row=0, columnspan=columnspan)
-        CreateToolTip(q, text='huehuehuehuehue\n huehuehuehuehue')
+        CreateToolTip(q, text='you found the secret\n hover tip \n huehuehuehue')
         Label(root, textvariable=self.hash_var, bg='pale green').grid(row=1, columnspan=columnspan)
         Label(root, text='====================================').grid(row=2, columnspan=columnspan)
         Label(root, text='Generate / Edit Blocks').grid(row=3, column=0)
@@ -106,7 +121,7 @@ class Cygui(Frame):
             Label(root, text='   ').grid(row=i, column=3)
 
         load_button = Button(root, text='From Instance', command=lambda: self.load_prev_window())
-        load_complete_input = Button(root, text='From xml', command=lambda: self.load_full_xml())
+        load_complete_input = Button(root, text='From xml', command=lambda: self.askopenfile())
         load_pris = Button(root, text='From PRIS', command=lambda: self.load_from_pris())
         view_input_button = Button(root, text='View Input', command=lambda: self.xml_window())
         make_input_button = Button(root, text='Generate Input', command=lambda: self.check_and_run(run=False))
@@ -187,24 +202,21 @@ class Cygui(Frame):
                 print('Changed ID to %s' %hash_)
                 output_path = os.path.join(file_path, i)
                 self.load_window.destroy()
+                shutil.rmtree('output_%s' %self.uniq_id)
+                self.uniq_id = hash_
                 self.initialized['prev'] = False
                 return
         # if folder is not found,
         messagebox.showerror('Error', 'No folder with that name.\n The folder must exist in: \n %s' %file_path)
         self.initialized['prev'] = False
 
-    def load_full_xml(self):
-        self.load_xml_window = Toplevel(self.master)
-        self.load_xml_window.title('Load full xml file')
-        Label(self.load_xml_window, text='Choose a file to load!').pack()
-        Button(self.load_xml_window, text='Browse', command= lambda : self.askopenfile()).pack()
-
-
     def askopenfile(self):
-        file = filedialog.askopenfile(parent=self.load_xml_window, mode='r', title='Choose an xml file')
+        file = filedialog.askopenfile(parent=self.master, mode='r', title='Choose an xml file')
+        if not file:
+            return
         self.load_xml_file(file)
         messagebox.showinfo('Successfully loaded file', 'Successfully loaded file')
-        self.load_xml_window.destroy()
+        # self.load_xml_window.destroy()
 
 
     def load_xml_file(self, file):
@@ -253,6 +265,7 @@ class Cygui(Frame):
 
         self.initialized['pris'] = True
         self.load_from_pris_window = Toplevel(self.master)
+        self.load_from_pris_window.geometry('+0+%s' %(int(self.screen_height/3)))
         self.entry_dict = {}
         self.load_from_pris_window.title('Load from PRIS database')
         Label(self.load_from_pris_window, text='Load existing fleets using the PRIS database').grid(row=0, columnspan=2)
@@ -272,14 +285,17 @@ class Cygui(Frame):
 
 
     def select_countries(self):
-        #self.pris_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src', 'pris.csv')
+        self.pris_csv_path = os.path.join(output_path, 'pris.csv')
         #print('PRIS CSV PATH')
         #print(self.pris_csv_path)
         #with open(self.pris_csv_path, 'r') as f:
         #    q = f.readlines()
-        q = pris_data.pris_data()
+        q = pris_data.pris_data().split('\n')
+        with open(self.pris_csv_path, 'w') as f:
+            f.write('\n'.join(q))
         country_list = sorted(list(set([w.split(',')[0] for w in q if 'Country' not in w])))
         self.country_select_window = Toplevel(self.load_from_pris_window)
+        self.country_select_window.geometry('+%s+0' %(int(self.screen_width/4.5)))
         self.country_select_window.title('Select Countries')
         parent = assess_scroll_deny(len(country_list), self.country_select_window)
         self.selected_countries = []
@@ -312,22 +328,56 @@ class Cygui(Frame):
             fp.main(self.pris_csv_path, init_date, duration, self.selected_countries,
                     output_file=outpath)
             self.load_xml_file(open(outpath, 'r'))
-
-            image_window = Toplevel(self.master)
-            image_window.title('Default material flow')
-            flowchart_image_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src', 'pris_flowchart.gif')
-            print(flowchart_image_path)
-            flow = PhotoImage(file=flowchart_image_path)
-            label = Label(image_window, image=flow)
-            label.image = flow
-            label.pack()
-            
-
-            messagebox.showinfo('Successfully loaded file', 'Successfully loaded file with countries\n\n '+'\n'.join(self.selected_countries) + '\n See the flowchart for commodity and facility default definitions.')
-            
+            messagebox.showinfo('Successfully loaded file',
+                                'Successfully loaded file with countries\n\n'+'\n'.join(self.selected_countries)+'\n See the flowchart for commodity and facility default definitions.')
             self.load_from_pris_window.destroy()
+            self.pris_flowchart()
+            
+
         self.initialized['pris'] = False
 
+
+    def pris_flowchart(self):
+        G = nx.DiGraph()
+        natu = 'nat_u_source'
+        enrichment = 'enrichment'
+        reactors = 'Reactors\n(various names)'
+        somesink = 'somesink'
+        natl_u = 'natl_u\n[natl_u_recipe]'
+        uox = 'uox\n[uox_fuel_recipe]'
+        uox_waste = 'uox_waste\n[uox_used_fuel_recipe]'
+        tailings = 'tailings\n(0.3% U235)'
+
+
+        G.add_node(natu, color='red')
+        G.add_node(enrichment, color='red')
+        G.add_node(reactors, color='red')
+        G.add_node(somesink, color='red')
+        G.add_node(natl_u, color='blue')
+        G.add_node(uox, color='blue')
+        G.add_node(uox_waste, color='blue')
+        G.add_node(tailings, color='blue')
+
+        G.add_edge(natu, natl_u)
+        G.add_edge(natl_u, enrichment)
+        G.add_edge(enrichment, uox)
+        G.add_edge(uox, reactors)
+        G.add_edge(reactors, uox_waste)
+        G.add_edge(uox_waste, somesink)
+        G.add_edge(enrichment, tailings)
+        G.add_edge(tailings, somesink)
+
+        node_colors = list(nx.get_node_attributes(G, 'color').values())
+
+        f = plt.figure(1)
+        ax = f.add_subplot(1,1,1)
+        ax.scatter([0], [0], c='red', label='Facility')
+        ax.scatter([0], [0], c='blue', label='Commodity')
+
+        nx.draw(G, with_labels=True, node_color=node_colors, ax=ax)
+        plt.legend()
+        plt.show()
+        
 
     def check_and_run(self, run=True):
         files = os.listdir(output_path)
@@ -379,11 +429,13 @@ class Cygui(Frame):
 
 
     def guide(self, guide_text=''):
-        try: self.guide_window.destroy()
-        except: z=0
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Guide')
-        self.guide_window.geometry('+250+0')
+        if guide_text != '':
+            self.guide_window.geometry('+%s+0' %(int(self.screen_width/1.5)))
+        else:
+            self.guide_window.geometry('+%s+0' %int(self.screen_width//2))
+                
         if guide_text == '':
             guide_text = """
             Welcome!
@@ -464,27 +516,25 @@ class Cygui(Frame):
         file_paths = [os.path.join(output_path, x) for x in self.file_list]
         tab_dict = {}
         for indx, file in enumerate(file_paths):
-            try: 
+            key = self.file_list[indx].replace('.xml', '')
+            tab_dict[key] = Frame(tab_parent)
+            tab_parent.add(tab_dict[key], text=key)
+            #tab_dict[key] = assess_scroll_deny(100, tab_dict[key])
+            q = Text(tab_dict[key], width=100, height=30)
+            q.pack()
+            if os.path.isfile(file):
                 with open(file, 'r') as f:
                     s = f.read().replace('<root>', '').replace('</root>', '')
-                key = self.file_list[indx].replace('.xml', '')
-                tab_dict[key] = Frame(tab_parent)
-                tab_parent.add(tab_dict[key], text=key)
-                #tab_dict[key] = assess_scroll_deny(100, tab_dict[key])
-                q = Text(tab_dict[key], width=100, height=30)
-                q.pack()
-                q.insert(END, s)
-            except Exception as e:
-                print(e)
-                print('Could not find %s' %file)
-                t=0
+            else:
+                s = '-- file does not exist --'
+            q.insert(END, s)
+
         tab_parent.pack(expand=1, fill='both')
 
 
 
 
 root = Tk()
-#root.geometry('400x300')
 app = Cygui(root)
 root.mainloop()
 
