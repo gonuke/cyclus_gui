@@ -785,4 +785,4 @@ Vietnam,Unit 2 Phuoc Dinh / Ninh Thuan 1,,1000,,,2015,,,,2021,,,,,,
 Vietnam,Unit 1 Vinh Hai / Ninh Thuan 2,,1000,,,2015,,,,2021,,,,,,
 Vietnam,Unit 2 Vinh Hai / Ninh Thuan 2,,1000,,,2016,,,,2022,,,,,,
 Lithuania,IGNALINA 1,RBMK,1185,Shutdown,,1983,,12/01/1983,12/01/1983,1983,12/01/2004,,,,,
-Lithuania,IGNALINA 2,RBMK,1185,Shutdown,,1987,,12/01/1987,12/01/1987,1987,12/01/2009,,,,,
+Lithuania,IGNALINA 2,RBMK,1185,Shutdown,,1987,,12/01/1987,12/01/1987,1987,12/01/2009,,,,,"""
