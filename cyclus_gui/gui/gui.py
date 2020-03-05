@@ -348,15 +348,17 @@ class Cygui(Frame):
         uox_waste = 'uox_waste\n[uox_used_fuel_recipe]'
         tailings = 'tailings\n(0.3% U235)'
 
+        fac_color = '#d9fbd0'
+        com_color = '#fbd5d0'
 
-        G.add_node(natu, color='red')
-        G.add_node(enrichment, color='red')
-        G.add_node(reactors, color='red')
-        G.add_node(somesink, color='red')
-        G.add_node(natl_u, color='blue')
-        G.add_node(uox, color='blue')
-        G.add_node(uox_waste, color='blue')
-        G.add_node(tailings, color='blue')
+        G.add_node(natu, pos=(0,0), color=fac_color)
+        G.add_node(enrichment, pos=(6, 6), color=fac_color)
+        G.add_node(reactors, pos=(12, 12), color=fac_color)
+        G.add_node(somesink, pos=(18, 18), color=fac_color)
+        G.add_node(natl_u, pos=(3,3), color=com_color)
+        G.add_node(uox, pos=(9,9), color=com_color)
+        G.add_node(uox_waste, pos=(15,15), color=com_color)
+        G.add_node(tailings, pos=(6,16), color=com_color)
 
         G.add_edge(natu, natl_u)
         G.add_edge(natl_u, enrichment)
@@ -368,14 +370,15 @@ class Cygui(Frame):
         G.add_edge(tailings, somesink)
 
         node_colors = list(nx.get_node_attributes(G, 'color').values())
+        pos = nx.get_node_attributes(G, 'pos')
 
-        f = plt.figure(1)
+        f = plt.figure(1, figsize=(8, 8))
         ax = f.add_subplot(1,1,1)
-        ax.scatter([0], [0], c='red', label='Facility')
-        ax.scatter([0], [0], c='blue', label='Commodity')
+        ax.scatter([0], [0], c=fac_color, label='Facility')
+        ax.scatter([0], [0], c=com_color, label='Commodity [recipe]')
 
-        nx.draw(G, with_labels=True, node_color=node_colors, ax=ax)
-        plt.legend()
+        nx.draw(G, pos, with_labels=True, node_color=node_colors, ax=ax, node_size=900)
+        plt.legend(loc='lower right')
         plt.show()
         
 
