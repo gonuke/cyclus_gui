@@ -950,7 +950,7 @@ class PrototypeWindow(Frame):
         Label(self.guide_window, text=guide_text, justify=LEFT).pack(padx=30, pady=30)
 
     def get_default_metadata(self):
-        return """{
+        return r"""{
          "annotations": {
           ":agents:KFacility": {
            "all_parents": [
