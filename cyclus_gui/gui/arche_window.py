@@ -277,26 +277,30 @@ class ArchetypeWindow(Frame):
             f.write(string)
         self.master.destroy()
 
+
     def guide(self):
 
         self.guide_window = Toplevel(self.master)
         self.guide_window.geometry('+%s+0' %int(self.screen_width/1.2))
         guide_string = """
-        All Cyclus and Cycamore archetypes are already added. If there are additional archetypes
-        you would like to add, click the `Add Row' button, type in the library and archetype,
-        and press `Add!'.
+All Cyclus and Cycamore archetypes are already added. If there are additional archetypes
+you would like to add, click the `Add Row' button, type in the library and archetype,
+and press `Add!'.
 
-        Try not to delete cycamore::DeployInst and agents::NullRegion, since they are the
-        default for this GUI.
+Try not to delete cycamore::DeployInst and agents::NullRegion, since they are the
+default for this GUI.
 
-        If you made a mistake, you can go back to the default Cyclus + Cycamore
-        archetypes by clicking `Default'.
+If you made a mistake, you can go back to the default Cyclus + Cycamore
+archetypes by clicking `Default'.
 
-        Once you're done, click `Done'.
+Once you're done, click `Done'.
 
 
-        FOR MORE INFORMATION:
-        http://fuelcycle.org/user/input_specs/archetypes.html
+FOR MORE INFORMATION:
+http://fuelcycle.org/user/input_specs/archetypes.html
         """
-        Label(self.guide_window, text=guide_string, justify=LEFT).pack(padx=30, pady=30)
+        st = ScrolledText(master=self.guide_window,
+                          wrap=WORD)
+        st.pack()
+        st.insert(INSERT, guide_string)
 

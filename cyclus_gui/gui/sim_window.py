@@ -121,28 +121,31 @@ class SimulationWindow():
         self.guide_window.geometry('+%s+0' %int(self.screen_width/1.5))
 
         guide_string = """
-        duration =
-        Number of timesteps in the simulation 
+duration =
+Number of timesteps in the simulation 
 
-        startmonth =
-        Starting month of the simulation [1-12]
-        
-        startyear =
-        Starting year of the simulation
-        
-        decay =
-        Decay solver [never, lazy, manual]
-        
-        explicit_inventory =
-        Create ExplicitInventory table (0 for no, 1 for yes)
-        If you want to get the inventory of each facility at each timestep,
-        write 1
-             
-        dt =
-        Duration of single timestep in seconds (default is a month -> 2,629,846)
+startmonth =
+Starting month of the simulation [1-12]
 
-        FOR MORE INFORMATION:
-        http://fuelcycle.org/user/input_specs/control.html
+startyear =
+Starting year of the simulation
+
+decay =
+Decay solver [never, lazy, manual]
+
+explicit_inventory =
+Create ExplicitInventory table (0 for no, 1 for yes)
+If you want to get the inventory of each facility at each timestep,
+write 1
+     
+dt =
+Duration of single timestep in seconds (default is a month -> 2,629,846)
+
+FOR MORE INFORMATION:
+http://fuelcycle.org/user/input_specs/control.html
         """
-        Label(self.guide_window, text=guide_string, justify=LEFT).pack(padx=30, pady=30)
+        st = ScrolledText(master=self.guide_window,
+                          wrap=WORD)
+        st.pack()
+        st.insert(INSERT, guide_string)
 

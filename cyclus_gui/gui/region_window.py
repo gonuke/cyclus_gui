@@ -703,26 +703,26 @@ class RegionWindow(Frame):
 
     def guide(self, text=''):
         string = """
-        This is where you define how the prototypes you defined will be played
-        in the simulation - when they enter, how many enters, and when they exit.
+This is where you define how the prototypes you defined will be played
+in the simulation - when they enter, how many enters, and when they exit.
 
-        A region has one or many institutions.
-        Click on `Add Region', specify a Region Name, and click 'Add Institution'
-        to define a single institution. The institution will be part of the region
-        you specified.
+A region has one or many institutions.
+Click on `Add Region', specify a Region Name, and click 'Add Institution'
+to define a single institution. The institution will be part of the region
+you specified.
 
-        One row in the institution definition window is for one prototype.
-        Define the name, how many to build, when to enter, and how long to stay
-        for each prototype. Click 'Add Row' if you want to add more prototypes.
+One row in the institution definition window is for one prototype.
+Define the name, how many to build, when to enter, and how long to stay
+for each prototype. Click 'Add Row' if you want to add more prototypes.
 
-        Once done, click done to add the institution into the region. The status
-        window will reflect the changes you've made.
+Once done, click done to add the institution into the region. The status
+window will reflect the changes you've made.
 
-        A prototype with a `(undefined)' next to the name ls
-        means that the prototype has not
-        been defined by the prototype definition section.
+A prototype with a `(undefined)' next to the name ls
+means that the prototype has not
+been defined by the prototype definition section.
 
-        Once done, click Done in the region window.
+Once done, click Done in the region window.
         """
         if text != '':
             self.guide_window.destroy()
@@ -730,5 +730,7 @@ class RegionWindow(Frame):
         self.guide_window = Toplevel(self.master)
         self.guide_window.title('Region guide')
         self.guide_window.geometry('+%s+0' %int(self.screen_width/1.5))
-        Label(self.guide_window, text=string).pack(padx=30, pady=30)
-
+        st = ScrolledText(master=self.guide_window,
+                          wrap=WORD)
+        st.pack()
+        st.insert(INSERT, string)

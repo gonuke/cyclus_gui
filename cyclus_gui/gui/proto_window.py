@@ -928,29 +928,32 @@ class PrototypeWindow(Frame):
         self.guide_window.title('Facilities guide')
         self.guide_window.geometry('+%s+0' %int(self.screen_width/1.5))
         guide_text = """
-        Here you define archetypes with specific parameters to use in the simulation.
-        An archetype is the code (general behavior of facility - e.g. reactor facility )
-        A facility prototype is a facility archetype + user-defined parameters 
-        (e.g. reactor with 3 60-assembly batches and 1000MWe power output).
+Here you define archetypes with specific parameters to use in the simulation.
+An archetype is the code (general behavior of facility - e.g. reactor facility )
+A facility prototype is a facility archetype + user-defined parameters 
+(e.g. reactor with 3 60-assembly batches and 1000MWe power output).
 
-        Here you can add facility prototypes by taking an archetype template and defining
-        your parameters.
+Here you can add facility prototypes by taking an archetype template and defining
+your parameters.
 
-        Click on the dropdown to select the archetype you want to add, 
-        and two windows will pop up. One is the documentation for the
-        archetype and the parameters, and the other is the one you should
-        fill out. The non-highlighted parameters have default values (specified in 
-        documentation window), thus are optional. The parameters with 'Add'
-        button next to it are parameters with (potentially) more than one
-        variables. You can add more values by clicking 'Add'. Fill out
-        the facility name and the parameters, then click 'Done' to
-        save the facility. The window with 'Defined Archetypes' will update
-        as you define facility prototypes.
+Click on the dropdown to select the archetype you want to add, 
+and two windows will pop up. One is the documentation for the
+archetype and the parameters, and the other is the one you should
+fill out. The non-highlighted parameters have default values (specified in 
+documentation window), thus are optional. The parameters with 'Add'
+button next to it are parameters with (potentially) more than one
+variables. You can add more values by clicking 'Add'. Fill out
+the facility name and the parameters, then click 'Done' to
+save the facility. The window with 'Defined Archetypes' will update
+as you define facility prototypes.
 
-        You currently cannot edit two facilities simultaneously. 
+You currently cannot edit two facilities simultaneously. 
 
         """
-        Label(self.guide_window, text=guide_text, justify=LEFT).pack(padx=30, pady=30)
+        st = ScrolledText(master=self.guide_window,
+                          wrap=WORD)
+        st.pack()
+        st.insert(INSERT, guide_text)
 
     def get_default_metadata(self):
         return r"""{
