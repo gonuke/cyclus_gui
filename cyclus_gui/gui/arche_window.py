@@ -255,7 +255,6 @@ class ArchetypeWindow(Frame):
             messagebox.showerror('Error', message)
             return
         else:
-
             string = 'Adding %i new libraries' %(len(enter) - len(dont_add_indx))
             if len(dont_add_indx) != 0:
                 string += '\n Ignoring empty rows: '
@@ -263,6 +262,8 @@ class ArchetypeWindow(Frame):
                     string += r + '  '
             for indx, val in enumerate(enter):
                 if indx in dont_add_indx:
+                    continue
+                if val in self.arche:
                     continue
                 self.arche.append(val)
             self.update_loaded_modules_window()

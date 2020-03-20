@@ -534,14 +534,19 @@ Enjoy :)
             tab_dict[key] = Frame(tab_parent)
             tab_parent.add(tab_dict[key], text=key)
             #tab_dict[key] = assess_scroll_deny(100, tab_dict[key])
-            q = Text(tab_dict[key], width=100, height=30)
-            q.pack()
+            st = ScrolledText(master=tab_dict[key], wrap=WORD, width=100, height=30)
+            st.pack()
+
+            #q = Text(tab_dict[key], width=100, height=30)
+            #q.pack()
             if os.path.isfile(file):
                 with open(file, 'r') as f:
                     s = f.read().replace('<root>', '').replace('</root>', '')
             else:
                 s = '-- file does not exist --'
-            q.insert(END, s)
+            st.insert(INSERT, s)
+
+            #q.insert(END, s)
 
         tab_parent.pack(expand=1, fill='both')
 
