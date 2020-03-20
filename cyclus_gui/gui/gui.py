@@ -65,6 +65,7 @@ class Cygui(Frame):
                           'region.xml', 'recipe.xml']
         self.master = master
         # self.master.geometry('+0+0')
+        
         self.init_window()
         self.uniq_id = uniq_id
         
@@ -165,6 +166,12 @@ class Cygui(Frame):
                 messagebox.showerror('Error', 'You must have the output file first!')
             else:
                 self.app = BackendWindow(self.master, output_path)
+
+
+    def pick_cyclus(self):
+        self.pick_cyclus_window = Toplevel(self.master)
+        self.pick_cyclus_window.title('Pick which Cyclus')
+
 
 
     def load_prev_window(self):

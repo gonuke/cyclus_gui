@@ -120,7 +120,7 @@ class PrototypeWindow(Frame):
     def reopen_def_window(self, name, archetype):
         self.def_window = Toplevel(self.master)
         self.def_window.title('Define facility prototype')
-        self.def_window.geometry('+%s+%s' %(int(self.screen_width/4), int(self.screen_height)/3))
+        self.def_window.geometry('+%s+%s' %(int(self.screen_width/4), int(self.screen_height/3)))
         Label(self.def_window, text='%s' %archetype, bg='lawn green').grid(row=0, columnspan=2)
         proto_name_entry = Entry(self.def_window)
         proto_name_entry.grid(row=1, column=1)
@@ -170,7 +170,10 @@ class PrototypeWindow(Frame):
 
         else:
             messagebox.showinfo('Cyclus not found', 'We have automated documentation from packaged json, since Cyclus is not found on your computer.')
-            self.j = json.loads(self.get_default_metadata())
+            default_metadata = self.get_default_metadata()
+            with open(path, 'w') as f:
+                f.write(default_metadata)
+            self.j = json.loads(default_metadata)
 
 
         # get documentation for variable and archetype
