@@ -90,10 +90,16 @@ class Cygui(Frame):
 
         columnspan=5
         q = Label(root, text='Cyclus Helper', bg='yellow')
-        q.grid(row=0, columnspan=columnspan)
+        q.grid(row=0, column=2)
         CreateToolTip(q, text='you found the secret\n hover tip \n huehuehuehue')
-        Label(root, textvariable=self.hash_var, bg='pale green').grid(row=1, columnspan=columnspan)
-        Label(root, text='====================================').grid(row=2, columnspan=columnspan)
+
+        Label(root, text='').grid(row=1, column=0, columnspan=2)
+        Label(root, textvariable=self.hash_var, bg='pale green').grid(row=1, column=2)
+        saveas_button = Button(root, text='Save as', command=lambda:self.save_as(), highlightbackground='blue')
+        saveas_button.grid(row=1, column=columnspan-1)
+
+        Label(root, text='==========================').grid(row=2, column=0, columnspan=columnspan)
+        
         Label(root, text='Generate / Edit Blocks').grid(row=3, column=0)
         Label(root, text='=============').grid(row=4, column=0)
         Label(root, text='Load:').grid(row=3, column=2)
@@ -130,6 +136,7 @@ class Cygui(Frame):
         backend_button = Button(root, text='Backend Analysis', command= lambda: self.open_window('backend', output_path))
         
         if not windows:
+            CreateToolTip(saveas_button, text='You can save your current instance with a different three-letter hash.')
             CreateToolTip(load_button, text='You can load from a previous instance.\nFor every instance, the GUI automatically creates `output_xxx` directory\nwhere it saves all the files, so that it can be called later on.')
             CreateToolTip(load_complete_input, text='You can load from a previously-existing Cyclus input xml file.\nThere are limitations to some input files, if they use special archetypes. You can edit or run cyclus on the file!')
             CreateToolTip(load_pris, text='You can initialize a simulation to a real-world initial condition!\nUsing this method the real-life fleet is automatically generated from the\nIAEA Power Reactor Information System (PRIS) database.')
@@ -168,10 +175,32 @@ class Cygui(Frame):
                 self.app = BackendWindow(self.master, output_path)
 
 
-    def pick_cyclus(self):
-        self.pick_cyclus_window = Toplevel(self.master)
-        self.pick_cyclus_window.title('Pick which Cyclus')
 
+    def save_as(self):
+        self.saveas_window = Toplevel(self.master)
+        self.saveas_window.title('Save as new three-letter hash')
+        Label(self.saveas_window, text='Enter new three-letter hash:', bg='yellow').pack()
+        entry = Entry(self.saveas_window)
+        entry.pack()
+        Button(self.saveas_window, text='Save as!', command=lambda:self.save_as_exec(entry)).pack()
+
+    def save_as_exec(self,entry):
+        new_hash = str(entry.get())
+        if os.path.isdir('output_' + new_hash):
+            messagebox.showerror('Already exists', 'Folder output_%s already exists!\n Try a different hash' %new_hash)
+            return
+        else:
+            global uniq_id
+            global output_path
+            shutil.copytree(output_path, os.path.join(os.path.dirname(output_path), 'output_'+new_hash))
+            messagebox.showinfo('Success', 'Saved as new hash %s.\nYour current working instance has been changed from %s to %s' %(new_hash, uniq_id, new_hash))
+            uniq_id = new_hash
+            self.hash_var.set(new_hash)
+            print('Changed ID to %s' %new_hash)
+            output_path = os.path.join(file_path, 'output_'+new_hash)
+            self.saveas_window.destroy()
+            self.uniq_id = new_hash
+            return
 
 
     def load_prev_window(self):
