@@ -17,7 +17,7 @@ import os
 
 
 class cyclus_run:
-    def __init__(self, master, input_path, output_pat, get_metadata=False):
+    def __init__(self, master, input_path, output_path, get_metadata=False):
         self.screen_width = master.winfo_screenwidth()
         self.screen_height = master.winfo_screenheight()
         self.input_path = input_path
@@ -130,7 +130,7 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
             while os.path.isfile(os.path.join(self.outdir, 'temp_%s.sqlite' %str(i))):
                 i += 1
             self.output_pipe.insert(END, '\n`cyclus.sqlite` already exists! Changing the previous filename to temp_%s.sqlite\n' %str(i))
-            os.rename(self.output_path, os.path.join(self.outdir, 'temp_%s.sqlite' %str(i)))
+            shutil.move(self.output_path, os.path.join(self.outdir, 'temp_%s.sqlite' %str(i)))
 
     def run_on_cloud(self):
         # microsoft azure account
