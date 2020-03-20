@@ -442,6 +442,12 @@ class Cygui(Frame):
                     x = f.read()
                     x = x.replace('<root>', '')
                     x = x.replace('</root>', '')
+                    if i == 'archetypes.xml' and 'DeployInst' not in x:
+                        x = x.replace('</archetypes>', """\t<spec>
+        <lib>cycamore</lib>
+        <name>DeployInst</name>
+    </spec>
+</archetypes>""")
                     input_file += x + '\n\n'
                 """
                 with open(os.path.join(output_path, i), 'r') as f:
@@ -465,6 +471,8 @@ class Cygui(Frame):
                 input_path = os.path.join(output_path, 'input.xml')
                 output = os.path.join(output_path, 'cyclus.sqlite')
                 run = cyclus_run(self.master, input_path, output)
+            else:
+                messagebox.showinfo('Success', 'successfully rendered input.xml')
 
 
     def guide(self, guide_text=''):
