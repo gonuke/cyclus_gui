@@ -50,10 +50,8 @@ class ArchetypeWindow(Frame):
                 messagebox.showinfo('Found', 'Found Cyclus, automatically grabbing archetype libraries :)')
             except:
                 try:
-                    # try to download m.json from gitlab
-                    url = 'https://code.ornl.gov/4ib/cyclus_gui/raw/master/src/m.json'
-                    urllib.request.urlretrieve(url, self.meta_file_path)
-                    self.arche = self.read_metafile(self.meta_file_path)
+                    # try to download m.json from gitlab                 
+                    self.arche = self.get_metafile_from_git(self.meta_file_path)
                     messagebox.showinfo('Downloaded', 'Downloaded metadata from https://code.ornl.gov/4ib/cyclus_gui/\nIt seems like you do not have Cyclus.\n So I filled this for you :)')
                 except:
                     messagebox.showinfo('No Internet', 'No internet, so we are going to use metadata saved in the package.\n Using all cyclus/cycamore arcehtypes as default.')
@@ -79,6 +77,13 @@ class ArchetypeWindow(Frame):
 
         # status window
         self.update_loaded_modules_window()
+
+
+    def get_metafile_from_git(self, meta_file_path):
+        url = 'https://code.ornl.gov/4ib/cyclus_gui/raw/master/src/m.json'
+        urllib.request.urlretrieve(url, meta_file_path)
+        arche = self.read_metafile(meta_file_path)
+        return arche
 
 
     def import_libraries(self, local):

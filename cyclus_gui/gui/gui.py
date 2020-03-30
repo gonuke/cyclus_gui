@@ -213,38 +213,40 @@ class Cygui(Frame):
         self.initialized['prev'] = True
         self.load_window = Toplevel(self.master)
         self.load_window.title('Load previous with hash')
-        Label(self.load_window, text='Enter id:', bg='yellow').pack()
-        entry = Entry(self.load_window)
-        entry.pack()
-        Button(self.load_window, text='Load!', command=lambda: self.load_prev(entry)).pack()
-
-
-    def load_prev(self, entry):
         folders = os.listdir(file_path)
         folders = [f for f in folders if os.path.isdir(os.path.join(file_path, f))]
-        hash_ = str(entry.get())
-        for i in folders:
-            if hash_ in i:
-                files_in = os.listdir(os.path.join(file_path, 'output_%s'%hash_))
-                info_text = 'Found folder %s.\nLoading input blocks:\n\n' %i
-                for f_ in files_in:
-                    f_ = f_.replace('.xml', '')
-                    info_text += '\t%s\n' %f_
-                messagebox.showinfo('Found!', info_text)
-                global uniq_id
-                global output_path
-                uniq_id = hash_
-                self.hash_var.set(hash_)
-                print('Changed ID to %s' %hash_)
-                output_path = os.path.join(file_path, i)
-                self.load_window.destroy()
-                shutil.rmtree('output_%s' %self.uniq_id)
-                self.uniq_id = hash_
-                self.initialized['prev'] = False
-                return
-        # if folder is not found,
-        messagebox.showerror('Error', 'No folder with that name.\n The folder must exist in: \n %s' %file_path)
+        folders = [f for f in folders if 'output_' in f]
+        hashs = [f.replace('output_', '') for f in folders]
+        hashs = [f for f in hashs if f != self.hash_var]
+        Label(self.load_window, text='Current working directory:').pack()
+        Label(self.load_window, text=os.path.abspath(file_path), bg='yellow').pack()
+        Label(self.load_window, text='Available instances:').pack()
+        for h in hashs:
+            Button(self.load_window, text=h, command=lambda:self.load_prev(h)).pack()
+        if not hashs:
+            # if list is empty:
+            Label(self.load_window, text='NONE', bg='red').pack()
+
+
+    def load_prev(self, h):
+        files_in = os.listdir(os.path.join(file_path, 'output_%s'%h))
+        info_text = 'Found folder output_%s.\nLoading input blocks:\n\n' %h
+        for f_ in files_in:
+            f_ = f_.replace('.xml', '')
+            info_text += '\t%s\n' %f_
+        messagebox.showinfo('Found!', info_text)
+        global uniq_id
+        global output_path
+        uniq_id = h
+        self.hash_var.set(h)
+        print('Changed ID to %s' %h)
+        output_path = os.path.join(file_path, 'output_%s' %h)
+        self.load_window.destroy()
+        shutil.rmtree('output_%s' %self.uniq_id)
+        self.uniq_id = h
         self.initialized['prev'] = False
+        return
+
 
     def askopenfile(self):
         file = filedialog.askopenfile(parent=self.master, mode='r', title='Choose an xml file')
