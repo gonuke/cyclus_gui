@@ -6,7 +6,7 @@ from cyclus_gui.gui.proto_window import PrototypeWindow
 from cyclus_gui.gui.region_window import RegionWindow
 from cyclus_gui.gui.recipe_window import RecipeWindow
 from cyclus_gui.gui.backend_window import BackendWindow
-
+import os
 
 
 def skip_init(cls):
@@ -28,7 +28,19 @@ class sim_unit_test(unittest.TestCase):
             self.assertEqual(obj.is_it_pos_integer(key), val)
 
 
+class arche_unit_test(unittest.TestCase):
 
+    def test_get_metafile_from_git(self):
+        obj = skip_init(ArchetypeWindow)
+        arche = obj.get_metafile_from_git('./meta.json')
+        os.remove('./meta.json')
+        answer = [['agents', 'NullInst'], ['agents', 'NullRegion'], ['cycamore', 'Source'],
+                      ['cycamore', 'Sink'], ['cycamore', 'DeployInst'], ['cycamore', 'Enrichment'],
+                      ['cycamore', 'FuelFab'], ['cycamore', 'GrowthRegion'], ['cycamore', 'ManagerInst'],
+                      ['cycamore', 'Mixer'], ['cycamore', 'Reactor'], ['cycamore', 'Separations'],
+                      ['cycamore', 'Storage']]
+        for i in answer:
+            self.assertTrue(i in arche)
 
 if __name__ == '__main__':
     unittest.main()
