@@ -273,24 +273,24 @@ class Cygui(Frame):
 
     def load_from_pris(self):
         guide_text = """
-        You can `initialize' your simulation as a real-life nation!
-        This method loads from the PRIS database and deploys reactors in your
-        desired country, in a desired initial time. The reactor lifetimes
-        are calculated as a remaining lifetime.
+You can `initialize' your simulation as a real-life nation!
+This method loads from the PRIS database and deploys reactors in your
+desired country, in a desired initial time. The reactor lifetimes
+are calculated as a remaining lifetime.
 
-        Assumptions:
-        1. Timestep is assumed to be a month
-        2. Reactors below 100 MWe are filtered out (assumed to be research reactors)
-        3. Core size is linearly scaled with power capacity
-        4. Reactor lifetimes are all assumed to be 60 years from their first criticality date
-        5. Fuel Cycle facilities are deployed with infinite capacity.
+Assumptions:
+1. Timestep is assumed to be a month
+2. Reactors below 100 MWe are filtered out (assumed to be research reactors)
+3. Core size is linearly scaled with power capacity
+4. Reactor lifetimes are all assumed to be 60 years from their first criticality date
+5. Fuel Cycle facilities are deployed with infinite capacity.
 
-        Simulation defaults:
-        1. Reactors are cycamore::Reactor (recipe reactors)
-        2. By default deploys a `RandLand' region with `Fuel_Cycle_Facilities' institution with facilities:
-           a. `nat_u_source' -> [natl_u]
-           b. [natl_u] -> `enrichment' -> [uox]
-           d. [uox_waste, used_candu, mox_waste, tailings, reprocess_waste] -> `SomeSink'
+Simulation defaults:
+1. Reactors are cycamore::Reactor (recipe reactors)
+2. By default deploys a `RandLand' region with `Fuel_Cycle_Facilities' institution with facilities:
+   a. `nat_u_source' -> [natl_u]
+   b. [natl_u] -> `enrichment' -> [uox]
+   d. [uox_waste, used_candu, mox_waste, tailings, reprocess_waste] -> `SomeSink'
         """
         self.guide(guide_text)
         try:

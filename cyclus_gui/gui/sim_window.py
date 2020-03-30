@@ -67,7 +67,6 @@ class SimulationWindow():
         self.new_window.destroy()
 
 
-
     def is_it_pos_integer(self, num):
         if float(num) % 1.0 != 0.0:
             return False
