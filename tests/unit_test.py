@@ -22,7 +22,7 @@ class sim_unit_test(unittest.TestCase):
         obj = skip_init(SimulationWindow)
         q_a_dict = {1:True,
                     2.1:False,
-                    -1:False,
+                    -1:True,
                     4:True}
         for key, val in q_a_dict.items():
             self.assertEqual(obj.is_it_pos_integer(key), val)
