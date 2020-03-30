@@ -1,6 +1,6 @@
 before_script:
-  pip install -r reqs.txt
+  - pip install -r reqs.txt
 
 run-test:
   script:
-    pytest unit_test.py
+    - pytest unit_test.py
