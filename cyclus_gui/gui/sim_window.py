@@ -83,27 +83,25 @@ class SimulationWindow():
 
 
     def done(self):
-        print(self.entry_dict)
-        self.entry_dict = {key: val.get() for key, val in self.entry_dict.items()}
-
+        val_dict = {key:val.get() for key,val in self.entry_dict.items()}
         # check input:
-        if '' in self.entry_dict.values():
+        if '' in val_dict.values():
             messagebox.showerror('Error', 'You omitted some parameters')
-        elif not self.is_it_pos_integer(self.entry_dict['startmonth']):
+        elif not self.is_it_pos_integer(val_dict['startmonth']):
             messagebox.showeeror('Error', 'Start Month must be a positive integer')
-        elif not self.is_it_pos_integer(self.entry_dict['startyear']):
+        elif not self.is_it_pos_integer(val_dict['startyear']):
             messagebox.showerror('Error', 'Start Year must be a positive integer')
-        elif int(self.entry_dict['startmonth']) not in list(range(1,13)):
+        elif int(val_dict['startmonth']) not in list(range(1,13)):
             messagebox.showerror('Error', 'Month has to be number from 1 to 12')
             return
-        elif self.entry_dict['decay'] not in ['never', 'lazy', 'manual']:
+        elif val_dict['decay'] not in ['never', 'lazy', 'manual']:
             messagebox.showerror('Error', 'Decay must be either never, lazy, or manual')
-        elif not self.is_it_pos_integer(self.entry_dict['dt']):
+        elif not self.is_it_pos_integer(val_dict['dt']):
             messagebox.showerror('Error', 'dt must be a positive integer')
         else:
             messagebox.showinfo('Success', 'Rendered Simulation definition into xml! :)')
             xml_string = '<control>\n'
-            for key, val in self.entry_dict.items():
+            for key, val in val_dict.items():
                 if key=='dt' and int(val)==2629846:
                     continue
                 if (key=='explicit_inventory' or key=='explicit_inventory_compact') and int(val)==0:
