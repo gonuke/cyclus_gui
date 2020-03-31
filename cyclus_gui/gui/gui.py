@@ -31,10 +31,10 @@ import networkx as nx
 
 os_ = platform.system()
 print('Your OS is:', os_)
-if 'windows' in os_.lower():
-    windows=True
+if 'windows' in os_.lower() or 'linux' in os_.lower():
+    no_hover=True
 else:
-    windows=False
+    no_hover=False
 
 
 uniq_id = str(uuid.uuid4())[:3]
@@ -135,7 +135,7 @@ class Cygui(Frame):
         combine_run_button = Button(root, text='Combine and Run', command= lambda: self.check_and_run())
         backend_button = Button(root, text='Backend Analysis', command= lambda: self.open_window('backend', output_path))
         
-        if not windows:
+        if not no_hover:
             CreateToolTip(saveas_button, text='You can save your current instance with a different three-letter hash.')
             CreateToolTip(load_button, text='You can load from a previous instance.\nFor every instance, the GUI automatically creates `output_xxx` directory\nwhere it saves all the files, so that it can be called later on.')
             CreateToolTip(load_complete_input, text='You can load from a previously-existing Cyclus input xml file.\nThere are limitations to some input files, if they use special archetypes. You can edit or run cyclus on the file!')
