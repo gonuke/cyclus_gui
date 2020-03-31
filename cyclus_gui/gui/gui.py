@@ -217,7 +217,7 @@ class Cygui(Frame):
         folders = [f for f in folders if os.path.isdir(os.path.join(file_path, f))]
         folders = [f for f in folders if 'output_' in f]
         hashs = [f.replace('output_', '') for f in folders]
-        hashs = [f for f in hashs if f != self.hash_var]
+        hashs = sorted([f for f in hashs if f != self.uniq_id])
         Label(self.load_window, text='Current working directory:').pack()
         Label(self.load_window, text=os.path.abspath(file_path), bg='yellow').pack()
         Label(self.load_window, text='Available instances:').pack()
