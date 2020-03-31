@@ -470,10 +470,7 @@ $$spec_string
         s = s[1:]
         s = '\n'.join(s.split('\n'))
         s = s[:-1]
-        s = s.replace("'", '')
-        s = s.replace(',', '')
-        s = s.replace(':', '')
-        s = s.replace('"', '')
+        s = s.replace("'", '').replace(',', '').replace(':', '').replace('"', '')
         s = s.split('\n')
         n = self.reasonable_linebreak(self.meta_dict['annotations'][key]['doc']).split('\n') + ['']
         n = ['%'+w for w in n]
