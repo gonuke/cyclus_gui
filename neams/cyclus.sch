@@ -361,7 +361,7 @@ simulation {
 					                MinOccurs=1
 					                val={MinOccurs=1 ValType=String}}}
 }
-                    initialfacilitiylist={MaxOccurs=1
+                    initialfacilitylist={MaxOccurs=1
                                           entry={MinOccurs=1
                                                  number={MaxOccurs=1
                                                          ValType=Int}

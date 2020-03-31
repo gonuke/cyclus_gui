@@ -88,7 +88,7 @@ rule("Comment") {
         return highlight_str
 
 class generate_schema:
-    def __init__(self, cyclus_cmd):
+    def __init__(self, cyclus_cmd, metadata_path='/Users/4ib/Desktop/git/cyclus_gui/neams/m.json'):
         self.cyclus_cmd = cyclus_cmd
         self.conversion_dict = {'string': 'String',
                                 'nonNegativeInteger': 'Int',
@@ -314,7 +314,7 @@ $$spec_string
         %there can be multiple recipes
     }
 }"""
-        self.get_cyclus_files()
+        self.get_cyclus_files(metadata_path)
 
 
 
@@ -577,10 +577,7 @@ $$spec_string
 
 
 
-
-
-
-def main(schema_path='/Users/4ib/Desktop/git/cyclus_gui/neams/cyclus.sch',
+def generate_cyclus_workbench_files(schema_path='/Users/4ib/Desktop/git/cyclus_gui/neams/cyclus.sch',
          template_dir='/Users/4ib/Desktop/git/cyclus_gui/neams/templates/',
          highlight_path='/Users/4ib/Desktop/git/cyclus_gui/neams/cyclus.wbh',
          grammar_path='/Users/4ib/.workbench/2.0.0/grammars/cyclus.wbg',
@@ -623,4 +620,4 @@ maxDepth = 10
 
 
 if __name__ == '__main__':
-    main()
+    generate_cyclus_workbench_files()
