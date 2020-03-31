@@ -83,6 +83,7 @@ class SimulationWindow():
 
 
     def done(self):
+        print(self.entry_dict)
         self.entry_dict = {key: val.get() for key, val in self.entry_dict.items()}
 
         # check input:
@@ -93,7 +94,8 @@ class SimulationWindow():
         elif not self.is_it_pos_integer(self.entry_dict['startyear']):
             messagebox.showerror('Error', 'Start Year must be a positive integer')
         elif int(self.entry_dict['startmonth']) not in list(range(1,13)):
-            messagebox.showeror('Error', 'Month has to be number from 1 to 12')
+            messagebox.showerror('Error', 'Month has to be number from 1 to 12')
+            return
         elif self.entry_dict['decay'] not in ['never', 'lazy', 'manual']:
             messagebox.showerror('Error', 'Decay must be either never, lazy, or manual')
         elif not self.is_it_pos_integer(self.entry_dict['dt']):
