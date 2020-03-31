@@ -77,6 +77,7 @@ class ArchetypeWindow(Frame):
 
         # status window
         self.update_loaded_modules_window()
+        self.check_duplicate()
 
 
     def get_metafile_from_git(self, meta_file_path):
@@ -84,6 +85,43 @@ class ArchetypeWindow(Frame):
         urllib.request.urlretrieve(url, meta_file_path)
         arche = self.read_metafile(meta_file_path)
         return arche
+
+
+    def check_duplicate(self):
+        prev = []
+        duplicate = []
+        for a in self.arche:
+            if a[1] not in prev:
+                prev.append(a[1])
+            else:
+                duplicate.append(a[1])
+        if duplicate:
+            self.duplicates = True
+        self.duplicate_window_dict = {}
+        for i in duplicate:
+            self.choose_between_duplicate(i)
+
+
+
+    def choose_between_duplicate(self, duplicate_name):
+        self.duplicate_window_dict[duplicate_name] = Toplevel(self.master)
+        self.duplicate_window_dict[duplicate_name].title('Choice!')
+        Label(self.duplicate_window_dict[duplicate_name], text='Duplicate archetype name. Pick one to keep:').pack()
+        j = [i for i in self.arche if i[1] == duplicate_name]
+        for i in j:
+            Button(self.duplicate_window_dict[duplicate_name], text='%s:%s' %(i[0],i[1]), command=lambda:self.delete_all_but(i, j)).pack()
+
+
+    def delete_all_but(self, chosen, all_):
+        for i in all_:
+            if i != chosen:
+                self.delete_arche(i)
+        self.duplicate_window_dict[i[1]].destroy()
+        self.duplicates = False
+        self.update_loaded_modules_window()
+
+
+
 
 
     def import_libraries(self, local):
@@ -275,12 +313,19 @@ class ArchetypeWindow(Frame):
 
 
     def done(self):
+
+        self.check_duplicate()
+        if self.duplicates:
+            messagebox.showerror('Check Duplicates', 'See if you have any duplicate archetype names!\nThere should be a window that tells you to choose one.')
+            return
+
         string = '<archetypes>\n'
         for pair in self.arche:
             string += '\t<spec>\t<lib>%s</lib>\t<name>%s</name></spec>\n' %(pair[0], pair[1])
         string += '</archetypes>\n'
         with open(os.path.join(self.output_path, 'archetypes.xml'), 'w') as f:
             f.write(string)
+        messagebox.showinfo('Success', 'Successfully created archetype file!')
         self.master.destroy()
 
 
