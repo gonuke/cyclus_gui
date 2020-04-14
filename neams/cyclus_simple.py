@@ -7,6 +7,9 @@ import sys
 import json
 # super import
 import workbench
+sys.path.append('/Users/4ib/Desktop/git/cyclus_gui/neams/')
+import generate_cyclus_sch
+
 
 class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
     """scale-specific runtime environment"""
@@ -35,14 +38,12 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
             "flag": "-a",
             "help": "Specify path to alias file",
             "metavar": "alias_file",
-            "name": "Alias File Path"
+            "name": "Alias File Path",
+            "type": "string"
         })
         return opts
 
-    def update_and_print_grammar(self, grammar_path):
-        """Checks the provided grammar file and determines if it is out of date
-        and if so, updates it accordingly"""
-
+    def execute(self, args):
         if self.executable == None:            
             import argparse
             # if the -grammar flag appears earlier in the arg list than the -e, it won't have been set
@@ -50,12 +51,24 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
             parser_for_grammar = argparse.ArgumentParser()
             parser_for_grammar.add_argument("-e", type=str)    
             known, unknown = parser_for_grammar.parse_known_args(sys.argv)        
-            self.executable = known.e        
+            self.executable = known.e
 
         if self.executable == None:
             sys.stderr.write("***Error: The -grammar option requires -e argument!\n")
             sys.exit(1)
-        
+
+        print('Executable is:')
+        print(self.executable)
+
+        # process args
+        grammar_path = ''
+        self.update_and_print_grammar(grammar_path)
+
+
+
+    def update_and_print_grammar(self, grammar_path):
+        """Checks the provided grammar file and determines if it is out of date
+        and if so, updates it accordingly"""        
         cyclus_bin_dir = os.path.dirname(self.executable)
         cyclus_dir = os.path.dirname(cyclus_bin_dir)
 
@@ -77,7 +90,8 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
             os.mkdir(self.template_dir_path)
         self.highlight_file_path = os.path.join(workbench_basedir, 'etc', 'grammars', 'highlighters', 'cyclus.wbh') 
         self.grammar_file_path = os.path.join(workbench_basedir, 'etc', 'grammars', 'cyclus.wbg')
-        generate_sch.generate_cyclus_workbench_files(schema_path=self.schema_file_path,
+        print('Generating schema, grammar template, highlight files...\n')
+        generate_cyclus_sch.generate_cyclus_workbench_files(schema_path=self.schema_file_path,
                                                      template_dir=self.template_dir_path,
                                                      highlight_path=self.highlight_file_path,
                                                      grammar_path=self.grammar_file_path,
