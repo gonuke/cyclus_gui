@@ -1,3 +1,2 @@
-python generate_cyclus_sch.py
-cp cyclus_remote.py ~/Downloads/Workbench-Darwin/rte/
+cp cyclus_simple.py ~/Downloads/Workbench/rte/cyclus_simple.py
 open ~/Downloads/Workbench-Darwin/bin/Workbench

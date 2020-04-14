@@ -12,13 +12,32 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
     """scale-specific runtime environment"""
     def __init__(self):
         """constructor"""
-
+        print('Init')
         # scale-specific variables
         self.alias = None
         self.verbosity = 0
 
         # call super class constructor
         super(CyclusRuntimeEnvironment, self).__init__()
+
+    def app_name(self):
+        """returns the app's self-designated name"""
+        return "cyclus"
+
+
+    def app_options(self):
+        """list of app-specific options"""
+        opts = []
+
+        opts.append({
+            "default": self.alias,
+            "dest": "alias",
+            "flag": "-a",
+            "help": "Specify path to alias file",
+            "metavar": "alias_file",
+            "name": "Alias File Path"
+        })
+        return opts
 
     def update_and_print_grammar(self, grammar_path):
         """Checks the provided grammar file and determines if it is out of date
@@ -82,7 +101,7 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
         # include the path from rte to wasppy
         pathToSon2py= os.path.join(os.path.dirname(__file__),os.path.pardir,"wasppy")
         if not os.path.isdir(pathToSon2py):
-            print "***Error: Workbench Analysis Sequence Process (WASP) Python wrapper (WASPPY) is not in expected location: ",pathToSon2py
+            print ("***Error: Workbench Analysis Sequence Process (WASP) Python wrapper (WASPPY) is not in expected location: ",pathToSon2py)
         sys.path.append(pathToSon2py)
         import wasp2py # son2py
         # TODO: add a check to test the existence of the directory 'build/wasp/wasppy' 
@@ -99,33 +118,8 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
         # ../projects/scale/etc/InputDefinitions/components/
         return [str(components_path)]
 
-    def app_name(self):
-        """returns the app's self-designated name"""
-        return "cyclus"
+   
 
-    def app_options(self):
-        """list of app-specific options"""
-        opts = []
-
-        opts.append({
-            "default": self.alias,
-            "dest": "alias",
-            "flag": "-a",
-            "help": "Specify path to alias file",
-            "metavar": "alias_file",
-            "name": "Alias File Path",
-            "type": "string"
-        })
-        opts.append({
-            "action": "store_true",
-            "default": self.verbosity,
-            "dest": "verbosity",
-            "flag": "-v",
-            "help": "Verboseness of output",
-            "name": "Verbosity",
-            "type": "int"
-        })
-        return opts
 
     def environment(self):
         """generate a dict of the supported environment variables"""
@@ -141,10 +135,6 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
             args.append("-a")
             args.append(self.alias)
 
-        if self.verbose > 0:
-            args.append("-v")
-            args.append(str(self.verbose))
-
         # output basename
         args.append("-o")
         args.append(os.path.join(options.output_directory, options.output_basename))
@@ -153,4 +143,4 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
 
 if __name__ == "__main__":
     # execute runtime, ignoring first argument (the python script itself)
-    ScaleRuntimeEnvironment().execute(sys.argv[1:])
+    CyclusRuntimeEnvironment().execute(sys.argv[1:])

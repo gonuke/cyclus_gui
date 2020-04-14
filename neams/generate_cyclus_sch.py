@@ -619,5 +619,5 @@ maxDepth = 10
 
 
 
-if __name__ == '__main__':
-    generate_cyclus_workbench_files()
+#if __name__ == '__main__':
+#    generate_cyclus_workbench_files()
