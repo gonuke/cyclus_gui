@@ -7,7 +7,8 @@ import sys
 import json
 # super import
 import workbench
-sys.path.append('/Users/4ib/Desktop/git/cyclus_gui/neams/')
+here = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(os.path.join(here, 'cyclus'))
 import generate_cyclus_sch
 
 
@@ -16,9 +17,6 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
     def __init__(self):
         """constructor"""
         print('Init')
-        # scale-specific variables
-        self.alias = None
-        self.verbosity = 0
 
         # call super class constructor
         super(CyclusRuntimeEnvironment, self).__init__()
@@ -31,19 +29,23 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
     def app_options(self):
         """list of app-specific options"""
         opts = []
-
-        opts.append({
-            "default": self.alias,
-            "dest": "alias",
-            "flag": "-a",
-            "help": "Specify path to alias file",
-            "metavar": "alias_file",
-            "name": "Alias File Path",
-            "type": "string"
-        })
+        # no options
         return opts
 
-    def execute(self, args):
+    def environment(self):
+        return {}
+
+
+    def run_args(self, option):
+        args = [options.input]
+        args.append('-o')
+        args.append(os.path.join(options.output_directory, options.output_basename))
+
+        return args
+
+
+    def update_and_print_grammar(self, grammar_path):
+        print('I am getting grammar')
         if self.executable == None:            
             import argparse
             # if the -grammar flag appears earlier in the arg list than the -e, it won't have been set
@@ -57,16 +59,6 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
             sys.stderr.write("***Error: The -grammar option requires -e argument!\n")
             sys.exit(1)
 
-        print('Executable is:')
-        print(self.executable)
-
-        # process args
-        grammar_path = ''
-        self.update_and_print_grammar(grammar_path)
-
-
-
-    def update_and_print_grammar(self, grammar_path):
         """Checks the provided grammar file and determines if it is out of date
         and if so, updates it accordingly"""        
         cyclus_bin_dir = os.path.dirname(self.executable)
@@ -96,9 +88,8 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
                                                      highlight_path=self.highlight_file_path,
                                                      grammar_path=self.grammar_file_path,
                                                      cyclus_cmd=self.executable)
-
-
         return
+
 
     def get_grammar_additional_resources(self, grammar_file_path):
         """Returns a list of filepaths that need included which are not normally included"""
@@ -133,27 +124,6 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
         return [str(components_path)]
 
    
-
-
-    def environment(self):
-        """generate a dict of the supported environment variables"""
-        return {}
-
-    def run_args(self, options):
-        """returns a list of arguments to pass to the given executable"""
-        # build argument list
-        args = [options.input]
-
-        # alias file
-        if self.alias:
-            args.append("-a")
-            args.append(self.alias)
-
-        # output basename
-        args.append("-o")
-        args.append(os.path.join(options.output_directory, options.output_basename))
-
-        return args
 
 if __name__ == "__main__":
     # execute runtime, ignoring first argument (the python script itself)
