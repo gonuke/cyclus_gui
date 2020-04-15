@@ -33,10 +33,12 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
         return opts
 
     def environment(self):
-        return {}
+        return {
+            "DATA": "/path/to/scale/data"
+        }
 
 
-    def run_args(self, option):
+    def run_args(self, options):
         args = [options.input]
         args.append('-o')
         args.append(os.path.join(options.output_directory, options.output_basename))
@@ -127,4 +129,11 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
 
 if __name__ == "__main__":
     # execute runtime, ignoring first argument (the python script itself)
-    CyclusRuntimeEnvironment().execute(sys.argv[1:])
+    x = CyclusRuntimeEnvironment()
+    x.executable = 'cyclus'
+    x.update_and_print_grammar('~/Desktop/Workbench-Linux/etc/grammar/')
+
+    
+    #y = x._WorkbenchRuntimeEnvironment__grammar()
+    #y()
+    #CyclusRuntimeEnvironment().execute(sys.argv[1:])

@@ -322,10 +322,11 @@ $$spec_string
         # this is where everything happens
         
         # temporary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # meta_str = subprocess.run([self.cyclus_cmd, '-m'], stdout=subprocess.PIPE, shell=True).stdout.decode('utf-8') 
-        # self.meta_dict = json.loads(meta_str) 
-        heredir = os.path.abspath(os.path.dirname(__file__))
-        self.meta_dict = json.loads(open(os.path.join(heredir, 'm.json')).read())        
+        p = subprocess.Popen([self.cyclus_cmd, '-m'], stdout=subprocess.PIPE)
+        meta_str = p.stdout.read()
+        self.meta_dict = json.loads(meta_str) 
+        #heredir = os.path.abspath(os.path.dirname(__file__))
+        #self.meta_dict = json.loads(open(os.path.join(heredir, 'm.json')).read())        
         # temporary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         archetypes = self.meta_dict['specs']
