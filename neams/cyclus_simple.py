@@ -128,10 +128,12 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
    
 
 if __name__ == "__main__":
+    CyclusRuntimeEnvironment().execute(sys.argv[1:])
+
     # execute runtime, ignoring first argument (the python script itself)
-    x = CyclusRuntimeEnvironment()
-    x.executable = 'cyclus'
-    x.update_and_print_grammar('~/Desktop/Workbench-Linux/etc/grammar/')
+    # x = CyclusRuntimeEnvironment()
+    #x.executable = 'cyclus'
+    #x.update_and_print_grammar('~/Desktop/Workbench-Linux/etc/grammar/')
 
     
     #y = x._WorkbenchRuntimeEnvironment__grammar()
