@@ -16,7 +16,6 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
     """scale-specific runtime environment"""
     def __init__(self):
         """constructor"""
-        print('Init')
 
         # call super class constructor
         super(CyclusRuntimeEnvironment, self).__init__()
@@ -33,6 +32,7 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
         return opts
 
     def environment(self):
+        # this is here to see if it works.. why does it not work?
         return {
             "DATA": "/path/to/scale/data"
         }
@@ -44,10 +44,16 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
         args.append(os.path.join(options.output_directory, options.output_basename))
 
         return args
+    
+
+    def postrun(self, options):
+        """actions to perform after the run finishes"""
+        # here, we are going to try to get that sqlite to be a text file
+        
+        
 
 
     def update_and_print_grammar(self, grammar_path):
-        print('I am getting grammar')
         if self.executable == None:            
             import argparse
             # if the -grammar flag appears earlier in the arg list than the -e, it won't have been set
@@ -84,7 +90,6 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
             os.mkdir(self.template_dir_path)
         self.highlight_file_path = os.path.join(workbench_basedir, 'etc', 'grammars', 'highlighters', 'cyclus.wbh') 
         self.grammar_file_path = os.path.join(workbench_basedir, 'etc', 'grammars', 'cyclus.wbg')
-        print('Generating schema, grammar template, highlight files...\n')
         generate_cyclus_sch.generate_cyclus_workbench_files(schema_path=self.schema_file_path,
                                                      template_dir=self.template_dir_path,
                                                      highlight_path=self.highlight_file_path,
@@ -99,8 +104,9 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
             raise ValueError("The provided path to the grammar file is null")
         if grammar_file_path == "":
             raise ValueError("The provided path to the grammar file is empty")
+        return []
 
-
+        """
         #! I don't think Cyclus will need this
 
         # add path to wasp2py.py to PYTHONPATH
@@ -124,6 +130,7 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
         components_path = os.path.abspath(os.path.join(pdir,schema_path,os.pardir,os.pardir,"components"))
         # ../projects/scale/etc/InputDefinitions/components/
         return [str(components_path)]
+        """
 
    
 
