@@ -43,15 +43,14 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
     def run_args(self, options):
         args = [options.input]
         args.append('-i')
-        args.append(os.path.join(self.xmlinput))
+        args.append(os.path.join(self.temp_xml_path))
         args.append('-o')
-        args.append(os.path.join(options.output_directory, options.output_basename + '.sqlite'))
+        pre, ext = os.path.splitext(options.input)
+        args.append(os.path.join(options.output_directory, pre + '.sqlite'))
         return args
 
     def prerun(self, options):
         # convert son into xml
-        options.working_directory = os.path.dirname(options.input)
-
         binpath = os.path.join(here, os.pardir, 'bin')
         sonjson_path = os.path.join(binpath, 'sonjson')
         schema_file_path = os.path.join(here, os.pardir,
@@ -59,14 +58,15 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
         p = subprocess.Popen([sonjson_path, schema_file_path, options.input],
                              stdout=subprocess.PIPE)
         json_str = p.stdout.read()
-        with open('temp.json', 'w') as f:
+        temp_json_path = os.path.join(options.working_directory, 'temp.json')
+        with open(temp_json_path, 'w') as f:
             f.write(json_str)
-        p = subprocess.Popen([self.executable, '--json-to-xml', 'temp.json'],
+        p = subprocess.Popen([self.executable, '--json-to-xml', temp_json_path],
                              stdout=subprocess.PIPE)
         xml_str = generate_cyclus_sch.clean_xml(p.stdout.read())
         pre, ext = os.path.splitext(options.input)
-        self.xmlinput = pre+'.xml'
-        with open(self.xmlinput, 'w') as f:
+        self.temp_xml_path = os.path.join(options.working_directory, pre+'.xml')
+        with open(self.temp_xml_path, 'w') as f:
             f.write(xml_str)
 
 
