@@ -7,6 +7,7 @@ import sys
 import json
 # super import
 import workbench
+import subprocess
 here = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(here, 'cyclus'))
 import generate_cyclus_sch
@@ -19,6 +20,7 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
 
         # call super class constructor
         super(CyclusRuntimeEnvironment, self).__init__()
+        self.executable = 'cyclus'
 
     def app_name(self):
         """returns the app's self-designated name"""
@@ -40,13 +42,35 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
 
     def run_args(self, options):
         args = [options.input]
+        args.append('-i')
+        args.append(os.path.join(self.xmlinput))
         args.append('-o')
-        args.append(os.path.join(options.output_directory, options.output_basename))
-
+        args.append(os.path.join(options.output_directory, options.output_basename + '.sqlite'))
         return args
-    
 
-    def postrun(self, options):
+    def prerun(self, options):
+        # convert son into xml
+        options.working_directory = os.path.dirname(options.input)
+
+        binpath = os.path.join(here, os.pardir, 'bin')
+        sonjson_path = os.path.join(binpath, 'sonjson')
+        schema_file_path = os.path.join(here, os.pardir,
+                                        'cyclus', 'cyclus.sch')
+        p = subprocess.Popen([sonjson_path, schema_file_path, options.input],
+                             stdout=subprocess.PIPE)
+        json_str = p.stdout.read()
+        with open('temp.json', 'w') as f:
+            f.write(json_str)
+        p = subprocess.Popen([self.executable, '--json-to-xml', 'temp.json'],
+                             stdout=subprocess.PIPE)
+        xml_str = generate_cyclus_sch.clean_xml(p.stdout.read())
+        pre, ext = os.path.splitext(options.input)
+        self.xmlinput = pre+'.xml'
+        with open(self.xmlinput, 'w') as f:
+            f.write(xml_str)
+
+
+    #def postrun(self, options):
         """actions to perform after the run finishes"""
         # here, we are going to try to get that sqlite to be a text file
         
