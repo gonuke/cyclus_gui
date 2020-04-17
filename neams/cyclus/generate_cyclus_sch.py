@@ -293,12 +293,20 @@ $$spec_string
                 }
         institution {
                 name="inst_name"
+                initialfacilitiylist {entry={num=1
+                                             prototype=proto
+                                             }
+                                     }
                 config{
                         % define institution here
                        }
         }
         institution {
                 name="inst_name"
+                initialfacilitiylist {entry={num=1
+                                             prototype=proto
+                                             }
+                                     }
                 config{
                         % define institution here
                        }
@@ -325,12 +333,12 @@ $$spec_string
         # this is where everything happens
         
         # temporary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #p = subprocess.Popen([self.cyclus_cmd, '-m'], stdout=subprocess.PIPE)
-        #meta_str = p.stdout.read()
-        #self.meta_dict = json.loads(meta_str) 
-        heredir = os.path.abspath(os.path.dirname(__file__))
-        self.meta_dict = json.loads(open(os.path.join(heredir, 'm.json')).read())
-
+        p = subprocess.Popen([self.cyclus_cmd, '-m'], stdout=subprocess.PIPE)
+        meta_str = p.stdout.read()
+        self.meta_dict = json.loads(meta_str) 
+        #heredir = os.path.abspath(os.path.dirname(__file__))
+        #self.meta_dict = json.loads(open(os.path.join(heredir, 'm.json')).read())
+        
         # temporary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         archetypes = self.meta_dict['specs']
@@ -620,6 +628,24 @@ maxDepth = 10
     h_ = highlighter()
     with open(highlight_path, 'w') as f:
         f.write(h_.highlight_str)
+
+def clean_xml(s):
+    new = []
+    indx = 0
+    lines = s.split('\n')
+    while indx < len(lines):
+        line = lines[indx]
+        if '<value>' in line:
+            line = line.replace('<value>', '').replace(r'</value>', '').replace('\n', '').strip()
+            if line == 'null':
+                line = ''
+            closing = new[-1].strip().replace('<',r'</')
+            new[-1] = new[-1].replace('\n', '') + line + closing
+            indx += 1
+        else:
+            new.append(line)
+        indx += 1
+    return '\n'.join(new)
 
 
 
