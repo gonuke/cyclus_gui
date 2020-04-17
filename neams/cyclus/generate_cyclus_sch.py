@@ -329,7 +329,8 @@ $$spec_string
         #meta_str = p.stdout.read()
         #self.meta_dict = json.loads(meta_str) 
         heredir = os.path.abspath(os.path.dirname(__file__))
-        self.meta_dict = json.loads(open(os.path.join(heredir, 'm.json')).read())        
+        self.meta_dict = json.loads(open(os.path.join(heredir, 'm.json')).read())
+
         # temporary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         archetypes = self.meta_dict['specs']
@@ -341,7 +342,7 @@ $$spec_string
         for arche in archetypes:
             name = arche.split(':')[-1]
             self.type_dict[name] = self.meta_dict['annotations'][arche]['entity']
-            self.schema_dict[name] = {'InputTmpl': '"%s"' %name}
+            self.schema_dict[name] = {'InputTmpl': '"%s"' %name.encode('ascii')}
             if 'NullRegion' in arche or 'NullInst' in arche:
                 self.template_dict[name] = name+'= null'
                 continue
@@ -413,18 +414,16 @@ $$spec_string
         if not optional:
             options['MinOccurs'] = 1
             
-        s = {eld['name']: options}
-        www = np.random.uniform(0, 10)
+        s = {eld['name'].encode('ascii'): options}
         if 'oneOrMore' in keys:
-
             # s = {eld['@name']: {}}
             s[eld['name']].update(self.read_element(dict(eld['oneOrMore']['element']._attrs),
-                                   from_one_or_more=True)
+                                  from_one_or_more=True)
                                   )           
             return s
 
         if 'data' in keys:
-            options['ValType'] = self.conversion_dict[eld['data']['type']]
+            options['ValType'] = self.conversion_dict[eld['data']['type']].encode('ascii')
             s[eld['name']] = options
             return s
 
@@ -575,7 +574,7 @@ $$spec_string
             options = {}
         if not from_one_or_more:
             options['MaxOccurs'] = 1
-        d = {name: options}
+        d = {name.encode('ascii'): options}
         for i in intd['element']:
             d[name].update(self.read_element(dict(i._attrs)))
         return d
