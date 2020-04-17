@@ -1,4 +1,4 @@
-import xmltodict
+#import xmltodict
 import copy
 import numpy as np
 import json
@@ -6,7 +6,10 @@ import re
 import os
 import subprocess
 import pprint
-
+import sys
+here = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(here, os.pardir, os.pardir, 'wasppy'))
+from xml2obj import xml2obj
 
 
 class highlighter:
@@ -290,12 +293,20 @@ $$spec_string
                 }
         institution {
                 name="inst_name"
+                initialfacilitiylist {entry={num=1
+                                             prototype=proto
+                                             }
+                                     }
                 config{
                         % define institution here
                        }
         }
         institution {
                 name="inst_name"
+                initialfacilitiylist {entry={num=1
+                                             prototype=proto
+                                             }
+                                     }
                 config{
                         % define institution here
                        }
@@ -326,7 +337,8 @@ $$spec_string
         meta_str = p.stdout.read()
         self.meta_dict = json.loads(meta_str) 
         #heredir = os.path.abspath(os.path.dirname(__file__))
-        #self.meta_dict = json.loads(open(os.path.join(heredir, 'm.json')).read())        
+        #self.meta_dict = json.loads(open(os.path.join(heredir, 'm.json')).read())
+        
         # temporary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         archetypes = self.meta_dict['specs']
@@ -338,18 +350,18 @@ $$spec_string
         for arche in archetypes:
             name = arche.split(':')[-1]
             self.type_dict[name] = self.meta_dict['annotations'][arche]['entity']
-            self.schema_dict[name] = {'InputTmpl': '"%s"' %name}
+            self.schema_dict[name] = {'InputTmpl': '"%s"' %name.encode('ascii')}
             if 'NullRegion' in arche or 'NullInst' in arche:
                 self.template_dict[name] = name+'= null'
                 continue
-            d = xmltodict.parse(self.meta_dict['schema'][arche])['interleave']
+            d = dict(xml2obj(self.meta_dict['schema'][arche])._attrs)
+            #d = xmltodict.parse(self.meta_dict['schema'][arche])['interleave']
             k = self.check_if_list(d['element'])
             for i in k:
-                self.schema_dict[name].update(self.read_element(i))
+                self.schema_dict[name].update(self.read_element(dict(i._attrs)))
             k = self.check_if_list(d['optional'])
             for i in k:
-                self.schema_dict[name].update(self.read_element(i['element'], optional=True))
-
+                self.schema_dict[name].update(self.read_element(dict(i.element._attrs), optional=True))
             if self.type_dict[name] == 'facility':
                 tab = ' ' * 16
             elif self.type_dict[name] == 'region':
@@ -398,7 +410,7 @@ $$spec_string
 
     def read_element(self, eld, from_one_or_more=False, optional=False):
         if 'interleave' in eld.keys():
-            s = self.read_interleave(eld['interleave'], eld['@name'], from_one_or_more, optional)
+            s = self.read_interleave(eld['interleave'], eld['name'], from_one_or_more, optional)
             return s
 
         # now there's optional and non-optional
@@ -410,19 +422,17 @@ $$spec_string
         if not optional:
             options['MinOccurs'] = 1
             
-        s = {eld['@name']: options}
-        www = np.random.uniform(0, 10)
+        s = {eld['name'].encode('ascii'): options}
         if 'oneOrMore' in keys:
-
             # s = {eld['@name']: {}}
-            s[eld['@name']].update(self.read_element(eld['oneOrMore']['element'],
-                                   from_one_or_more=True)
+            s[eld['name']].update(self.read_element(dict(eld['oneOrMore']['element']._attrs),
+                                  from_one_or_more=True)
                                   )           
             return s
 
         if 'data' in keys:
-            options['ValType'] = self.conversion_dict[eld['data']['@type']]
-            s[eld['@name']] = options
+            options['ValType'] = self.conversion_dict[eld['data']['type']].encode('ascii')
+            s[eld['name']] = options
             return s
 
 
@@ -572,9 +582,9 @@ $$spec_string
             options = {}
         if not from_one_or_more:
             options['MaxOccurs'] = 1
-        d = {name: options}
+        d = {name.encode('ascii'): options}
         for i in intd['element']:
-            d[name].update(self.read_element(i))
+            d[name].update(self.read_element(dict(i._attrs)))
         return d
 
 
@@ -618,6 +628,24 @@ maxDepth = 10
     h_ = highlighter()
     with open(highlight_path, 'w') as f:
         f.write(h_.highlight_str)
+
+def clean_xml(s):
+    new = []
+    indx = 0
+    lines = s.split('\n')
+    while indx < len(lines):
+        line = lines[indx]
+        if '<value>' in line:
+            line = line.replace('<value>', '').replace(r'</value>', '').replace('\n', '').strip()
+            if line == 'null':
+                line = ''
+            closing = new[-1].strip().replace('<',r'</')
+            new[-1] = new[-1].replace('\n', '') + line + closing
+            indx += 1
+        else:
+            new.append(line)
+        indx += 1
+    return '\n'.join(new)
 
 
 
