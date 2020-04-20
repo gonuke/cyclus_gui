@@ -1,0 +1,62 @@
+% how it's set up:
+% the postrun generates 5 different csv files with a specific keyword in it
+% that allows the postprocessor to recognize / parse the appropriate values
+
+% material flow agent to agent
+extensions = [csv]
+filter_pattern = "material_flow_agent_to_agent"
+processor("Material flow agent to agent:") {
+    delimiter = ";"
+
+    logic = """${PYTHON} ${RT}/../cyclus/cyclus_processor.py ${CURRENT_FILE}"""
+
+    graph("Material flow agent to agent"){
+        % key axis (x-axis) label
+        key_axis_label = "${a4}"
+
+        % value axis (y-axis) label
+        value_axis_label = "${b4}"
+
+        % key axis scale (linear, log)
+        key_axis_scale = log
+
+        % line style (line, stepleft, stepright, stepcenter, impulse, none)
+        line_style = "${c2}"
+
+        % series keys (x-values)
+        keys = "a5:a?" % energy
+
+        % series values (y-values)
+        values = "b5:b?"
+
+        % series value uncertainties (+/- unc)
+        values_uncertainty = "c5:c?"
+    }
+
+}
+
+
+% material flow proto to proto
+extensions = [csv]
+filter_pattern = "material_flow_proto_to_proto"
+
+
+
+% commodity flow
+extensions = [csv]
+filter_pattern = "commodity_flow"
+
+
+
+% timeseries
+extensions = [csv]
+filter_pattern = "timeseries"
+
+
+
+% inventory
+extensions = [csv]
+filter_pattern = "inventory"
+
+
+
