@@ -244,7 +244,7 @@ class generate_schema:
         duration = 1234
         startmonth = 1
         startyear = 2020
-        explicit_inventory=0
+        explicit_inventory=1
         dt=2629846
         decay="lazy"
     }
