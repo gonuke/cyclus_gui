@@ -162,16 +162,45 @@ class CyclusProcessor(Processor):
 
 
     def generate_commodity_flow(self):
-        commods = self.cur.execute('SELECT DISTINCT commodity FROM transactions').fethcall()
-        names = [i['commodity'] for i in commods]
-        names.sort(key=str.lower)
+        commods = self.cur.execute('SELECT DISTINCT commodity FROM transactions').fetchall()
+        csv_string = 'commodity_flow\n'
+        header = ['commodity', 'y']
+        for indx, i in enumerate(commods):
+            commod = i['commodity']
+            x, y = self.get_commodity_flow(commod)
+            if indx != 0:
+                if (prev_x != x).all():
+                    raise ValueError('The x values are not the same')
+            else:
+                csv_string += ' '.join([str(q) for q in x]) + '\n'
+                csv_string += ','.join(header) + '\n'
 
+            csv_string += commod + ',' + ' '.join([str(q) for q in y])+'\n'
+            prev_x = x
+
+        with open('commodity_flow.csv', 'w') as f:
+            f.write(csv_string[:-1])
 
 
     def generate_agent_flow(self):
         entry = self.cur.execute('SELECT DISTINCT prototype FROM agententry WHERE kind="Facility"').fetchall()
-        proto_list = [i['prototype'] for i in entry]
-        proto_list.sort(key=str.lower)
+        for which in ['entered', 'exited', 'deployed']:
+            csv_string = 'agent_flow_%s\n' %which
+            header = ['prototype', 'y']
+            for indx, i in enumerate(entry):
+                proto = i['prototype']
+                x, y = self.get_agent_flow(proto, which)
+                if indx != 0:
+                    if (prev_x != x).all():
+                        raise ValueError('The x values are not the same')
+                else:
+                    csv_string += ' '.join([str(q) for q in x]) + '\n'
+                    csv_string += ','.join(header) + '\n'
+
+                csv_string += proto + ',' + ' '.join([str(q) for q in y]) + '\n'
+                prev_x = x
+            with open('agent_flow_%s.csv' %which, 'w') as f:
+                f.write(csv_string[:-1])
 
 
 
@@ -179,6 +208,9 @@ class CyclusProcessor(Processor):
         tables = self.cur.execute('SELECT name FROM sqlite_master WHERE type="table"').fetchall()
         timeseries_tables_list = [i['name'].replace('TimeSeries', '') for i in tables if 'TimeSeries' in i['name']]
         timeseries_tables_list.sort()
+
+        for timeseries in timeseries_tables_list:
+            z=0
 
 
     def generate_inventory_flow(self, groupby):
@@ -256,10 +288,10 @@ class CyclusProcessor(Processor):
 
         x = np.array(list(range(self.duration)))
         y = []
-        if which == 'enter':
+        if which == 'entered':
             for time in x:
                 y.append(entertime.count(time))
-        elif which == 'exit':
+        elif which == 'exited':
             for time in x:
                 y.append(exittime.count(time))
         elif which == 'deployed':
