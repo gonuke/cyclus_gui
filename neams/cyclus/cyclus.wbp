@@ -1,62 +1,66 @@
 % how it's set up:
-% the postrun generates 5 different csv files with a specific keyword in it
+% the postrun generates a csv file with a specific keyword in it
+% with BEGIN and END lines
 % that allows the postprocessor to recognize / parse the appropriate values
 
 % material flow agent to agent
 extensions = [csv]
-filter_pattern = "material_flow_agent_to_agent"
-processor("Material flow agent to agent:") {
-    delimiter = ";"
+filter_pattern = "CYCLUS"
 
-    logic = """${PYTHON} ${RT}/../cyclus/cyclus_processor.py ${CURRENT_FILE}"""
+processor("Material flow agent to agent") {
+    delimiter = ","
+
+    logic = """${AWK} "/BEGIN trade_flow_agent/,/END trade_flow_agent/" ${CURRENT_FILE}"""
 
     graph("Material flow agent to agent"){
         % key axis (x-axis) label
-        key_axis_label = "${a4}"
+        key_axis_label = "Timesteps"
 
         % value axis (y-axis) label
-        value_axis_label = "${b4}"
+        value_axis_label = "Mass [kg]"
 
         % key axis scale (linear, log)
-        key_axis_scale = log
+        key_axis_scale = linear
 
         % line style (line, stepleft, stepright, stepcenter, impulse, none)
-        line_style = "${c2}"
+        line_style = "line"
 
         % series keys (x-values)
-        keys = "a5:a?" % energy
+        keys = "a2:?2" % timesteps
 
         % series values (y-values)
-        values = "b5:b?"
+        values = "f4:?4"
 
-        % series value uncertainties (+/- unc)
-        values_uncertainty = "c5:c?"
     }
 
 }
 
 
-% material flow proto to proto
-extensions = [csv]
-filter_pattern = "material_flow_proto_to_proto"
+processor("Agent flow deployed") {
+    delimiter = ","
 
+    logic = """${AWK} "/BEGIN agent_flow_deployed/,/END agent_flow_deployed/" ${CURRENT_FILE}"""
 
+    graph("Material flow agent to agent"){
+        % key axis (x-axis) label
+        key_axis_label = "Timesteps"
 
-% commodity flow
-extensions = [csv]
-filter_pattern = "commodity_flow"
+        % value axis (y-axis) label
+        value_axis_label = "Deployed"
 
+        % key axis scale (linear, log)
+        key_axis_scale = linear
 
+        % line style (line, stepleft, stepright, stepcenter, impulse, none)
+        line_style = "line"
 
-% timeseries
-extensions = [csv]
-filter_pattern = "timeseries"
+        % series keys (x-values)
+        keys = "a2:?2" % timesteps
 
+        % series values (y-values)
+        values = "b4:?4"
 
+    }
 
-% inventory
-extensions = [csv]
-filter_pattern = "inventory"
-
-
+}
 

@@ -2,7 +2,6 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter.scrolledtext import ScrolledText
-import xmltodict
 import uuid
 import os
 import shutil
@@ -19,7 +18,7 @@ from cyclus_gui.gui.window_tools import *
 
 
 class BackendWindow(Frame):
-    def __init__(self, master, output_path):
+    def __init__(self, master, output_path, filename='cyclus.sqlite'):
         """
         does backend analysis
         """
@@ -31,7 +30,7 @@ class BackendWindow(Frame):
         self.output_path = output_path
         self.master.geometry('+0+%s' %int(self.screen_height/4))
         self.configure_window()
-        self.get_cursor()
+        self.get_cursor(filename)
         self.get_id_proto_dict()
         self.get_start_times()
 
@@ -129,8 +128,8 @@ class BackendWindow(Frame):
                 self.id_proto_dict[agent['agentid']] = agent['prototype']
 
 
-    def get_cursor(self):
-        con = lite.connect(os.path.join(self.output_path, 'cyclus.sqlite'))
+    def get_cursor(self, filename='cyclus.sqlite'):
+        con = lite.connect(os.path.join(self.output_path, filename))
         con.row_factory = lite.Row
         self.cur = con.cursor()
 

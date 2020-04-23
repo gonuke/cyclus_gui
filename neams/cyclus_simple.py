@@ -11,6 +11,7 @@ import subprocess
 here = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(here, 'cyclus'))
 import generate_cyclus_sch
+from cyclus_processor import CyclusPostrunner
 
 
 class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
@@ -30,6 +31,7 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
     def app_options(self):
         """list of app-specific options"""
         opts = []
+
         # no options
         return opts
 
@@ -41,39 +43,52 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
 
 
     def run_args(self, options):
-        args = [options.input]
+        args = []
         args.append('-i')
         args.append(os.path.join(self.temp_xml_path))
         args.append('-o')
         pre, ext = os.path.splitext(options.input)
-        args.append(os.path.join(options.output_directory, pre + '.sqlite'))
+        self.outpath = os.path.join(options.output_directory, pre + '.sqlite')
+        if os.path.exists(self.outpath):
+            self.echo(1, '#!!!!! Previous output file with name %s exists.' %self.outpath)
+            self.echo(1, '#!!!!! NOTE THAT Cyclus does not delete and create a new Sqlite file.')
+            self.echo(1, '#!!!!! It simply adds a new SimId.')
+            self.echo(1, '#!!!!! So you will have one file with multiple simulation results.')
+            
+
+        args.append(self.outpath)
         return args
 
     def prerun(self, options):
         # convert son into xml
         binpath = os.path.join(here, os.pardir, 'bin')
         sonjson_path = os.path.join(binpath, 'sonjson')
+        self.echo(1, "#### Converting SON to XML...   ")
         schema_file_path = os.path.join(here, os.pardir,
                                         'cyclus', 'cyclus.sch')
         p = subprocess.Popen([sonjson_path, schema_file_path, options.input],
                              stdout=subprocess.PIPE)
         json_str = p.stdout.read()
-        temp_json_path = os.path.join(options.working_directory, 'temp.json')
+        temp_json_path = os.path.join(self.working_directory, 'temp.json')
         with open(temp_json_path, 'w') as f:
             f.write(json_str)
         p = subprocess.Popen([self.executable, '--json-to-xml', temp_json_path],
                              stdout=subprocess.PIPE)
         xml_str = generate_cyclus_sch.clean_xml(p.stdout.read())
         pre, ext = os.path.splitext(options.input)
-        self.temp_xml_path = os.path.join(options.working_directory, pre+'.xml')
+        self.temp_xml_path = os.path.join(self.working_directory, pre+'.xml')
         with open(self.temp_xml_path, 'w') as f:
             f.write(xml_str)
-
-
-    #def postrun(self, options):
-        """actions to perform after the run finishes"""
-        # here, we are going to try to get that sqlite to be a text file
+        self.echo(1, "#### Finished converting to XML!")
         
+
+
+    def postrun(self, options):
+        """actions to perform after the run finishes"""
+        # here, we are going to try to get that sqlite to be a csv file
+        self.echo(1, '#### Postrunner on %s' %self.outpath)
+        CyclusPostrunner(self.outpath)
+        self.echo(1, '#### Finished Postrunner')
         
 
 

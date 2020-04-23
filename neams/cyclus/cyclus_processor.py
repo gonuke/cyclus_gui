@@ -3,22 +3,36 @@ import os
 import shutil
 import json
 import copy
+import matplotlib.pyplot as plt
 import sqlite3 as lite
+from argparse import ArgumentParser, FileType, Namespace, SUPPRESS
 import sys
-sys.path.append('/Users/4ib/Downloads/Workbench-Darwin/rte/util/')
+here = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(os.path.join(here, os.pardir, 'util'))
 from processor import load_environment, BinnedData, Sheet, Options, Processor
 
 
-class CyclusProcessor(Processor):
-    def __init__(self, sqlite_path, name='cyclus', options=None):
-        super(CyclusProcessor, self).__init__(name, options)
+from cyclus_gui.gui.backend_window import BackendWindow
+from tkinter import *
+
+
+
+class CyclusPostrunner:
+    def __init__(self, sqlite_path):
         #!
         self.get_cursor(sqlite_path)
         self.get_times()
         self.get_id_proto_dict()
         self.el_z_dict = {'H': 1, 'He': 2, 'Li': 3, 'Be': 4, 'B': 5, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'Ne': 10, 'Na': 11, 'Mg': 12, 'Al': 13, 'Si': 14, 'P': 15, 'S': 16, 'Cl': 17, 'Ar': 18, 'K': 19, 'Ca': 20, 'Sc': 21, 'Ti': 22, 'V': 23, 'Cr': 24, 'Mn': 25, 'Fe': 26, 'Co': 27, 'Ni': 28, 'Cu': 29, 'Zn': 30, 'Ga': 31, 'Ge': 32, 'As': 33, 'Se': 34, 'Br': 35, 'Kr': 36, 'Rb': 37, 'Sr': 38, 'Y': 39, 'Zr': 40, 'Nb': 41, 'Mo': 42, 'Tc': 43, 'Ru': 44, 'Rh': 45, 'Pd': 46, 'Ag': 47, 'Cd': 48, 'In': 49, 'Sn': 50, 'Sb': 51, 'Te': 52, 'I': 53, 'Xe': 54, 'Cs': 55, 'Ba': 56, 'La': 57, 'Ce': 58, 'Pr': 59, 'Nd': 60, 'Pm': 61, 'Sm': 62, 'Eu': 63, 'Gd': 64, 'Tb': 65, 'Dy': 66, 'Ho': 67, 'Er': 68, 'Tm': 69, 'Yb': 70, 'Lu': 71, 'Hf': 72, 'Ta': 73, 'W': 74, 'Re': 75, 'Os': 76, 'Ir': 77, 'Pt': 78, 'Au': 79, 'Hg': 80, 'Tl': 81, 'Pb': 82, 'Bi': 83, 'Po': 84, 'At': 85, 'Rn': 86, 'Fr': 87, 'Ra': 88, 'Ac': 89, 'Th': 90, 'Pa': 91, 'U': 92, 'Np': 93, 'Pu': 94, 'Am': 95, 'Cm': 96, 'Bk': 97, 'Cf': 98, 'Es': 99, 'Fm': 100, 'Md': 101, 'No': 102, 'Lr': 103}
         self.z_el_dict = {v:k for k, v in self.el_z_dict.items()}
+        self.csv_string = 'CYCLUS\n'
+        self.generate_trade_flow('prototype')
+        self.generate_trade_flow('agent')
+        self.generate_commodity_flow()
+        self.generate_agent_flow()
 
+        with open(sqlite_path.replace('.sqlite', '.csv'), 'w') as f:
+            f.write(self.csv_string)
 
     ###########################
     # Auxiliary functions
@@ -131,7 +145,7 @@ class CyclusProcessor(Processor):
         # first row: keyword
         # second row: x values (space separated)
         # sender, receiver, commodity, y (space separated)
-        csv_string = 'trade_flow_%s' %groupby + '\n'
+        self.csv_string += 'BEGIN trade_flow_%s' %groupby + '\n'
         if groupby == 'prototype':
             header = ['sender', 'receiver', 'commodity', 'y']
         else: #groupby == 'prototype'
@@ -143,27 +157,26 @@ class CyclusProcessor(Processor):
                 if (prev_x != x).all():
                     raise ValueError('The x values are not the same!')
             else:
-                csv_string += ' '.join([str(q) for q in x]) + '\n'
-                csv_string += ','.join(header) + '\n'
+                self.csv_string += ','.join([str(q) for q in x]) + '\n'
+                self.csv_string += ','.join(header) + '\n'
 
             if groupby == 'prototype':
-                csv_string += ','.join([s, r, c]) + ',' + ' '.join([str(q) for q in y]) + '\n'
+                self.csv_string += ','.join([s, r, c]) + ',' + ','.join([str(q) for q in y]) + '\n'
             else: #groupby == 'agent'
                 sender_name = s[:s.index('(')]
                 receiver_name = r[:r.index('(')]
                 sender_id = s[s.index('(')+1:s.index(')')]
                 receiver_id = r[r.index('(')+1:r.index(')')]
-                csv_string += ','.join([sender_name, sender_id, receiver_name, receiver_id, c]) + ',' + ' '.join([str(q) for q in y]) + '\n'
+                self.csv_string += ','.join([sender_name, sender_id, receiver_name, receiver_id, c]) + ',' + ','.join([str(q) for q in y]) + '\n'
 
             prev_x = x
 
-        with open('trade_flow_%s.csv' %groupby, 'w') as f:
-            f.write(csv_string[:-1])
+        self.csv_string += 'END trade_flow_%s\n' %groupby
 
 
     def generate_commodity_flow(self):
         commods = self.cur.execute('SELECT DISTINCT commodity FROM transactions').fetchall()
-        csv_string = 'commodity_flow\n'
+        self.csv_string += 'BEGIN commodity_flow\n'
         header = ['commodity', 'y']
         for indx, i in enumerate(commods):
             commod = i['commodity']
@@ -172,20 +185,19 @@ class CyclusProcessor(Processor):
                 if (prev_x != x).all():
                     raise ValueError('The x values are not the same')
             else:
-                csv_string += ' '.join([str(q) for q in x]) + '\n'
-                csv_string += ','.join(header) + '\n'
+                self.csv_string += ','.join([str(q) for q in x]) + '\n'
+                self.csv_string += ','.join(header) + '\n'
 
-            csv_string += commod + ',' + ' '.join([str(q) for q in y])+'\n'
+            self.csv_string += commod + ',' + ','.join([str(q) for q in y])+'\n'
             prev_x = x
 
-        with open('commodity_flow.csv', 'w') as f:
-            f.write(csv_string[:-1])
+        self.csv_string += 'END commodity_flow\n'
 
 
     def generate_agent_flow(self):
         entry = self.cur.execute('SELECT DISTINCT prototype FROM agententry WHERE kind="Facility"').fetchall()
         for which in ['entered', 'exited', 'deployed']:
-            csv_string = 'agent_flow_%s\n' %which
+            self.csv_string += 'BEGIN agent_flow_%s\n' %which
             header = ['prototype', 'y']
             for indx, i in enumerate(entry):
                 proto = i['prototype']
@@ -194,13 +206,13 @@ class CyclusProcessor(Processor):
                     if (prev_x != x).all():
                         raise ValueError('The x values are not the same')
                 else:
-                    csv_string += ' '.join([str(q) for q in x]) + '\n'
-                    csv_string += ','.join(header) + '\n'
+                    self.csv_string += ','.join([str(q) for q in x]) + '\n'
+                    self.csv_string += ','.join(header) + '\n'
 
-                csv_string += proto + ',' + ' '.join([str(q) for q in y]) + '\n'
+                self.csv_string += proto + ',' + ','.join([str(q) for q in y]) + '\n'
                 prev_x = x
-            with open('agent_flow_%s.csv' %which, 'w') as f:
-                f.write(csv_string[:-1])
+            
+            self.csv_string += 'END agent_flow_%s\n' %which
 
 
 
@@ -314,6 +326,53 @@ class CyclusProcessor(Processor):
         z=0
 
 
+def read_csv(file, data_type):
+    filestr = file.read()
+    # lol research
+    alpha = filestr.find('BEGIN %s'%data_type) + len('BEGIN %s'%data_type)
+    omega = filestr.find('END %s' %data_type)
+    result = filestr[alpha+1:omega-1]
+    lines = result.split('\n')
+    lines = [q.split(',') for q in lines]
+    x = [float(q) for q in lines[0]]
+
+    # where's y?
+    y_indx = lines[1].index('y')
+    print(y_indx)
+
+    labels = ['_'.join(q[:y_indx]) for q in lines[2:]]
+    ys = [np.array(q[y_indx:], dtype=float) for q in lines[2:]]
+
+    for indx, val in enumerate(ys):
+        plt.plot(x, ys[indx], label=labels[indx])
+
+    plt.title(data_type.replace('_', ' ').capitalize())
+    plt.legend()
+    plt.show()
 
 
 
+def main():
+    parser = ArgumentParser(description='', epilog='Jin Whan Bae')
+    #parser.add_argument('file', type=FileType('r'),
+    #                    help='Cyclus output csv file path')
+    parser.add_argument('file', type=str)
+    parser.add_argument('-data_type', type=str, default=None,
+                        dest='data_type',
+                        help='Type of data to be printed [trade_flow_agent/trade_flow_prototype/commodity_flow/agent_flow_entered/agent_flow_exited/agent_flow_deployed]'
+                        )
+    args = parser.parse_args()
+    if '.csv' in args.file:
+        sqlite = args.file.replace('.csv', '.sqlite')
+        args.file = os.path.dirname(args.file)
+    root = Tk()
+    app = BackendWindow(root, args.file, sqlite)
+    root.mainloop()
+
+
+    #read_csv(args.file, args.data_type)
+    # cyclus_processor = CyclusProcessor('cyclus', args)   
+    
+
+if __name__ == '__main__':
+    main()
