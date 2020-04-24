@@ -12,7 +12,7 @@ filter_pattern = "CYCLUS"
 processor("Material flow prototype to prototype") {
     delimiter = ","
 
-    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN trade_flow_prototype/,/END trade_flow_prototype/ { if(index($1,begin)==1 || index($NF,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
+    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN trade_flow_prototype/,/END trade_flow_prototype/ { if(index($1,begin)==1 || index($1,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
 
     graph("${a2}"){
         % key axis (x-axis) label
@@ -39,7 +39,7 @@ processor("Material flow prototype to prototype") {
 processor("Material flow agent to agent") {
     delimiter = ","
 
-    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN trade_flow_agent/,/END trade_flow_agent/ { if(index($1,begin)==1 || index($NF,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
+    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN trade_flow_agent/,/END trade_flow_agent/ { if(index($1,begin)==1 || index($1,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
 
     graph("${a2}"){
         % key axis (x-axis) label
@@ -69,7 +69,7 @@ processor("Material flow agent to agent") {
 processor("Material flow commodity") {
     delimiter = ","
 
-    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN commodity_flow/,/END commodity_flow/ { if(index($1,begin)==1 || index($NF,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
+    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN commodity_flow/,/END commodity_flow/ { if(index($1,begin)==1 || index($1,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
 
     graph("${a2}"){
         % key axis (x-axis) label
@@ -97,7 +97,7 @@ processor("Material flow commodity") {
 processor("Agents entered") {
     delimiter = ","
 
-    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN agent_flow_entered/,/END agent_flow_entered/ { if(index($1,begin)==1 || index($NF,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
+    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN agent_flow_entered/,/END agent_flow_entered/ { if(index($1,begin)==1 || index($1,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
 
     graph("${a2}"){
         % key axis (x-axis) label
@@ -125,7 +125,7 @@ processor("Agents entered") {
 processor("Agents exited") {
     delimiter = ","
 
-    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN agent_flow_exited/,/END agent_flow_exited/ { if(index($1,begin)==1 || index($NF,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
+    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN agent_flow_exited/,/END agent_flow_exited/ { if(index($1,begin)==1 || index($1,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
 
     graph("${a2}"){
         % key axis (x-axis) label
@@ -155,7 +155,7 @@ processor("Agents exited") {
 processor("Agents active") {
     delimiter = ","
 
-    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN agent_flow_deployed/,/END agent_flow_deployed/ { if(index($1,begin)==1 || index($NF,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
+    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN agent_flow_deployed/,/END agent_flow_deployed/ { if(index($1,begin)==1 || index($1,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
 
     graph("${a2}"){
         % key axis (x-axis) label

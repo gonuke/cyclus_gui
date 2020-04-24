@@ -1,7 +1,4 @@
 #!/usr/bin/python
-"""Scale runtime environment"""
-
-# standard imports
 import os
 import sys
 import json
@@ -21,6 +18,7 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
         # call super class constructor
         super(CyclusRuntimeEnvironment, self).__init__()
         self.executable = 'cyclus'
+
 
     def app_name(self):
         """returns the app's self-designated name"""
@@ -51,8 +49,6 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
             self.echo(1, '#!!!!! It simply adds a new SimId.')
             self.echo(1, '#!!!!! So you will have one file with multiple simulation results.')
         args.append(self.outpath)
-        #args.append('-v')
-        #args.append(self.verbosity)
         return args
 
 
