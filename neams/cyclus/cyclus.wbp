@@ -7,41 +7,12 @@
 extensions = [csv]
 filter_pattern = "CYCLUS"
 
-
-
-processor("Material flow prototype to prototype") {
-    delimiter = ","
-
-    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN trade_flow_prototype/,/END trade_flow_prototype/ { if(index($1,begin)==1 || index($1,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
-
-    graph("${a2}"){
-        % key axis (x-axis) label
-        key_axis_label = "Timesteps"
-
-        % value axis (y-axis) label
-        value_axis_label = "Mass [kg]"
-
-        % key axis scale (linear, log)
-        key_axis_scale = linear
-
-        % line style (line, stepleft, stepright, stepcenter, impulse, none)
-        line_style = "line"
-
-        % series keys (x-values)
-        keys = "a1:?1" % timesteps
-
-        % series values (y-values)
-        values = "b2:?2"
-    }
-}
-
-
 processor("Material flow agent to agent") {
     delimiter = ","
 
-    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN trade_flow_agent/,/END trade_flow_agent/ { if(index($1,begin)==1 || index($1,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
+    logic = """${AWK} "/BEGIN trade_flow_agent/,/END trade_flow_agent/" ${CURRENT_FILE}"""
 
-    graph("${a2}"){
+    graph("Material flow agent to agent"){
         % key axis (x-axis) label
         key_axis_label = "Timesteps"
 
@@ -55,28 +26,27 @@ processor("Material flow agent to agent") {
         line_style = "line"
 
         % series keys (x-values)
-        keys = "a1:?1" % timesteps
+        keys = "a2:?2" % timesteps
 
         % series values (y-values)
-        values = "b2:?2"
+        values = "f4:?4"
+
     }
+
 }
 
 
-
-
-
-processor("Material flow commodity") {
+processor("Agent flow deployed") {
     delimiter = ","
 
-    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN commodity_flow/,/END commodity_flow/ { if(index($1,begin)==1 || index($1,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
+    logic = """${AWK} "/BEGIN agent_flow_deployed/,/END agent_flow_deployed/" ${CURRENT_FILE}"""
 
-    graph("${a2}"){
+    graph("Material flow agent to agent"){
         % key axis (x-axis) label
         key_axis_label = "Timesteps"
 
         % value axis (y-axis) label
-        value_axis_label = "Mass [kg]"
+        value_axis_label = "Deployed"
 
         % key axis scale (linear, log)
         key_axis_scale = linear
@@ -85,98 +55,12 @@ processor("Material flow commodity") {
         line_style = "line"
 
         % series keys (x-values)
-        keys = "a1:?1" % timesteps
+        keys = "a2:?2" % timesteps
 
         % series values (y-values)
-        values = "b2:?2"
+        values = "b4:?4"
+
     }
+
 }
-
-
-
-processor("Agents entered") {
-    delimiter = ","
-
-    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN agent_flow_entered/,/END agent_flow_entered/ { if(index($1,begin)==1 || index($1,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
-
-    graph("${a2}"){
-        % key axis (x-axis) label
-        key_axis_label = "Timesteps"
-
-        % value axis (y-axis) label
-        value_axis_label = "Mass [kg]"
-
-        % key axis scale (linear, log)
-        key_axis_scale = linear
-
-        % line style (line, stepleft, stepright, stepcenter, impulse, none)
-        line_style = "line"
-
-        % series keys (x-values)
-        keys = "a1:?1" % timesteps
-
-        % series values (y-values)
-        values = "b2:?2"
-    }
-}
-
-
-
-processor("Agents exited") {
-    delimiter = ","
-
-    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN agent_flow_exited/,/END agent_flow_exited/ { if(index($1,begin)==1 || index($1,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
-
-    graph("${a2}"){
-        % key axis (x-axis) label
-        key_axis_label = "Timesteps"
-
-        % value axis (y-axis) label
-        value_axis_label = "Mass [kg]"
-
-        % key axis scale (linear, log)
-        key_axis_scale = linear
-
-        % line style (line, stepleft, stepright, stepcenter, impulse, none)
-        line_style = "line"
-
-        % series keys (x-values)
-        keys = "a1:?1" % timesteps
-
-        % series values (y-values)
-        values = "b2:?2"
-    }
-}
-
-
-
-
-
-processor("Agents active") {
-    delimiter = ","
-
-    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN agent_flow_deployed/,/END agent_flow_deployed/ { if(index($1,begin)==1 || index($1,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
-
-    graph("${a2}"){
-        % key axis (x-axis) label
-        key_axis_label = "Timesteps"
-
-        % value axis (y-axis) label
-        value_axis_label = "Mass [kg]"
-
-        % key axis scale (linear, log)
-        key_axis_scale = linear
-
-        % line style (line, stepleft, stepright, stepcenter, impulse, none)
-        line_style = "line"
-
-        % series keys (x-values)
-        keys = "a1:?1" % timesteps
-
-        % series values (y-values)
-        values = "b2:?2"
-    }
-}
-
-
 

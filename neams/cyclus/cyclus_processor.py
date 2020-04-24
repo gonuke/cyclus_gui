@@ -25,6 +25,8 @@ class CyclusPostrunner:
         self.generate_trade_flow('agent')
         self.generate_commodity_flow()
         self.generate_agent_flow()
+        self.generate_timeseries_flow()
+
 
         with open(sqlite_path.replace('.sqlite', '.csv'), 'w') as f:
             f.write(self.csv_string)
@@ -150,9 +152,9 @@ class CyclusPostrunner:
             else:
                 self.csv_string += ','.join([str(q) for q in x]) + '\n'
                 if groupby == 'prototype':
-                	self.csv_string += 'sender -> [commodity] -> receiver, trade_mass\n'
+                    self.csv_string += 'sender -> [commodity] -> receiver, trade_mass\n'
                 else:
-                	self.csv_string += 'sender (senderid) -> [commodity] -> receiver (receiverid), trade_mass\n'
+                    self.csv_string += 'sender (senderid) -> [commodity] -> receiver (receiverid), trade_mass\n'
 
             if groupby == 'prototype':
                 self.csv_string  += '%s -> [%s] -> %s' %(s,c,r) + ',' + ','.join([str(q) for q in y]) + '\n'
@@ -214,8 +216,20 @@ class CyclusPostrunner:
         timeseries_tables_list = [i['name'].replace('TimeSeries', '') for i in tables if 'TimeSeries' in i['name']]
         timeseries_tables_list.sort()
 
+        self.csv_string += 'BEGIN timeseries_flow\n'
+        self.csv_string += ','.join([str(q) for q in np.arange(self.duration)]) + '\n'
+        self.csv_string += 'Timeseries (agentname (agentid)), timeseries_value\n'
         for timeseries in timeseries_tables_list:
-            z=0
+            agentid_list = self.cur.execute('SELECT distinct agentid FROM TimeSeries%s' %timeseries).fetchall()
+            agentid_list = [i['agentid'] for i in agentid_list]
+            agentname_list = [self.id_proto_dict[i] for i in agentid_list]
+            for indx, val in enumerate(agentid_list):
+                x, y = self.get_timeseries_flow(timeseries, val)
+                self.csv_string += '%s (%s (%s))' %(timeseries, agentname_list[indx], val) + ',' + ','.join([str(q) for q in y]) + '\n'
+            x, y = self.get_timeseries_flow(timeseries, 'agg')
+            self.csv_string += '%s (total)' %timeseries + ',' + ','.join([str(q) for q in y]) + '\n'
+        self.csv_string += 'END timeseries_flow\n'
+
 
 
     def generate_inventory_flow(self, groupby):
@@ -309,11 +323,16 @@ class CyclusPostrunner:
         return x, y
 
 
-    def get_timeseries_flow(self, timeseries):
-        agentid_list_q = self.cur.execute('SELECT distinct agentid FROM TimeSeries%s' %timeseries).fetchall()
-        agentid_list = [i['agentid'] for i in agentid_list_q]
-        agentname_list = [self.id_proto_dict[i] for i in agentid_list]
-
+    def get_timeseries_flow(self, timeseries, agentid):
+        # agentid_list_q = self.cur.execute('SELECT distinct agentid FROM TimeSeries%s' %timeseries).fetchall()
+        # agentid_list = [i['agentid'] for i in agentid_list_q]
+        # agentname_list = [self.id_proto_dict[i] for i in agentid_list]
+        if agentid == 'agg':
+            series_q = self.cur.execute('SELECT time, sum(value) FROM Timeseries%s GROUP BY time' %timeseries).fetchall()
+        else:
+            series_q = self.cur.execute('SELECT time, sum(value) FROM Timeseries%s WHERE agentid=%s GROUP BY time' %(timeseries, str(agentid))).fetchall()
+        x, y = self.query_result_to_timeseries(series_q, 'sum(value)')
+        return x, y
 
     def get_inventory_flow(self):
         z=0
