@@ -146,10 +146,6 @@ class CyclusPostrunner:
         # second row: x values (space separated)
         # sender, receiver, commodity, y (space separated)
         self.csv_string += 'BEGIN trade_flow_%s' %groupby + '\n'
-        if groupby == 'prototype':
-            header = ['sender', 'receiver', 'commodity', 'y']
-        else: #groupby == 'prototype'
-            header = ['sender', 'senderid', 'receiver', 'receiverid', 'commodity', 'y']
         for indx, val in enumerate(table_dict['sender']):
             s, r, c = table_dict['sender'][indx], table_dict['receiver'][indx], table_dict['commodity'][indx]
             x, y = self.get_trade_flow(s, r, c, groupby=groupby)
@@ -158,16 +154,16 @@ class CyclusPostrunner:
                     raise ValueError('The x values are not the same!')
             else:
                 self.csv_string += ','.join([str(q) for q in x]) + '\n'
-                self.csv_string += ','.join(header) + '\n'
 
             if groupby == 'prototype':
-                self.csv_string += ','.join([s, r, c]) + ',' + ','.join([str(q) for q in y]) + '\n'
+                self.csv_string  += '%s -> [%s] -> %s' %(s,c,r) + ',' + ','.join([str(q) for q in y]) + '\n'
             else: #groupby == 'agent'
                 sender_name = s[:s.index('(')]
                 receiver_name = r[:r.index('(')]
                 sender_id = s[s.index('(')+1:s.index(')')]
                 receiver_id = r[r.index('(')+1:r.index(')')]
-                self.csv_string += ','.join([sender_name, sender_id, receiver_name, receiver_id, c]) + ',' + ','.join([str(q) for q in y]) + '\n'
+                label = '%s (%s) -> [%s] -> %s (%s)' %(sender_name, sender_id, c, receiver_name, receiver_id)
+                self.csv_string += label + ',' + ','.join([str(q) for q in y]) + '\n'
 
             prev_x = x
 
@@ -177,7 +173,6 @@ class CyclusPostrunner:
     def generate_commodity_flow(self):
         commods = self.cur.execute('SELECT DISTINCT commodity FROM transactions').fetchall()
         self.csv_string += 'BEGIN commodity_flow\n'
-        header = ['commodity', 'y']
         for indx, i in enumerate(commods):
             commod = i['commodity']
             x, y = self.get_commodity_flow(commod)
@@ -186,7 +181,6 @@ class CyclusPostrunner:
                     raise ValueError('The x values are not the same')
             else:
                 self.csv_string += ','.join([str(q) for q in x]) + '\n'
-                self.csv_string += ','.join(header) + '\n'
 
             self.csv_string += commod + ',' + ','.join([str(q) for q in y])+'\n'
             prev_x = x
@@ -198,7 +192,6 @@ class CyclusPostrunner:
         entry = self.cur.execute('SELECT DISTINCT prototype FROM agententry WHERE kind="Facility"').fetchall()
         for which in ['entered', 'exited', 'deployed']:
             self.csv_string += 'BEGIN agent_flow_%s\n' %which
-            header = ['prototype', 'y']
             for indx, i in enumerate(entry):
                 proto = i['prototype']
                 x, y = self.get_agent_flow(proto, which)
@@ -207,7 +200,6 @@ class CyclusPostrunner:
                         raise ValueError('The x values are not the same')
                 else:
                     self.csv_string += ','.join([str(q) for q in x]) + '\n'
-                    self.csv_string += ','.join(header) + '\n'
 
                 self.csv_string += proto + ',' + ','.join([str(q) for q in y]) + '\n'
                 prev_x = x
@@ -353,6 +345,8 @@ def read_csv(file, data_type):
 
 
 def main():
+    CyclusPostrunner('out.sqlite')
+    return
     parser = ArgumentParser(description='', epilog='Jin Whan Bae')
     #parser.add_argument('file', type=FileType('r'),
     #                    help='Cyclus output csv file path')

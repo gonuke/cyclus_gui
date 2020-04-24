@@ -1,0 +1,37 @@
+% how it's set up:
+% the postrun generates a csv file with a specific keyword in it
+% with BEGIN and END lines
+% that allows the postprocessor to recognize / parse the appropriate values
+
+% material flow agent to agent
+extensions = [csv]
+filter_pattern = "CYCLUS"
+
+
+processor("Material flow agent to agent") {
+    delimiter = ","
+
+    logic = """${AWK} -v new=${NEW_SHEET} -v begin="BEGIN" -v end="END" "/BEGIN trade_flow_agent/,/END trade_flow_agent/ { if(index($1,begin)==1 || index($NF,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} print steps; print $0; print new }" ${CURRENT_FILE}"""
+
+    graph("${a2}"){
+        % key axis (x-axis) label
+        key_axis_label = "Timesteps"
+
+        % value axis (y-axis) label
+        value_axis_label = "Mass [kg]"
+
+        % key axis scale (linear, log)
+        key_axis_scale = linear
+
+        % line style (line, stepleft, stepright, stepcenter, impulse, none)
+        line_style = "line"
+
+        % series keys (x-values)
+        keys = "a1:?1" % timesteps
+
+        % series values (y-values)
+        values = "b2:?2"
+    }
+}
+
+
