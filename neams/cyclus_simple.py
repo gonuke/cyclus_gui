@@ -8,7 +8,7 @@ import json
 # super import
 import workbench
 import subprocess
-here = os.path.abspath(os.path.dirname(__file__))
+here = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(here, 'cyclus'))
 import generate_cyclus_sch
 from cyclus_processor import CyclusPostrunner
@@ -18,7 +18,6 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
     """scale-specific runtime environment"""
     def __init__(self):
         """constructor"""
-
         # call super class constructor
         super(CyclusRuntimeEnvironment, self).__init__()
         self.executable = 'cyclus'
@@ -31,15 +30,12 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
     def app_options(self):
         """list of app-specific options"""
         opts = []
-
-        # no options
         return opts
+
 
     def environment(self):
         # this is here to see if it works.. why does it not work?
-        return {
-            "DATA": "/path/to/scale/data"
-        }
+        return {}
 
 
     def run_args(self, options):
@@ -54,10 +50,11 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
             self.echo(1, '#!!!!! NOTE THAT Cyclus does not delete and create a new Sqlite file.')
             self.echo(1, '#!!!!! It simply adds a new SimId.')
             self.echo(1, '#!!!!! So you will have one file with multiple simulation results.')
-            
-
         args.append(self.outpath)
+        #args.append('-v')
+        #args.append(self.verbosity)
         return args
+
 
     def prerun(self, options):
         # convert son into xml
@@ -80,7 +77,7 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
         with open(self.temp_xml_path, 'w') as f:
             f.write(xml_str)
         self.echo(1, "#### Finished converting to XML!")
-        
+
 
 
     def postrun(self, options):
@@ -130,10 +127,10 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
         self.highlight_file_path = os.path.join(workbench_basedir, 'etc', 'grammars', 'highlighters', 'cyclus.wbh') 
         self.grammar_file_path = os.path.join(workbench_basedir, 'etc', 'grammars', 'cyclus.wbg')
         generate_cyclus_sch.generate_cyclus_workbench_files(schema_path=self.schema_file_path,
-                                                     template_dir=self.template_dir_path,
-                                                     highlight_path=self.highlight_file_path,
-                                                     grammar_path=self.grammar_file_path,
-                                                     cyclus_cmd=self.executable)
+                                                            template_dir=self.template_dir_path,
+                                                            highlight_path=self.highlight_file_path,
+                                                            grammar_path=self.grammar_file_path,
+                                                            cyclus_cmd=self.executable)
         return
 
 
@@ -145,43 +142,8 @@ class CyclusRuntimeEnvironment(workbench.WorkbenchRuntimeEnvironment):
             raise ValueError("The provided path to the grammar file is empty")
         return []
 
-        """
-        #! I don't think Cyclus will need this
-
-        # add path to wasp2py.py to PYTHONPATH
-        # Because scale is installed in Workbench/rte, and wasp2py is installed in Workbench/wasppy
-        # include the path from rte to wasppy
-        pathToSon2py= os.path.join(os.path.dirname(__file__),os.path.pardir,"wasppy")
-        if not os.path.isdir(pathToSon2py):
-            print ("***Error: Workbench Analysis Sequence Process (WASP) Python wrapper (WASPPY) is not in expected location: ",pathToSon2py)
-        sys.path.append(pathToSon2py)
-        import wasp2py # son2py
-        # TODO: add a check to test the existence of the directory 'build/wasp/wasppy' 
-
-        # read grammar file to get the absolute schema file path
-        utildir = os.path.abspath(os.path.join(os.path.abspath(__file__),os.pardir,"util"))
-        gschema_filepath = os.path.join(utildir,'grammar.sch')
-        grammar_dict = wasp2py.get_json_dict(gschema_filepath,grammar_file_path)
-
-        pdir = os.path.abspath(os.path.join(grammar_file_path,os.pardir))
-        schema_path = grammar_dict["schema"]["value"]
-        # ../projects/scale/etc/InputDefinitions/finaloutput/scale.sch
-        components_path = os.path.abspath(os.path.join(pdir,schema_path,os.pardir,os.pardir,"components"))
-        # ../projects/scale/etc/InputDefinitions/components/
-        return [str(components_path)]
-        """
 
    
 
 if __name__ == "__main__":
     CyclusRuntimeEnvironment().execute(sys.argv[1:])
-
-    # execute runtime, ignoring first argument (the python script itself)
-    # x = CyclusRuntimeEnvironment()
-    #x.executable = 'cyclus'
-    #x.update_and_print_grammar('~/Desktop/Workbench-Linux/etc/grammar/')
-
-    
-    #y = x._WorkbenchRuntimeEnvironment__grammar()
-    #y()
-    #CyclusRuntimeEnvironment().execute(sys.argv[1:])

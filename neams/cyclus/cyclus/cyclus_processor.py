@@ -3,17 +3,12 @@ import os
 import shutil
 import json
 import copy
-import matplotlib.pyplot as plt
 import sqlite3 as lite
 from argparse import ArgumentParser, FileType, Namespace, SUPPRESS
 import sys
 here = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(here, os.pardir, 'util'))
 from processor import load_environment, BinnedData, Sheet, Options, Processor
-
-
-from cyclus_gui.gui.backend_window import BackendWindow
-from tkinter import *
 
 
 
@@ -316,57 +311,3 @@ class CyclusPostrunner:
 
     def get_inventory_flow(self):
         z=0
-
-
-def read_csv(file, data_type):
-    filestr = file.read()
-    # lol research
-    alpha = filestr.find('BEGIN %s'%data_type) + len('BEGIN %s'%data_type)
-    omega = filestr.find('END %s' %data_type)
-    result = filestr[alpha+1:omega-1]
-    lines = result.split('\n')
-    lines = [q.split(',') for q in lines]
-    x = [float(q) for q in lines[0]]
-
-    # where's y?
-    y_indx = lines[1].index('y')
-    print(y_indx)
-
-    labels = ['_'.join(q[:y_indx]) for q in lines[2:]]
-    ys = [np.array(q[y_indx:], dtype=float) for q in lines[2:]]
-
-    for indx, val in enumerate(ys):
-        plt.plot(x, ys[indx], label=labels[indx])
-
-    plt.title(data_type.replace('_', ' ').capitalize())
-    plt.legend()
-    plt.show()
-
-
-
-def main():
-    CyclusPostrunner('out.sqlite')
-    return
-    parser = ArgumentParser(description='', epilog='Jin Whan Bae')
-    #parser.add_argument('file', type=FileType('r'),
-    #                    help='Cyclus output csv file path')
-    parser.add_argument('file', type=str)
-    parser.add_argument('-data_type', type=str, default=None,
-                        dest='data_type',
-                        help='Type of data to be printed [trade_flow_agent/trade_flow_prototype/commodity_flow/agent_flow_entered/agent_flow_exited/agent_flow_deployed]'
-                        )
-    args = parser.parse_args()
-    if '.csv' in args.file:
-        sqlite = args.file.replace('.csv', '.sqlite')
-        args.file = os.path.dirname(args.file)
-    root = Tk()
-    app = BackendWindow(root, args.file, sqlite)
-    root.mainloop()
-
-
-    #read_csv(args.file, args.data_type)
-    # cyclus_processor = CyclusProcessor('cyclus', args)   
-    
-
-if __name__ == '__main__':
-    main()

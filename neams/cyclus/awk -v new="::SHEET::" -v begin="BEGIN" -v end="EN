@@ -1,0 +1,1 @@
+awk -v new="::SHEET::" -v begin="BEGIN" -v end="END" '/BEGIN trade_flow_agent/,/END trade_flow_agent/ { if(index($1,begin)==1 || index($NF,end)==1) {start=NR;next;} if(NR==start+1) {steps=$0; next;} if(NR==start+2){next;} print steps; print $0; print new }' out.csv
