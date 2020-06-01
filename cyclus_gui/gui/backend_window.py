@@ -656,7 +656,7 @@ class BackendWindow(Frame):
         maxy = 14 * len(flow_clean)
         y_coords = np.linspace(0, maxx, len(flow_clean))[::-1]
         x_coords = np.linspace(0, maxy, max([len(q) for q in flow_clean]))
-        xgap = x_coords[1] - x_coords[0]
+        # xgap = x_coords[1] - x_coords[0]
         ygap = y_coords[1] - y_coords[0]
 
         uniq_commods = list(set(df['Commodity']))
