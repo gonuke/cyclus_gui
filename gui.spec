@@ -1,14 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
-import sys
-sys.setrecursionlimit(5000)
 
 block_cipher = None
 
 
-a = Analysis(['gui.py'],
-             pathex=['/home/4ib/git/cyclus_gui/cyclus_gui/gui/'],
+a = Analysis(['cyclus_gui\\gui\\gui.py'],
+             pathex=['C:\\Users\\Teddy\\Desktop\\cyclus_gui\\cyclus_gui'],
              binaries=[],
-             datas=[('./src/*', './src/')],
+             datas=[],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],

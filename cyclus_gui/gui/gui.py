@@ -439,9 +439,17 @@ class Cygui(Frame):
                 skipfront = 0
                 skipback = 0
                 with open(os.path.join(output_path,i), 'r') as f:
-                    x = f.read()
-                    x = x.replace('<root>', '')
-                    x = x.replace('</root>', '')
+                    lines = f.read().split('\n')
+                    x = []
+                    for line in lines:
+                        if 'root>' in line:
+                            x.append(line.replace('<root>', '').replace('</root>', ''))
+                            continue
+                        if 'xml version' in line and 'encoding' in line:
+                            continue
+                        else:
+                            x.append(line)
+                    x = '\n'.join(x)
                     if i == 'archetypes.xml' and 'DeployInst' not in x:
                         x = x.replace('</archetypes>', """\t<spec>
         <lib>cycamore</lib>
