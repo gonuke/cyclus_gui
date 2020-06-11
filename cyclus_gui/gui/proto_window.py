@@ -288,7 +288,7 @@ class PrototypeWindow(Frame):
                 facility_dict['name'] = name
                 facility_dict['config'] = config['config']
                 new_dict['root']['facility'].append(facility_dict)
-            f.write(xmltodict.unparse(new_dict, pretty=True))
+            f.write('\n'.join(xmltodict.unparse(new_dict, pretty=True).split('\n')[1:]))
         messagebox.showinfo('Sucess', 'Successfully rendered %i facility prototypes!' %len(new_dict['root']['facility']))
         self.master.destroy()
         self
