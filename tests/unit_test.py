@@ -8,6 +8,7 @@ from cyclus_gui.gui.recipe_window import RecipeWindow
 from cyclus_gui.gui.backend_window import BackendWindow
 import os
 
+here = os.path.dirname(os.path.abspath(__file__))
 
 def skip_init(cls):
     actual_init = cls.__init__
@@ -41,6 +42,7 @@ class arche_unit_test(unittest.TestCase):
                       ['cycamore', 'Storage']]
         for i in answer:
             self.assertTrue(i in arche)
+
 
 if __name__ == '__main__':
     unittest.main()
