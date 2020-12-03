@@ -67,7 +67,6 @@ class SimulationWindow():
         self.new_window.destroy()
 
 
-
     def is_it_pos_integer(self, num):
         if float(num) % 1.0 != 0.0:
             return False
@@ -84,25 +83,25 @@ class SimulationWindow():
 
 
     def done(self):
-        self.entry_dict = {key: val.get() for key, val in self.entry_dict.items()}
-
+        val_dict = {key:val.get() for key,val in self.entry_dict.items()}
         # check input:
-        if '' in self.entry_dict.values():
+        if '' in val_dict.values():
             messagebox.showerror('Error', 'You omitted some parameters')
-        elif not self.is_it_pos_integer(self.entry_dict['startmonth']):
+        elif not self.is_it_pos_integer(val_dict['startmonth']):
             messagebox.showeeror('Error', 'Start Month must be a positive integer')
-        elif not self.is_it_pos_integer(self.entry_dict['startyear']):
+        elif not self.is_it_pos_integer(val_dict['startyear']):
             messagebox.showerror('Error', 'Start Year must be a positive integer')
-        elif int(self.entry_dict['startmonth']) not in list(range(1,13)):
-            messagebox.showeror('Error', 'Month has to be number from 1 to 12')
-        elif self.entry_dict['decay'] not in ['never', 'lazy', 'manual']:
+        elif int(val_dict['startmonth']) not in list(range(1,13)):
+            messagebox.showerror('Error', 'Month has to be number from 1 to 12')
+            return
+        elif val_dict['decay'] not in ['never', 'lazy', 'manual']:
             messagebox.showerror('Error', 'Decay must be either never, lazy, or manual')
-        elif not self.is_it_pos_integer(self.entry_dict['dt']):
+        elif not self.is_it_pos_integer(val_dict['dt']):
             messagebox.showerror('Error', 'dt must be a positive integer')
         else:
             messagebox.showinfo('Success', 'Rendered Simulation definition into xml! :)')
             xml_string = '<control>\n'
-            for key, val in self.entry_dict.items():
+            for key, val in val_dict.items():
                 if key=='dt' and int(val)==2629846:
                     continue
                 if (key=='explicit_inventory' or key=='explicit_inventory_compact') and int(val)==0:
@@ -121,28 +120,31 @@ class SimulationWindow():
         self.guide_window.geometry('+%s+0' %int(self.screen_width/1.5))
 
         guide_string = """
-        duration =
-        Number of timesteps in the simulation 
+duration =
+Number of timesteps in the simulation 
 
-        startmonth =
-        Starting month of the simulation [1-12]
-        
-        startyear =
-        Starting year of the simulation
-        
-        decay =
-        Decay solver [never, lazy, manual]
-        
-        explicit_inventory =
-        Create ExplicitInventory table (0 for no, 1 for yes)
-        If you want to get the inventory of each facility at each timestep,
-        write 1
-             
-        dt =
-        Duration of single timestep in seconds (default is a month -> 2,629,846)
+startmonth =
+Starting month of the simulation [1-12]
 
-        FOR MORE INFORMATION:
-        http://fuelcycle.org/user/input_specs/control.html
+startyear =
+Starting year of the simulation
+
+decay =
+Decay solver [never, lazy, manual]
+
+explicit_inventory =
+Create ExplicitInventory table (0 for no, 1 for yes)
+If you want to get the inventory of each facility at each timestep,
+write 1
+     
+dt =
+Duration of single timestep in seconds (default is a month -> 2,629,846)
+
+FOR MORE INFORMATION:
+http://fuelcycle.org/user/input_specs/control.html
         """
-        Label(self.guide_window, text=guide_string, justify=LEFT).pack(padx=30, pady=30)
+        st = ScrolledText(master=self.guide_window,
+                          wrap=WORD)
+        st.pack()
+        st.insert(INSERT, guide_string)
 

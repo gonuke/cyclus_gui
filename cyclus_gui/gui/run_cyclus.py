@@ -17,11 +17,12 @@ import os
 
 
 class cyclus_run:
-    def __init__(self, master, input_path, output_path):
+    def __init__(self, master, input_path, output_path, get_metadata=False):
         self.screen_width = master.winfo_screenwidth()
         self.screen_height = master.winfo_screenheight()
         self.input_path = input_path
         self.output_path = output_path
+        self.get_metadata = get_metadata
 
         # open new window
         self.master = Toplevel(master)
@@ -93,14 +94,33 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
         # run cyclus 
         self.output_pipe.insert(END, '\nAttempting to run Cyclus locally:')
         cyclus_cmd = self.cyclus_cmd.get()
-        command = '%s %s -o %s' %(cyclus_cmd, self.input_path, self.output_path)
-        self.output_pipe.insert(END, '\nRunning command:')
-        self.output_pipe.insert(END, '\n'+command)
-        proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-        out, err = proc.communicate()
-        self.output_pipe.insert(END, '\n\n'+out.decode('utf-8'))
-        if 'success' in out.decode('utf-8'):
-            self.output_pipe.insert(END, '\n\nGreat! move on to the backend analysis!')
+
+        if self.get_metadata:
+            metapath = os.path.join(os.path.dirname(self.output_path), 'new_m.json')
+            command = '%s -m > %s' %(cyclus_cmd, metapath)
+            self.output_pipe.insert(END, '\nTrying to get Cyclus metadata:')
+            self.output_pipe.insert(END, '\nRunning command:')
+            self.output_pipe.insert(END, '\n'+command)
+            proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+            out, err = proc.communicate()
+            with open(metapath, 'r') as f:
+                meta = f.read()
+            if meta == '':
+                self.output_pipe.insert(END, 'This failed! Refer to the error message below:')
+                self.output_pipe.insert(END, '\n\n' + err.decode('utf-8') + '\n\n')
+            else:
+                messagebox.showinfo('Done', 'Successfully read metadata file!')
+                self.master.destroy()
+
+        else:
+            command = '%s %s -o %s' %(cyclus_cmd, self.input_path, self.output_path)
+            self.output_pipe.insert(END, '\nRunning command:')
+            self.output_pipe.insert(END, '\n'+command)
+            proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+            out, err = proc.communicate()
+            self.output_pipe.insert(END, '\n\n'+out.decode('utf-8'))
+            if 'success' in out.decode('utf-8'):
+                self.output_pipe.insert(END, '\n\nGreat! move on to the backend analysis!')
 
     def check_existing_output(self):
         self.output_pipe.insert(END, '\nChecking if output `cyclus.sqlite` already exists...')
@@ -110,7 +130,7 @@ Cloud: if you're connected to an open network, leave the proxy hostname/port bla
             while os.path.isfile(os.path.join(self.outdir, 'temp_%s.sqlite' %str(i))):
                 i += 1
             self.output_pipe.insert(END, '\n`cyclus.sqlite` already exists! Changing the previous filename to temp_%s.sqlite\n' %str(i))
-            os.rename(self.output_path, os.path.join(self.outdir, 'temp_%s.sqlite' %str(i)))
+            shutil.move(self.output_path, os.path.join(self.outdir, 'temp_%s.sqlite' %str(i)))
 
     def run_on_cloud(self):
         # microsoft azure account
@@ -158,7 +178,10 @@ Error message:\n"""
 
 Check the error message.
 """
-            self.upload_run_download(self.input_path, self.output_path)
+            if not self.get_metadata:
+                self.upload_run_download(self.input_path, self.output_path)
+            else:
+                self.remote_metadata(self.output_path)
             self.return_code = 0
 
         except Exception as e:
@@ -187,6 +210,23 @@ Check the error message.
             self.output_pipe.insert(END, '============================\n')
             self.output_pipe.insert(END, 'Finish\n')
         return 0
+
+
+    def remote_metadata(self, output_path):
+        i, o, e = self.ssh.exec_command('cyclus -m')
+        output = '\n'.join(o.readlines())
+        error = '\n'.join(e.readlines())
+        if len(error) != 0:
+            self.output_pipe.insert(END, 'Metadata reading failed:\n')
+            self.output_pipe.insert(END, error)
+            self.output_pipe.insert(END, '\n\n')
+            return error
+        else:
+            # if it succeeded
+            with open(os.path.join(os.path.dirname(output_path, 'new_m.json')), 'w') as f:
+                f.write(output)
+            messagebox.showinfo('Done', 'Successfully read metadata file!')
+            self.master.destroy()
 
 
     def upload_run_download(self, input_path, output_path):

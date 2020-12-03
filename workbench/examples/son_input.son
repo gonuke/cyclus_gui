@@ -1,0 +1,144 @@
+simulation{
+
+    control {
+        duration = 50
+        startmonth = 1
+        startyear = 2020
+        explicit_inventory=0
+        dt=2629846
+        decay="lazy"
+    }
+    
+    archetypes { % This part is automatically filled! No need to worry
+                spec = {lib="agents" name="NullRegion"}
+                spec = {lib="agents" name="NullInst"}
+                spec = {lib="cycamore" name="Sink"}
+                spec = {lib="cycamore" name="Source"}
+                spec = {lib="cycamore" name="Storage"}
+    }
+
+
+    facility {
+        name="sink"
+        config {
+% A sink facility that accepts materials and products with a fixed
+% 
+%throughput (per time step) capacity and a lifetime capacity 
+%defined by
+% a total inventory size. The inventory size 
+%and throughput capacity
+% both default to infinite. If a recipe 
+%is provided, it will request
+% material with that recipe. 
+%Requests are made for any number of
+% specified commodities
+%.
+%
+%
+Sink {
+                    %(optional) [double] capacity the sink facility can accept at 
+                    %each time step
+                capacity =1e+299
+
+                    %(optional) [[u'std::vector', u'double']] preferences for each 
+                    %of the given commodities, in the same order.Defauts to 1 if 
+                    %unspecified
+                in_commod_prefs {val = 1}   % The value can be multiple values of val 
+
+                    % [[u'std::vector', u'std::string']] commodities that the sink 
+                    %facility accepts
+                in_commods {val = "in_sink"}
+
+                    %(optional) [double] Latitude of the agent's geographical position. 
+                    %The value should be expressed in degrees as a double.
+                    %
+                latitude =0.0
+
+                    %(optional) [double] Longitude of the agent's geographical position. 
+                    %The value should be expressed in degrees as a double
+                    %.
+                longitude =0.0
+
+                    %(optional) [double] total maximum inventory size of sink fac
+                    %ility
+                max_inv_size =1e+299
+}
+                % autocomplete here
+                }     
+    }
+    facility {
+        name="source"
+        config {
+%This facility acts as a source of material with a fixed throughput 
+%(per
+%time step) capacity and a lifetime capacity defined 
+%by a total inventory
+%size.  It offers its material as a single 
+%commodity. If a composition
+%recipe is specified, it provides 
+%that single material composition to
+%requesters.  If unspecified, 
+%the source provides materials with the exact
+%requested 
+%compositions.  The inventory size and throughput both 
+%default to
+%infinite.  Supplies material results in corresponding 
+%decrease in
+%inventory, and when the inventory size reaches 
+%zero, the source can provide
+%no more material.
+%
+%
+Source {
+                    %(optional) [double] Total amount of material this source has 
+                    %remaining. Every trade decreases this value by the supplied 
+                    %material quantity.  When it reaches zero, the source cannot 
+                    %provide any  more material.
+                inventory_size =1e+299
+
+                    %(optional) [double] Latitude of the agent's geographical position. 
+                    %The value should be expressed in degrees as a double.
+                    %
+                latitude =0.0
+
+                    %(optional) [double] Longitude of the agent's geographical position. 
+                    %The value should be expressed in degrees as a double
+                    %.
+                longitude =0.0
+
+                    % [std::string] Output commodity on which the source offers m
+                    %aterial.
+                outcommod = "source_out"
+
+                    %(optional) [double] amount of commodity that can be supplied 
+                    %at each time step
+                throughput =1e+299
+
+}
+                % there can be multiple facilities
+                }     
+    }
+
+    
+    region {
+        name="region_name"
+        config {
+NullRegion= null
+                % autocomplete here
+                }
+        institution {
+                name="inst"
+                initialfacilitylist {entry = {number=1
+                                              prototype=sink
+                                              }
+                                     entry = {number=1
+                                              prototype=source
+                                              }
+                                    }
+                config{NullInst= null}
+                       
+        }
+    }
+
+    
+ }

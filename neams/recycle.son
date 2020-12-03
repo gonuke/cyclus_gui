@@ -1,7 +1,0 @@
-simulation{
-    control {
-        duration=600
-        startmonth=1
-        startyear=2000
-    }
-}

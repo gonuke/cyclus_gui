@@ -120,7 +120,7 @@ class PrototypeWindow(Frame):
     def reopen_def_window(self, name, archetype):
         self.def_window = Toplevel(self.master)
         self.def_window.title('Define facility prototype')
-        self.def_window.geometry('+%s+%s' %(int(self.screen_width/4), int(self.screen_height)/3))
+        self.def_window.geometry('+%s+%s' %(int(self.screen_width/4), int(self.screen_height/3)))
         Label(self.def_window, text='%s' %archetype, bg='lawn green').grid(row=0, columnspan=2)
         proto_name_entry = Entry(self.def_window)
         proto_name_entry.grid(row=1, column=1)
@@ -170,7 +170,10 @@ class PrototypeWindow(Frame):
 
         else:
             messagebox.showinfo('Cyclus not found', 'We have automated documentation from packaged json, since Cyclus is not found on your computer.')
-            self.j = json.loads(self.get_default_metadata())
+            default_metadata = self.get_default_metadata()
+            with open(path, 'w') as f:
+                f.write(default_metadata)
+            self.j = json.loads(default_metadata)
 
 
         # get documentation for variable and archetype
@@ -285,7 +288,7 @@ class PrototypeWindow(Frame):
                 facility_dict['name'] = name
                 facility_dict['config'] = config['config']
                 new_dict['root']['facility'].append(facility_dict)
-            f.write(xmltodict.unparse(new_dict, pretty=True))
+            f.write('\n'.join(xmltodict.unparse(new_dict, pretty=True).split('\n')[1:]))
         messagebox.showinfo('Sucess', 'Successfully rendered %i facility prototypes!' %len(new_dict['root']['facility']))
         self.master.destroy()
         self
@@ -925,32 +928,35 @@ class PrototypeWindow(Frame):
         self.guide_window.title('Facilities guide')
         self.guide_window.geometry('+%s+0' %int(self.screen_width/1.5))
         guide_text = """
-        Here you define archetypes with specific parameters to use in the simulation.
-        An archetype is the code (general behavior of facility - e.g. reactor facility )
-        A facility prototype is a facility archetype + user-defined parameters 
-        (e.g. reactor with 3 60-assembly batches and 1000MWe power output).
+Here you define archetypes with specific parameters to use in the simulation.
+An archetype is the code (general behavior of facility - e.g. reactor facility )
+A facility prototype is a facility archetype + user-defined parameters 
+(e.g. reactor with 3 60-assembly batches and 1000MWe power output).
 
-        Here you can add facility prototypes by taking an archetype template and defining
-        your parameters.
+Here you can add facility prototypes by taking an archetype template and defining
+your parameters.
 
-        Click on the dropdown to select the archetype you want to add, 
-        and two windows will pop up. One is the documentation for the
-        archetype and the parameters, and the other is the one you should
-        fill out. The non-highlighted parameters have default values (specified in 
-        documentation window), thus are optional. The parameters with 'Add'
-        button next to it are parameters with (potentially) more than one
-        variables. You can add more values by clicking 'Add'. Fill out
-        the facility name and the parameters, then click 'Done' to
-        save the facility. The window with 'Defined Archetypes' will update
-        as you define facility prototypes.
+Click on the dropdown to select the archetype you want to add, 
+and two windows will pop up. One is the documentation for the
+archetype and the parameters, and the other is the one you should
+fill out. The non-highlighted parameters have default values (specified in 
+documentation window), thus are optional. The parameters with 'Add'
+button next to it are parameters with (potentially) more than one
+variables. You can add more values by clicking 'Add'. Fill out
+the facility name and the parameters, then click 'Done' to
+save the facility. The window with 'Defined Archetypes' will update
+as you define facility prototypes.
 
-        You currently cannot edit two facilities simultaneously. 
+You currently cannot edit two facilities simultaneously. 
 
         """
-        Label(self.guide_window, text=guide_text, justify=LEFT).pack(padx=30, pady=30)
+        st = ScrolledText(master=self.guide_window,
+                          wrap=WORD)
+        st.pack()
+        st.insert(INSERT, guide_text)
 
     def get_default_metadata(self):
-        return """{
+        return r"""{
          "annotations": {
           ":agents:KFacility": {
            "all_parents": [
@@ -1295,7 +1301,7 @@ class PrototypeWindow(Frame):
             "cyclus::Trader", 
             "cyclus::toolkit::Position"
            ], 
-           "doc": "The Enrichment facility is a simple agent that enriches natural uranium in a Cyclus simulation. It does not explicitly compute the physical enrichment process, rather it calculates the SWU required to convert an source uranium recipe (i.e. natural uranium) into a requested enriched recipe (i.e. 4% enriched uranium), given the natural uranium inventory constraint and its SWU capacity constraint.\n\nThe Enrichment facility requests an input commodity and associated recipe whose quantity is its remaining inventory capacity.  All facilities trading the same input commodity (even with different recipes) will offer materials for trade.  The Enrichment facility accepts any input materials with enrichments less than its tails assay, as long as some U235 is present, and preference increases with U235 content.  If no U235 is present in the offered material, the trade preference is set to -1 and the material is not accepted.  Any material components other than U235 and U238 are sent directly to the tails buffer.\n\nThe Enrichment facility will bid on any request for its output commodity up to the maximum allowed enrichment (if not specified, default is 100%) It bids on either the request quantity, or the maximum quanity allowed by its SWU constraint or natural uranium inventory, whichever is lower. If multiple output commodities with different enrichment levels are requested and the facility does not have the SWU or quantity capacity to meet all requests, the requests are fully, then partially filled in unspecified but repeatable order.\n\nAccumulated tails inventory is offered for trading as a specifiable output commodity.", 
+           "doc": "The Enrichment facility is a simple agent that enriches natural uranium in a Cyclus simulation. It does not explicitly compute the physical enrichment process, rather it calculates the SWU required to convert an source uranium recipe (i.e. natural uranium) into a requested enriched recipe (i.e. 4 per cent enriched uranium), given the natural uranium inventory constraint and its SWU capacity constraint.\n\nThe Enrichment facility requests an input commodity and associated recipe whose quantity is its remaining inventory capacity.  All facilities trading the same input commodity (even with different recipes) will offer materials for trade.  The Enrichment facility accepts any input materials with enrichments less than its tails assay, as long as some U235 is present, and preference increases with U235 content.  If no U235 is present in the offered material, the trade preference is set to -1 and the material is not accepted.  Any material components other than U235 and U238 are sent directly to the tails buffer.\n\nThe Enrichment facility will bid on any request for its output commodity up to the maximum allowed enrichment (if not specified, default is 100 percent) It bids on either the request quantity, or the maximum quanity allowed by its SWU constraint or natural uranium inventory, whichever is lower. If multiple output commodities with different enrichment levels are requested and the facility does not have the SWU or quantity capacity to meet all requests, the requests are fully, then partially filled in unspecified but repeatable order.\n\nAccumulated tails inventory is offered for trading as a specifiable output commodity.", 
            "entity": "facility", 
            "name": "cycamore::Enrichment", 
            "niche": "enrichment facility", 

@@ -37,10 +37,11 @@ class RecipeWindow(Frame):
         Button(self.master, text='Add all from Directory [mass]', command=lambda : self.askopendir('mass')).grid(row=4)
         Button(self.master, text='Add Recipe Manually [atomic]', command=lambda : self.add_recipe('atom')).grid(row=5)
         Button(self.master, text='Add Recipe Manually [mass]', command=lambda : self.add_recipe('mass')).grid(row=6)
+        Button(self.master, text='Add dummy recipe', command=lambda: self.add_dummy()).grid(row=7)
 
-        Label(self.master, text='').grid(row=7)
+        Label(self.master, text='').grid(row=8)
 
-        Button(self.master, text='Finish', command=lambda: self.done()).grid(row=8)
+        Button(self.master, text='Finish', command=lambda: self.done()).grid(row=9)
         self.recipe_dict = {}
 
         if os.path.isfile(os.path.join(self.output_path, 'recipe.xml')):
@@ -75,6 +76,23 @@ class RecipeWindow(Frame):
             self.recipes_defined = True
         else:
             self.recipes_defined = False
+
+
+    def add_dummy(self):
+        dummy_recipe = {'H1': 100}
+        if 'dummy' not in self.recipe_dict.keys():
+            self.recipe_dict['dummy'] = {'base': 'mass', 'composition': dummy_recipe}
+        else:
+            z = 0
+            while True:
+                k = 'dummy' + str(z)
+                if k in self.recipe_dict.keys():
+                    z += 1
+                else:
+                    self.recipe_dict[k] = {'base': 'mass', 'composition': dummy_recipe}
+                    break
+        self.update_loaded_recipes()
+
 
 
     def update_loaded_recipes(self):
@@ -232,27 +250,27 @@ class RecipeWindow(Frame):
         self.guide_window.title('Recipe guide')
         self.guide_window.geometry('+%s+0' %int(self.screen_width/1.5))
         guide_string = """
-        The format of recipes could be comma, space, or tab separated.
-        For example:
-        92235 0.7
-        92238 99.3
-        OR
-        92235, 0.7
-        92238, 99.3
-        OR
-        92235   0.7
-        92238   99.3
+The format of recipes could be comma, space, or tab separated.
+For example:
+92235 0.7
+92238 99.3
+OR
+92235, 0.7
+92238, 99.3
+OR
+92235   0.7
+92238   99.3
 
-        Note:
-        1. The compositions are automatically normalized by Cyclus :)
-        2. Acceptable formats for isotope symbols are:
-            ZZAAA, ZZAAASSSS, name (e.g. Pu-239, Pu239, pu-239)
+Note:
+1. The compositions are automatically normalized by Cyclus :)
+2. Acceptable formats for isotope symbols are:
+    ZZAAA, ZZAAASSSS, name (e.g. Pu-239, Pu239, pu-239)
 
-        When you add recipe from a file, the filename becomes the recipe name.
-        You can also add multiple recipes at a time by selecting a directory
-        that contains multiple recipe files.
+When you add recipe from a file, the filename becomes the recipe name.
+You can also add multiple recipes at a time by selecting a directory
+that contains multiple recipe files.
 
-        If there are no recipes to define, just define a dummy one manually and move on.
+If there are no recipes to define, just define a dummy one manually and move on.
         """
         if self.recipes_defined:
             guide_string += '\nThe following recipe names are defined in the facility block:\n\n'
@@ -265,5 +283,7 @@ class RecipeWindow(Frame):
             else:
                 guide_string += 'FROM %s:\n\t%s\n\n' %(key, val)
 
-        Label(self.guide_window, text=guide_string, justify=LEFT).pack(padx=30, pady=30)
-
+        st = ScrolledText(master=self.guide_window,
+                  wrap=WORD)
+        st.pack()
+        st.insert(INSERT, guide_string)

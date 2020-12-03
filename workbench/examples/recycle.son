@@ -1,0 +1,76 @@
+simulation{
+    control {
+        duration=600
+        startmonth=1
+        startyear=2000
+    }
+<<<<<<< HEAD:neams/recycle.son
+}
+=======
+
+    archetypes {
+        spec {lib="agents" name="NullInst"}
+        spec {lib="agents" name="NullRegion"}
+        spec {lib="cycamore" name="Source"}
+        spec {lib="cycamore" name="Sink"}
+        spec {lib="cycamore" name="Enrichment"}
+        spec {lib="cycamore" name="Reactor"}
+        spec {lib="cycamore" name="FuelFab"}
+        spec {lib="cycamore" name="Separations"}
+    }
+
+    facility {
+        name="enrichment"
+        config {
+            Enrichment {
+                feed_commod="natl_u"
+                feed_recipe="natl_u"
+                product_commod="uox"
+                tails_assay=0.003
+                tails_commod="waste"
+                swu_capacity=1e100
+                initial_feed=1e100
+            }
+        }
+    }
+
+    facility {
+        name="separations"
+        config {
+            Separations {
+                streams {
+                    item {
+                        commod="sep_stream"
+                        info {
+                            buf_size=1e100
+                            efficiencies {
+                                item {
+                                    comp="Pu"
+                                    eff=0.99
+                                }
+                            }
+                        }
+                    }
+                }
+                leftover_commod="waste"
+                throughput=30001
+                feedbuf_size=30001
+                feed_commods {
+                    val {
+                        spent_uox
+                    }
+                }
+                feed_commod_prefs {
+                    val {
+                        2.0    
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+>>>>>>> f69a0f59692b3bb799d0a5881dc21699f7c80a3b:workbench/examples/recycle.son

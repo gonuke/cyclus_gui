@@ -31,10 +31,10 @@ import networkx as nx
 
 os_ = platform.system()
 print('Your OS is:', os_)
-if 'windows' in os_.lower():
-    windows=True
+if 'windows' in os_.lower() or 'linux' in os_.lower():
+    no_hover=True
 else:
-    windows=False
+    no_hover=False
 
 
 uniq_id = str(uuid.uuid4())[:3]
@@ -65,6 +65,7 @@ class Cygui(Frame):
                           'region.xml', 'recipe.xml']
         self.master = master
         # self.master.geometry('+0+0')
+        
         self.init_window()
         self.uniq_id = uniq_id
         
@@ -89,10 +90,16 @@ class Cygui(Frame):
 
         columnspan=5
         q = Label(root, text='Cyclus Helper', bg='yellow')
-        q.grid(row=0, columnspan=columnspan)
+        q.grid(row=0, column=2)
         CreateToolTip(q, text='you found the secret\n hover tip \n huehuehuehue')
-        Label(root, textvariable=self.hash_var, bg='pale green').grid(row=1, columnspan=columnspan)
-        Label(root, text='====================================').grid(row=2, columnspan=columnspan)
+
+        Label(root, text='').grid(row=1, column=0, columnspan=2)
+        Label(root, textvariable=self.hash_var, bg='pale green').grid(row=1, column=2)
+        saveas_button = Button(root, text='Save as', command=lambda:self.save_as(), highlightbackground='blue')
+        saveas_button.grid(row=1, column=columnspan-1)
+
+        Label(root, text='==========================').grid(row=2, column=0, columnspan=columnspan)
+        
         Label(root, text='Generate / Edit Blocks').grid(row=3, column=0)
         Label(root, text='=============').grid(row=4, column=0)
         Label(root, text='Load:').grid(row=3, column=2)
@@ -128,7 +135,8 @@ class Cygui(Frame):
         combine_run_button = Button(root, text='Combine and Run', command= lambda: self.check_and_run())
         backend_button = Button(root, text='Backend Analysis', command= lambda: self.open_window('backend', output_path))
         
-        if not windows:
+        if not no_hover:
+            CreateToolTip(saveas_button, text='You can save your current instance with a different three-letter hash.')
             CreateToolTip(load_button, text='You can load from a previous instance.\nFor every instance, the GUI automatically creates `output_xxx` directory\nwhere it saves all the files, so that it can be called later on.')
             CreateToolTip(load_complete_input, text='You can load from a previously-existing Cyclus input xml file.\nThere are limitations to some input files, if they use special archetypes. You can edit or run cyclus on the file!')
             CreateToolTip(load_pris, text='You can initialize a simulation to a real-world initial condition!\nUsing this method the real-life fleet is automatically generated from the\nIAEA Power Reactor Information System (PRIS) database.')
@@ -167,6 +175,34 @@ class Cygui(Frame):
                 self.app = BackendWindow(self.master, output_path)
 
 
+
+    def save_as(self):
+        self.saveas_window = Toplevel(self.master)
+        self.saveas_window.title('Save as new three-letter hash')
+        Label(self.saveas_window, text='Enter new three-letter hash:', bg='yellow').pack()
+        entry = Entry(self.saveas_window)
+        entry.pack()
+        Button(self.saveas_window, text='Save as!', command=lambda:self.save_as_exec(entry)).pack()
+
+    def save_as_exec(self,entry):
+        new_hash = str(entry.get())
+        if os.path.isdir('output_' + new_hash):
+            messagebox.showerror('Already exists', 'Folder output_%s already exists!\n Try a different hash' %new_hash)
+            return
+        else:
+            global uniq_id
+            global output_path
+            shutil.copytree(output_path, os.path.join(os.path.dirname(output_path), 'output_'+new_hash))
+            messagebox.showinfo('Success', 'Saved as new hash %s.\nYour current working instance has been changed from %s to %s' %(new_hash, uniq_id, new_hash))
+            uniq_id = new_hash
+            self.hash_var.set(new_hash)
+            print('Changed ID to %s' %new_hash)
+            output_path = os.path.join(file_path, 'output_'+new_hash)
+            self.saveas_window.destroy()
+            self.uniq_id = new_hash
+            return
+
+
     def load_prev_window(self):
         try:
             if self.initialized['prev']:
@@ -177,38 +213,40 @@ class Cygui(Frame):
         self.initialized['prev'] = True
         self.load_window = Toplevel(self.master)
         self.load_window.title('Load previous with hash')
-        Label(self.load_window, text='Enter id:', bg='yellow').pack()
-        entry = Entry(self.load_window)
-        entry.pack()
-        Button(self.load_window, text='Load!', command=lambda: self.load_prev(entry)).pack()
-
-
-    def load_prev(self, entry):
         folders = os.listdir(file_path)
         folders = [f for f in folders if os.path.isdir(os.path.join(file_path, f))]
-        hash_ = str(entry.get())
-        for i in folders:
-            if hash_ in i:
-                files_in = os.listdir(os.path.join(file_path, 'output_%s'%hash_))
-                info_text = 'Found folder %s.\nLoading input blocks:\n\n' %i
-                for f_ in files_in:
-                    f_ = f_.replace('.xml', '')
-                    info_text += '\t%s\n' %f_
-                messagebox.showinfo('Found!', info_text)
-                global uniq_id
-                global output_path
-                uniq_id = hash_
-                self.hash_var.set(hash_)
-                print('Changed ID to %s' %hash_)
-                output_path = os.path.join(file_path, i)
-                self.load_window.destroy()
-                shutil.rmtree('output_%s' %self.uniq_id)
-                self.uniq_id = hash_
-                self.initialized['prev'] = False
-                return
-        # if folder is not found,
-        messagebox.showerror('Error', 'No folder with that name.\n The folder must exist in: \n %s' %file_path)
+        folders = [f for f in folders if 'output_' in f]
+        hashs = [f.replace('output_', '') for f in folders]
+        hashs = sorted([f for f in hashs if f != self.uniq_id])
+        Label(self.load_window, text='Current working directory:').pack()
+        Label(self.load_window, text=os.path.abspath(file_path), bg='yellow').pack()
+        Label(self.load_window, text='Available instances:').pack()
+        for h in hashs:
+            Button(self.load_window, text=h, command=lambda:self.load_prev(h)).pack()
+        if not hashs:
+            # if list is empty:
+            Label(self.load_window, text='NONE', bg='red').pack()
+
+
+    def load_prev(self, h):
+        files_in = os.listdir(os.path.join(file_path, 'output_%s'%h))
+        info_text = 'Found folder output_%s.\nLoading input blocks:\n\n' %h
+        for f_ in files_in:
+            f_ = f_.replace('.xml', '')
+            info_text += '\t%s\n' %f_
+        messagebox.showinfo('Found!', info_text)
+        global uniq_id
+        global output_path
+        uniq_id = h
+        self.hash_var.set(h)
+        print('Changed ID to %s' %h)
+        output_path = os.path.join(file_path, 'output_%s' %h)
+        self.load_window.destroy()
+        shutil.rmtree('output_%s' %self.uniq_id)
+        self.uniq_id = h
         self.initialized['prev'] = False
+        return
+
 
     def askopenfile(self):
         file = filedialog.askopenfile(parent=self.master, mode='r', title='Choose an xml file')
@@ -237,24 +275,24 @@ class Cygui(Frame):
 
     def load_from_pris(self):
         guide_text = """
-        You can `initialize' your simulation as a real-life nation!
-        This method loads from the PRIS database and deploys reactors in your
-        desired country, in a desired initial time. The reactor lifetimes
-        are calculated as a remaining lifetime.
+You can `initialize' your simulation as a real-life nation!
+This method loads from the PRIS database and deploys reactors in your
+desired country, in a desired initial time. The reactor lifetimes
+are calculated as a remaining lifetime.
 
-        Assumptions:
-        1. Timestep is assumed to be a month
-        2. Reactors below 100 MWe are filtered out (assumed to be research reactors)
-        3. Core size is linearly scaled with power capacity
-        4. Reactor lifetimes are all assumed to be 60 years from their first criticality date
-        5. Fuel Cycle facilities are deployed with infinite capacity.
+Assumptions:
+1. Timestep is assumed to be a month
+2. Reactors below 100 MWe are filtered out (assumed to be research reactors)
+3. Core size is linearly scaled with power capacity
+4. Reactor lifetimes are all assumed to be 60 years from their first criticality date
+5. Fuel Cycle facilities are deployed with infinite capacity.
 
-        Simulation defaults:
-        1. Reactors are cycamore::Reactor (recipe reactors)
-        2. By default deploys a `RandLand' region with `Fuel_Cycle_Facilities' institution with facilities:
-           a. `nat_u_source' -> [natl_u]
-           b. [natl_u] -> `enrichment' -> [uox]
-           d. [uox_waste, used_candu, mox_waste, tailings, reprocess_waste] -> `SomeSink'
+Simulation defaults:
+1. Reactors are cycamore::Reactor (recipe reactors)
+2. By default deploys a `RandLand' region with `Fuel_Cycle_Facilities' institution with facilities:
+   a. `nat_u_source' -> [natl_u]
+   b. [natl_u] -> `enrichment' -> [uox]
+   d. [uox_waste, used_candu, mox_waste, tailings, reprocess_waste] -> `SomeSink'
         """
         self.guide(guide_text)
         try:
@@ -403,9 +441,23 @@ class Cygui(Frame):
                 skipfront = 0
                 skipback = 0
                 with open(os.path.join(output_path,i), 'r') as f:
-                    x = f.read()
-                    x = x.replace('<root>', '')
-                    x = x.replace('</root>', '')
+                    lines = f.read().split('\n')
+                    x = []
+                    for line in lines:
+                        if 'root>' in line:
+                            x.append(line.replace('<root>', '').replace('</root>', ''))
+                            continue
+                        if 'xml version' in line and 'encoding' in line:
+                            continue
+                        else:
+                            x.append(line)
+                    x = '\n'.join(x)
+                    if i == 'archetypes.xml' and 'DeployInst' not in x:
+                        x = x.replace('</archetypes>', """\t<spec>
+        <lib>cycamore</lib>
+        <name>DeployInst</name>
+    </spec>
+</archetypes>""")
                     input_file += x + '\n\n'
                 """
                 with open(os.path.join(output_path, i), 'r') as f:
@@ -429,6 +481,8 @@ class Cygui(Frame):
                 input_path = os.path.join(output_path, 'input.xml')
                 output = os.path.join(output_path, 'cyclus.sqlite')
                 run = cyclus_run(self.master, input_path, output)
+            else:
+                messagebox.showinfo('Success', 'successfully rendered input.xml')
 
 
     def guide(self, guide_text=''):
@@ -441,68 +495,72 @@ class Cygui(Frame):
                 
         if guide_text == '':
             guide_text = """
-            Welcome!
+Welcome!
 
-            I am the guide window, and I will guide you
-            through the intricacies of Cyclus!
+I am the guide window, and I will guide you
+through the intricacies of Cyclus!
 
-            A Cyclus input file has 5 major blocks.
-            It is recommended you fill them out sequentially:
+A Cyclus input file has 5 major blocks.
+It is recommended you fill them out sequentially:
 
-            Simulation:
-                Here, you define simulation parameters like
-                startyear, timesteps, and decay methods.
+Simulation:
+    Here, you define simulation parameters like
+    startyear, timesteps, and decay methods.
 
-            Libraries:
-                Since Cyclus is a modular framework, here you
-                decide what libraries and what archetypes to use.
-                An archetype is a self-contained code that defines
-                a facility's behavior (e.g. reactor, sink). It is 
-                automatically populated, so don't do anything
-                unless you need some specific library.
+Libraries:
+    Since Cyclus is a modular framework, here you
+    decide what libraries and what archetypes to use.
+    An archetype is a self-contained code that defines
+    a facility's behavior (e.g. reactor, sink). It is 
+    automatically populated, so don't do anything
+    unless you need some specific library.
 
-                (A reactor archetype [takes in, depletes, and discharges fuel at a
-                 predefined cycle length])
-
-
-            Facilities:
-                Here, you define the facilities' parameters.
-                You can define more than one facility for one archetype.
-                For example, you can have:
-                    reactor with 3 60-assembly batches with power 1000 MWe.
-                    reactor with 1 140-assembly batch with power 500 MWe.
-                They both use the reactor archetype, but are different facilities.
-
-                This block is crucial, since you must set the in-and-out commodities
-                of each facility to match others' in-and-out commodity.
-                For example, if you want the reactor to trade with the source,
-                the out-commodity of the source facility should match the
-                in-commodity of the reactor facility, so they trade.
-
-                ( The Clinton reactor facility takes in, depletes and discharges
-                 fuel in [18-month cycles], outputs [1,062 MWe], and uses [UOX] fuel.) 
-
-            Regions:
-                Here, you actually set up how the facility prototypes will be `played'
-                - when to enter, when to exit, and how many to play.
-
-                (The Clinton reactor (facility prototype) is inside the Exelon Institution,
-                 which is inside the U.S.A. region, has 1 unit (n_build),
-                 has a lifetime of 960 months (lifetimes),
-                 and enters simulation in timestep 100 (build_times).)
+    (A reactor archetype [takes in, depletes, and discharges fuel at a
+     predefined cycle length])
 
 
-            Recipes:
-                Recipes are predefined compositions of various material. They can
-                be defined as mass or atomic concentrations. You can import them
-                from a CSV file or manually write them yourself.
+Facilities:
+    Here, you define the facilities' parameters.
+    You can define more than one facility for one archetype.
+    For example, you can have:
+        reactor with 3 60-assembly batches with power 1000 MWe.
+        reactor with 1 140-assembly batch with power 500 MWe.
+    They both use the reactor archetype, but are different facilities.
 
-            
-            All feedback and comments / bug reports can be made to baej@ornl.gov
-            Enjoy :)
+    This block is crucial, since you must set the in-and-out commodities
+    of each facility to match others' in-and-out commodity.
+    For example, if you want the reactor to trade with the source,
+    the out-commodity of the source facility should match the
+    in-commodity of the reactor facility, so they trade.
+
+    ( The Clinton reactor facility takes in, depletes and discharges
+     fuel in [18-month cycles], outputs [1,062 MWe], and uses [UOX] fuel.) 
+
+Regions:
+    Here, you actually set up how the facility prototypes will be `played'
+    - when to enter, when to exit, and how many to play.
+
+    (The Clinton reactor (facility prototype) is inside the Exelon Institution,
+     which is inside the U.S.A. region, has 1 unit (n_build),
+     has a lifetime of 960 months (lifetimes),
+     and enters simulation in timestep 100 (build_times).)
+
+
+Recipes:
+    Recipes are predefined compositions of various material. They can
+    be defined as mass or atomic concentrations. You can import them
+    from a CSV file or manually write them yourself.
+
+
+All feedback and comments / bug reports can be made to baej@ornl.gov
+Enjoy :)
 
             """
-        Label(self.guide_window, text=guide_text, justify=LEFT).pack(padx=30, pady=30)
+        st = ScrolledText(master=self.guide_window,
+                          wrap=WORD)
+        st.pack()
+        st.insert(INSERT, guide_text)
+        #Label(self.guide_window, text=guide_text, justify=LEFT).pack(padx=30, pady=30)
 
 
     def xml_window(self):
@@ -523,14 +581,19 @@ class Cygui(Frame):
             tab_dict[key] = Frame(tab_parent)
             tab_parent.add(tab_dict[key], text=key)
             #tab_dict[key] = assess_scroll_deny(100, tab_dict[key])
-            q = Text(tab_dict[key], width=100, height=30)
-            q.pack()
+            st = ScrolledText(master=tab_dict[key], wrap=WORD, width=100, height=30)
+            st.pack()
+
+            #q = Text(tab_dict[key], width=100, height=30)
+            #q.pack()
             if os.path.isfile(file):
                 with open(file, 'r') as f:
                     s = f.read().replace('<root>', '').replace('</root>', '')
             else:
                 s = '-- file does not exist --'
-            q.insert(END, s)
+            st.insert(INSERT, s)
+
+            #q.insert(END, s)
 
         tab_parent.pack(expand=1, fill='both')
 
