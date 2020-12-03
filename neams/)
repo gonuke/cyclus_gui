@@ -1,7 +1,6 @@
 #!/usr/bin/python
 """WorkbenchRuntimeEnrivonment"""
 import argparse
-import time
 import getpass
 import json
 import os
@@ -9,9 +8,8 @@ import platform
 import shutil
 import stat
 import paramiko
-# import http.client
+import http.client
 import subprocess
-import uuid
 import sys
 import tempfile
 import threading
@@ -402,7 +400,7 @@ class WorkbenchRuntimeEnvironment(object):
 
     def app_name(self):
         """returns the app's self-designated name"""
-        return "cyclus"
+        return "workbench"
 
     def app_options(self):
         """list of app-specific options"""
@@ -558,124 +556,114 @@ class WorkbenchRuntimeEnvironment(object):
         parser.parse_args(args=args, namespace=self)
         
         # check if it is remote run or local run
+        print(self.executable)
+        print(self.remote_server_password)
         if self.remote_server_address:
             self.is_remote = True
             self.echo(1, '# Remote Execution Enabled.')
 
 
-        if self.is_remote:
-            # this remote execution assumes that the remote server is a UNIX environment,
-            # only tested on Ubuntu.
-            try:
-                # check if the executable exists:
-                self.ssh = paramiko.SSHClient()
-                self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                self.echo(1, '# Attempting to connect to %s' %self.remote_server_address)
-                self.echo(1, '# As user "%s"' %self.remote_server_username)
-                self.echo(1, '# With password "%s"' %self.remote_server_password)
-                if self.proxy_hostname:
-                    self.echo(1, '# With proxy hostname "%s"' %self.proxy_hostname)
-                    self.echo(1, '# With proxy port "%s"' %self.proxy_port)
-                    http_con = http.client.HTTPConnection(self.proxy_hostname, self.proxy_port)
-                    http_con.set_tunnel(self.remote_server_address, 22, {})
-                    http_con.connect()
-                    sock = http_con.sock
-                    self.ssh.connect(self.remote_server_address, username=self.remote_server_username,
-                                     password=self.remote_server_password, sock=sock,
-                                     allow_agent=False, look_for_keys=False)
-                else:
-                    self.ssh.connect(self.remote_server_address, username=self.remote_server_username,
-                                     password=self.remote_server_password,
-                                     allow_agent=False, look_for_keys=False)
+            if self.is_remote:
+                try:
+                    ssh_command_template = 'ssh %s -p "%s" %s@%s ' %(self.ssh_extra_args, self.remote_server_password,
+                                                                    self.remote_server_username, self.remote_server_address)
+                    # check if the executable exists:
+                    self.ssh = parmiko.SSHClient()
+                    self.ssh.set_missing_host_key_policy(parmiko.AutoAddPolicy())
+                    self.echo(1, '# Attempting to connect to %s' %self.remote_server_address)
+                    self.echo(1, '# As user "%s"' %self.remote_server_username)
+                    self.echo(1, '# With password "%s"' %self.remote_server_password)
+                    if self.proxy_hostname:
+                        self.echo(1, '# With proxy hostname "%s"' %self.proxy_hostname)
+                        self.echo(1, '# With proxy port "%s"' %self.proxy_port)
+                        http_con = http.client.HTTPConnection(self.proxy_hostname, self.proxy_port)
+                        http_con.set_tunnel(self.remote_server_address, 22, {})
+                        http_con.connect()
+                        sock = http_con.sock
+                        self.ssh.connect(self.remote_server_address, username=self.remote_server_username,
+                                         password=self.remote_server_password, sock=sock,
+                                         allow_agent=False, look_for_keys=False)
+                    else:
+                        self.ssh.connect(self.remote_server_address, username=self.remote_server_username,
+                                         password=self.remote_server_password,
+                                         allow_agent=False, look_for_keys=False)
 
-                self.echo(1, '# Connected.')
-                self.echo(1, '# Testing if the executable exists...')
-                # check if file is executable
-                output = self.remote_execute('test -x %s && echo "yayyy"' %self.executable)
-                if 'yay' in output:
-                    self.echo(1, '# The file in the defined path is executable.')
-                else:
-                    self.echo(0, 'The file is not Executable')
+                    self.echo(1, '# Connected.')
+                    self.echo(1, '# Testing if the executable exists...')
+                    # check if file is executable
+                    i, o, e = self.ssh.exec_command('test -x %s && echo "yayyy"' %self.executable)
+                    output = '\n'.join(o.readlines())
+                    if 'yay' in output:
+                        self.echo(1, '# The file in the defined path is executable.')
+                except:
+                    print('Could not connect. Check arguments.')
                     sys.exit(1)
-            except Exception as e:
-                self.echo(0, 'Could not connect. Check arguments.')
-                self.echo(0, 'See Error below:')
-                self.echo(0, e)
-                sys.exit(1)
 
-        else:
-            self.echo(1, "# Expanding executable path using environment variables")
-            self.executable = expand(os.path.expanduser(self.executable), os.environ)
-            self.echo(2, "#   Executable: ", self.executable)
-            # look for valid executable
-            self.echo(1, "# Checking whether ", self.executable, " is executable")
-            exe = which(self.executable)
-            self.echo(2, "#   Executable: ", exe)
-            
-            # verify executable can be executed
-            if not exe:
-                print ("Error: specified executable ({0}) is not a valid, executable " \
-                      "file".format(self.executable))
-                sys.exit(1)
+            else:
+                self.echo(1, "# Expanding executable path using environment variables")
+                self.executable = expand(os.path.expanduser(self.executable), os.environ)
+                self.echo(2, "#   Executable: ", self.executable)
+                # look for valid executable
+                self.echo(1, "# Checking whether ", self.executable, " is executable")
+                exe = which(self.executable)
+                self.echo(2, "#   Executable: ", exe)
+                
+                # verify executable can be executed
+                if not exe:
+                    print ("Error: specified executable ({0}) is not a valid, executable " \
+                          "file".format(self.executable))
+                    sys.exit(1)
+
             # update with full path to executable
             self.executable = exe
 
-        # output directory specified
-        if self.output_directory:
-            self.echo(1, "# Fixing up output_directory...")
-            # expand env vars/user-area prefix(es), convert to absolute path
-            self.output_directory = expand(self.output_directory, os.environ)
-            self.output_directory = os.path.expanduser(self.output_directory)
-            self.output_directory = os.path.abspath(self.output_directory)
-            self.echo(2, "#   ", self.output_directory)
+            # output directory specified
+            if self.output_directory:
+                self.echo(1, "# Fixing up output_directory...")
+                # expand env vars/user-area prefix(es), convert to absolute path
+                self.output_directory = expand(self.output_directory, os.environ)
+                self.output_directory = os.path.expanduser(self.output_directory)
+                self.output_directory = os.path.abspath(self.output_directory)
+                self.echo(2, "#   ", self.output_directory)
 
-        # a relative or absolute path in output_basename overrides the output_directory
-        if self.output_basename:
-            self.echo(1, "# Fixing up output_basename...")
-            # expand env vars/user-area prefix(es), normalize path
-            self.output_basename = expand(self.output_basename, os.environ)
-            self.output_basename = os.path.expanduser(self.output_basename)
-            self.output_basename = os.path.normpath(self.output_basename)
-            self.echo(2, "#   ", self.output_basename)
+            # a relative or absolute path in output_basename overrides the output_directory
+            if self.output_basename:
+                self.echo(1, "# Fixing up output_basename...")
+                # expand env vars/user-area prefix(es), normalize path
+                self.output_basename = expand(self.output_basename, os.environ)
+                self.output_basename = os.path.expanduser(self.output_basename)
+                self.output_basename = os.path.normpath(self.output_basename)
+                self.echo(2, "#   ", self.output_basename)
 
-            # split into parent/child paths
-            (parent, child) = os.path.split(self.output_basename)
+                # split into parent/child paths
+                (parent, child) = os.path.split(self.output_basename)
 
-            # there was a parent directory, override output_directory
-            if parent:
-                self.echo(1, "# output_basename overriding output_directory...")
-                self.output_directory = os.path.abspath(parent)
-                self.output_basename = child
-                self.echo(2, "#   ", self.output_directory, " ... ", self.output_basename)
+                # there was a parent directory, override output_directory
+                if parent:
+                    self.echo(1, "# output_basename overriding output_directory...")
+                    self.output_directory = os.path.abspath(parent)
+                    self.output_basename = child
+                    self.echo(2, "#   ", self.output_directory, " ... ", self.output_basename)
 
-        self.echo(1, "# Ensuring root working directory exists...")
+            self.echo(1, "# Ensuring root working directory exists...")
 
-        # working directory specified, ensure it exists
-        if self.working_directory:
-            # expand env vars/user-area prefix(es), convert to absolute path
-            self.working_directory = expand(self.working_directory, os.environ)
-            self.working_directory = os.path.expanduser(self.working_directory)
-            self.working_directory = os.path.abspath(self.working_directory)
+            # working directory specified, ensure it exists
+            if self.working_directory:
+                # expand env vars/user-area prefix(es), convert to absolute path
+                self.working_directory = expand(self.working_directory, os.environ)
+                self.working_directory = os.path.expanduser(self.working_directory)
+                self.working_directory = os.path.abspath(self.working_directory)
 
-            # create working directory, override cleanup flag
-            create_directory(expand(self.working_directory, os.environ))
-            self.cleanup = False
-        # working directory not specified, default to a temp directory
-        else:
-            self.working_directory = tempfile.gettempdir()
+                # create working directory, override cleanup flag
+                create_directory(expand(self.working_directory, os.environ))
+                self.cleanup = False
+            # working directory not specified, default to a temp directory
+            else:
+                self.working_directory = tempfile.gettempdir()
 
-        self.echo(2, "#   ", self.working_directory)
-        self.echo(1, "#### Processing arguments ####")
-        self.echo(1)
-
-    def remote_execute(self, cmd):
-        i, o, e = self.ssh.exec_command(cmd)
-        output = '\n'.join(o.readlines())
-        error = '\n'.join(e.readlines())
-        if len(error) != 0:
-            return error
-        return output
-
+            self.echo(2, "#   ", self.working_directory)
+            self.echo(1, "#### Processing arguments ####")
+            self.echo(1)
 
     def run(self, options):
         """run the given executable"""
@@ -686,111 +674,57 @@ class WorkbenchRuntimeEnvironment(object):
         # Workbench's python environment as this is likely more
         # recent and contains packages that are not available
         # with default Python installations
-        print(self.executable)
         if self.executable.endswith(".py"):
             args = [sys.executable, self.executable]
         else:
             args = [self.executable]
+            
 
         # pass 'additional' to the executable if given
         if self.additional:
             args.extend(self.additional)
+
         # request list of supported arguments to pass to the executable
         args.extend(self.run_args(options))
-        print('args')
-        print(args)
-        if self.is_remote:
-            self.echo(1, "#### Executing '", " ".join(args), "' on remote server %s " %self.remote_server_address)
-            rtncode = 0
-            try:
-                # since we checked the connection from the checking executable part,
-                # that part can be skipped
-                # upload file
-                duplicate_hash = True
-                # just in case the hash exists
-                n =0 
-                import os
-                while duplicate_hash and n < 3:
-                    rnd_dir = os.path.join('/home/', self.remote_server_username, str(uuid.uuid4()))
-                    remote_input_path = os.path.join(rnd_dir, 'input.xml')
-                    remote_output_path = remote_input_path.replace('.xml', '.sqlite')
-                    output = self.remote_execute('mkdir %s' %rnd_dir)
-                    print('error', output)
-                    n+=1
-                    if not output:
-                        # empty output means nothing went wrong,  
-                        duplicate_hash = False
-                self.echo(1, '# Uploading input file to %s' %self.remote_server_address)
-                self.echo(1, '# To path "%s"' %remote_input_path)
-                ftp = self.ssh.open_sftp()
-                ftp.put(options.input ,remote_input_path)
+        
+        self.echo(1, "#### Executing '"," ".join(args),"'")
+        # execute
+        rtncode = 0
+        try:
+            proc = subprocess.Popen(args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-                self.echo(1, '# Now running %s...' %self.app_name())
-                output = self.remote_execute('%s %s -o %s --warn-limit 0' %(self.executable, remote_input_path, remote_output_path))
-                # this is super wonky, consider changing
-                if output == 0 or ('Error' not in output and 'error' not in output and 'Abort' not in output and 'fatal' not in output and 'Invalid' not in output):
-                    
-                    self.echo(1, '############################' )
-                    self.echo(1, '# %s ran successfully!' %self.app_name())
-                    self.echo(1, '############################' )
-                    
-                    self.echo(1, '# Now downloading output file')
-                    pre, ext = os.path.splitext(options.input)
-                    ftp.get(remote_output_path, os.path.join(self.working_directory, pre + '.out'))
-                    # this is super wonky, consider changing
-                    time.sleep(5)
-                    self.echo(1, '# Download complete (%s)' %os.path.join(self.working_directory, pre + '.out'))
+            # tee-output objects
+            teeout = None
+            teeerr = None
 
-                else:
-                    self.echo(1, '# Run Failed! See the following output')
-                    self.echo(1, output)
+            # tee requested
+            if self.tee:
+                teeout = open(options.output_basename + ".out", "w")
+                teeerr = open(options.output_basename + ".err", "w")
 
-            except Exception as e:
-                self.echo(0, 'Something Went Wrong')
-                self.echo(0, 'See Error below:')
-                print(e)
-                self.echo(0, e)
-                sys.exit(1)
+            # start background readers
+            out = threading.Thread(target=streamer, name="out_reader",
+                               args=(proc.stdout, sys.stdout, teeout))
+            err = threading.Thread(target=streamer, name="err_reader",
+                               args=(proc.stderr, sys.stderr, teeerr))
+            out.start()
+            err.start()
 
-        else:
-            # local run
-            self.echo(1, "#### Executing '"," ".join(args),"'")
-            # execute
-            rtncode = 0
-            try:
-                proc = subprocess.Popen(args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            # wait for process to finish
+            proc.wait()
+            out.join()
+            err.join()
+            rtncode = proc.returncode
+        except:
+            # On some systems with limited or no network access the subprocess module
+            # may have failed to install properly. This is a fall back strategy 
+            import os
+            rtncode = os.system(" ".join(args))
 
-                # tee-output objects
-                teeout = None
-                teeerr = None
-
-                # tee requested
-                if self.tee:
-                    teeout = open(options.output_basename + ".out", "w")
-                    teeerr = open(options.output_basename + ".err", "w")
-
-                # start background readers
-                out = threading.Thread(target=streamer, name="out_reader",
-                                   args=(proc.stdout, sys.stdout, teeout))
-                err = threading.Thread(target=streamer, name="err_reader",
-                                   args=(proc.stderr, sys.stderr, teeerr))
-                out.start()
-                err.start()
-
-                # wait for process to finish
-                proc.wait()
-                out.join()
-                err.join()
-                rtncode = proc.returncode
-            except:
-                # On some systems with limited or no network access the subprocess module
-                # may have failed to install properly. This is a fall back strategy 
-                import os
-                rtncode = os.system(" ".join(args))
-
-                self.echo(1, "# Finished running ", self.app_name(), " with exit code ",
-                          str(proc.returncode))
-                self.echo(1)
+        self.echo(1, "# Finished running ", self.app_name(), " with exit code ",
+                  str(proc.returncode))
+        self.echo(1, "#### Run ", self.app_name(), " ####")
+        self.echo(1)
 
     def run_args(self, options):
         """returns a list of arguments to pass to the given executable"""

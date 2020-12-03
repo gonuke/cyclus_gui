@@ -4,6 +4,7 @@
 # standard imports
 import os
 import sys
+sys.path.append('/Users/4ib/Downloads/Workbench-Darwin/rte/')
 from util.abstract_remote import AbstractRemoteRuntimeEnvironment, Const, RemoteConstants, get_rte_remote_resource_dir
 from util.util import Utilities
 from hello_world import TeeStdout
@@ -68,7 +69,7 @@ class SetupRemoteRuntimeEnvironment(WorkbenchRuntimeEnvironment):
             with open(grammar_path,"w") as workbench_grammar_file:
                 workbench_grammar_file.write("name='{}' redirect='{}'".format(this_grammar_name, this_grammar_path))
             print (grammar_path)   
-    """!
+    """
     def app_name(self):
         """returns the app's self-designated name"""
         return "cyclus"
@@ -138,6 +139,9 @@ class SetupRemoteRuntimeEnvironment(WorkbenchRuntimeEnvironment):
 
         # check for cirrus libraries
         cirrus_path = os.path.abspath(os.path.join(pdir,'cirrus'))
+        #! cirrus path manual
+        cirrus_path = '/Users/4ib/Downloads/Workbench-Darwin/rte/cirrus'
+
         if not os.path.isdir(cirrus_path):
             self.echo(0,'The required Cirrus libraries are not in expected location: ' + cirrus_path)
             sys.exit(2)
@@ -152,6 +156,8 @@ class SetupRemoteRuntimeEnvironment(WorkbenchRuntimeEnvironment):
         self.echo(0,"Processing input file: " + self.__input_filepath)
 
         input_dict = self.get_dict_from_input_path(self.__input_filepath)
+        print('input_dict')
+        print(input_dict)
         
         #!version = self.get_version(self.__input_filepath)
         #!if version != "1.0.0":

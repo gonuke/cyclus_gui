@@ -1,0 +1,125 @@
+simulation{
+
+    control {
+        duration = 1234
+        startmonth = 1
+        startyear = 2020
+        explicit_inventory=0
+        dt=2629846
+        decay="lazy"
+    }
+    
+    archetypes { % This part is automatically filled! No need to worry
+                spec = {lib="agents" name="KFacility"}
+                spec = {lib="agents" name="Predator"}
+                spec = {lib="agents" name="Prey"}
+                spec = {lib="agents" name="Sink"}
+                spec = {lib="agents" name="Source"}
+                spec = {lib="cycamore" name="DeployInst"}
+                spec = {lib="cycamore" name="Enrichment"}
+                spec = {lib="cycamore" name="FuelFab"}
+                spec = {lib="cycamore" name="GrowthRegion"}
+                spec = {lib="cycamore" name="ManagerInst"}
+                spec = {lib="cycamore" name="Mixer"}
+                spec = {lib="cycamore" name="Reactor"}
+                spec = {lib="cycamore" name="Separations"}
+                spec = {lib="cycamore" name="Sink"}
+                spec = {lib="cycamore" name="Source"}
+                spec = {lib="cycamore" name="Storage"}
+
+    }
+
+
+    facility {
+        name="facility_name"
+        config {
+%This facility acts as a source of material with a fixed throughput 
+%(per
+%time step) capacity and a lifetime capacity defined 
+%by a total inventory
+%size.  It offers its material as a single 
+%commodity. If a composition
+%recipe is specified, it provides 
+%that single material composition to
+%requesters.  If unspecified, 
+%the source provides materials with the exact
+%requested 
+%compositions.  The inventory size and throughput both 
+%default to
+%infinite.  Supplies material results in corresponding 
+%decrease in
+%inventory, and when the inventory size reaches 
+%zero, the source can provide
+%no more material.
+%
+%
+Source {
+                    %(optional) [double] Total amount of material this source has 
+                    %remaining. Every trade decreases this value by the supplied 
+                    %material quantity.  When it reaches zero, the source cannot 
+                    %provide any  more material.
+                inventory_size =1e+299
+
+                    %(optional) [double] Latitude of the agent's geographical position. 
+                    %The value should be expressed in degrees as a double.
+                    %
+                latitude =0.0
+
+                    %(optional) [double] Longitude of the agent's geographical position. 
+                    %The value should be expressed in degrees as a double
+                    %.
+                longitude =0.0
+
+                    % [std::string] Output commodity on which the source offers m
+                    %aterial.
+                outcommod = "outcommod"
+
+                    %(optional) [std::string] Name of composition recipe that this 
+                    %source provides regardless of requested composition. If empty, 
+                    %source creates and provides whatever compositions are r
+                    %equested.
+                outrecipe =""
+
+                    %(optional) [double] amount of commodity that can be supplied 
+                    %at each time step
+                throughput =1e+299
+
+}
+                }     
+    }
+    
+    region {
+        name="reg"
+        config {
+                NullRegion= null
+                }
+        institution {
+                name="inst"
+                config{
+NullInst= null                        % define institution here
+                       }
+        }
+    }
+    
+    
+    recipe {
+        % this is an example
+        basis="mass"
+        name="natl_u"
+        nuclide={comp=0.997 id="u238"}
+        nuclide={comp=0.003 id="u235"}
+    }
+    
+}
+
+Saving output to mwe.son.out
+
+
+Python version: 2.7.16
+Python executable: /Users/4ib/anaconda3/envs/py2/bin/python
+Platform name: darwin
+
+Processing input file: /Users/4ib/Desktop/git/cyclus_gui/neams/mwe.son
+('***Error: Workbench Analysis Sequence Process (WASP) Python wrapper (WASPPY) is not in expected location: ', '../wasppy')
+input_dict
+{u'simulation': [{u'control': {u'startyear': {u'value': 2020}, u'decay': {u'value': u'lazy'}, u'startmonth': {u'value': 1}, u'duration': {u'value': 1234}, u'dt': {u'value': 2629846}, u'explicit_inventory': {u'value': 0}}, u'region': [{u'config': {u'NullRegion': [{u'value': u'null'}]}, u'name': {u'value': u'reg'}, u'institution': [{u'config': {u'NullInst': [{u'value': u'null'}]}, u'name': {u'value': u'inst'}}]}], u'recipe': [{u'nuclide': [{u'comp': {u'value': 0.997}, u'id': {u'value': u'u238'}}, {u'comp': {u'value': 0.003}, u'id': {u'value': u'u235'}}], u'name': {u'value': u'natl_u'}, u'basis': {u'value': u'mass'}}], u'archetypes': {u'spec': [{u'name': {u'value': u'KFacility'}, u'lib': {u'value': u'agents'}}, {u'name': {u'value': u'Predator'}, u'lib': {u'value': u'agents'}}, {u'name': {u'value': u'Prey'}, u'lib': {u'value': u'agents'}}, {u'name': {u'value': u'Sink'}, u'lib': {u'value': u'agents'}}, {u'name': {u'value': u'Source'}, u'lib': {u'value': u'agents'}}, {u'name': {u'value': u'DeployInst'}, u'lib': {u'value': u'cycamore'}}, {u'name': {u'value': u'Enrichment'}, u'lib': {u'value': u'cycamore'}}, {u'name': {u'value': u'FuelFab'}, u'lib': {u'value': u'cycamore'}}, {u'name': {u'value': u'GrowthRegion'}, u'lib': {u'value': u'cycamore'}}, {u'name': {u'value': u'ManagerInst'}, u'lib': {u'value': u'cycamore'}}, {u'name': {u'value': u'Mixer'}, u'lib': {u'value': u'cycamore'}}, {u'name': {u'value': u'Reactor'}, u'lib': {u'value': u'cycamore'}}, {u'name': {u'value': u'Separations'}, u'lib': {u'value': u'cycamore'}}, {u'name': {u'value': u'Sink'}, u'lib': {u'value': u'cycamore'}}, {u'name': {u'value': u'Source'}, u'lib': {u'value': u'cycamore'}}, {u'name': {u'value': u'Storage'}, u'lib': {u'value': u'cycamore'}}]}, u'facility': [{u'config': {u'Source': [{u'longitude': {u'value': 0.0}, u'outrecipe': {u'value': u''}, u'throughput': {u'value': 1e+299}, u'latitude': {u'value': 0.0}, u'outcommod': {u'value': u'outcommod'}, u'inventory_size': {u'value': 1e+299}}]}, u'name': {u'value': u'facility_name'}}]}]}
