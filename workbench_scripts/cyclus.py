@@ -15,6 +15,11 @@ import uuid
 import sys
 import tempfile
 import threading
+here = os.path.dirname(os.path.abspath(__file__))
+
+sys.path.append(os.path.join(here, 'cyclus'))
+#from cyclus_processor import CyclusPostrunner
+
         
 def unpack_stringlist(stringlist):
     """parses stringlist that was formatted to pass on command-line into original array of strings"""
@@ -235,7 +240,7 @@ class WorkbenchRuntimeEnvironment(object):
             "type": "stringlist"
         })
         shared.append({
-            "default": self.executable,
+            "default": "cyclus", #self.executable,
             "dest": "executable",
             "flag": "-e",
             "help": "Path to the executable to run",
@@ -530,6 +535,10 @@ class WorkbenchRuntimeEnvironment(object):
         return self.output_directory != None
 
     def postrun(self, options):
+        # something Cymetric, I suppose
+        # self.echo(1, '#### Postrunner on %s' %self.output_path)
+        # CyclusPostrunner(self.output_path)
+        # self.echo(1, '#### Finished Postrunner.')
         """actions to perform after the run finishes"""
 
     def prerun(self, options):
@@ -547,6 +556,21 @@ class WorkbenchRuntimeEnvironment(object):
         self.echo(2, "#   ", options.working_directory)
         os.chdir(options.working_directory)
 
+
+        # convert son to JSON and clean the JSON
+        binpath = os.path.join(here, os.pardir, 'bin')
+        sonjson_path = os.path.join(binpath, 'sonjson')
+        self.echo(1, '#### Converting SON to JSON....  ')
+        schema_file_path = os.path.join(here, 'cyclus', 'cyclus.sch')
+        p = subprocess.Popen([sonjson_path, schema_file_path, options.input],
+                             stdout=subprocess.PIPE)
+        json_str = p.stdout.read()
+        extension = options.input.split('.')[-1]
+        self.json_filepath = options.input.replace(extension, 'json')
+        temp_json_path = os.path.join(self.working_directory, self.json_filepath)
+        with open(temp_json_path, 'w') as f:
+            f.write(self.clean_json(json_str))
+        self.echo(1, '#### Finished converting to JSON!  ')
         self.echo(1, "#### Pre-run ####")
         self.echo(1)
 
@@ -590,17 +614,33 @@ class WorkbenchRuntimeEnvironment(object):
 
                 self.echo(1, '# Connected.')
                 self.echo(1, '# Testing if the executable exists...')
+                self.echo(1, '# Running "command -v %s"' %self.executable)
                 # check if file is executable
-                output = self.remote_execute('test -x %s && echo "yayyy"' %self.executable)
-                if 'yay' in output:
-                    self.echo(1, '# The file in the defined path is executable.')
+                output = self.remote_execute('command -v ' + self.executable)
+                if not output:
+                    self.echo(0, '# The executable does not seem to exist...')
+                    self.echo(0, '# Let me try something here and try to see if it is defined in bashrc...')
+                    out = self.remote_execute('cat ~/.bashrc | grep "alias %s"' %self.executable)
+                    if len(out) != 0:
+                        self.echo(0, '# We found \n%s\n.. gonna try if this works' %out)
+                        potential_cmd = out.strip().split('\n')[-1].split('=')[-1].strip()
+                        out2 = self.remote_execute(potential_cmd)
+                        if 'No input file' in out2:
+                            self.echo(0, '# seems to have worked. Gonna Switch executable to %s' %potential_cmd)
+                            self.executable = potential_cmd
+                        else:
+                            self.echo(0, '# Could not find executable path. Try the full path to the executable instead of an alias or command.')
+                            sys.exit(1)
+                    else:
+                        self.echo(0, '# Could not find executable path. Try the full path to the executable instead of an alias or command.')
+                        sys.exit(1)
                 else:
-                    self.echo(0, 'The file is not Executable')
-                    sys.exit(1)
+                    self.echo(1, 'The executable is good!')
+                    
             except Exception as e:
                 self.echo(0, 'Could not connect. Check arguments.')
                 self.echo(0, 'See Error below:')
-                self.echo(0, e)
+                print(e)
                 sys.exit(1)
 
         else:
@@ -669,12 +709,41 @@ class WorkbenchRuntimeEnvironment(object):
         self.echo(1)
 
     def remote_execute(self, cmd):
+        self.echo(1, '## Remotely executing command:')
+        self.echo(1, cmd)
         i, o, e = self.ssh.exec_command(cmd)
         output = '\n'.join(o.readlines())
         error = '\n'.join(e.readlines())
         if len(error) != 0:
             return error
         return output
+
+
+    def clean_json(self, s):
+        news = []
+        was_value = False
+        #was_null = False
+        for indx, line in enumerate(s.split('\n')):
+            if '"null"' in line:
+                line = line.replace('"null"', r'{}')
+            #if was_null:
+            #    line = line.replace(']', '')
+            if was_value:
+                line = line.replace('}', '')
+            was_value = False
+            if '"value"' in line:
+                news[-1] = news[-1].replace('{', '')
+                news.append(line.replace('"value":', ''))
+                was_value = True
+            #if '"null"' in line:
+            #    news[-1] = news[-1].replace('[', '')
+            #    news.append(line.replace('"null"', r'{}'))
+            #    was_null = True
+            else:
+                news.append(line)
+        parsed = json.loads(''.join(news))
+
+        return json.dumps(parsed, indent=4, sort_keys=True)
 
 
     def run(self, options):
@@ -686,7 +755,6 @@ class WorkbenchRuntimeEnvironment(object):
         # Workbench's python environment as this is likely more
         # recent and contains packages that are not available
         # with default Python installations
-        print(self.executable)
         if self.executable.endswith(".py"):
             args = [sys.executable, self.executable]
         else:
@@ -697,8 +765,7 @@ class WorkbenchRuntimeEnvironment(object):
             args.extend(self.additional)
         # request list of supported arguments to pass to the executable
         args.extend(self.run_args(options))
-        print('args')
-        print(args)
+        self.output_path = self.json_filepath.replace('.json', '.sqlite')
         if self.is_remote:
             self.echo(1, "#### Executing '", " ".join(args), "' on remote server %s " %self.remote_server_address)
             rtncode = 0
@@ -712,10 +779,9 @@ class WorkbenchRuntimeEnvironment(object):
                 import os
                 while duplicate_hash and n < 3:
                     rnd_dir = os.path.join('/home/', self.remote_server_username, str(uuid.uuid4()))
-                    remote_input_path = os.path.join(rnd_dir, 'input.xml')
-                    remote_output_path = remote_input_path.replace('.xml', '.sqlite')
+                    remote_input_path = os.path.join(rnd_dir, 'input.json')
+                    remote_output_path = remote_input_path.replace('.json', '.sqlite')
                     output = self.remote_execute('mkdir %s' %rnd_dir)
-                    print('error', output)
                     n+=1
                     if not output:
                         # empty output means nothing went wrong,  
@@ -723,12 +789,14 @@ class WorkbenchRuntimeEnvironment(object):
                 self.echo(1, '# Uploading input file to %s' %self.remote_server_address)
                 self.echo(1, '# To path "%s"' %remote_input_path)
                 ftp = self.ssh.open_sftp()
-                ftp.put(options.input ,remote_input_path)
+                ftp.put(self.json_filepath ,remote_input_path)
 
                 self.echo(1, '# Now running %s...' %self.app_name())
-                output = self.remote_execute('%s %s -o %s --warn-limit 0' %(self.executable, remote_input_path, remote_output_path))
+                cmd = '%s %s -o %s --warn-limit 0' %(self.executable, remote_input_path, remote_output_path)
+                self.echo(1, '# Running command: %s' %cmd)
+                output = self.remote_execute(cmd)
                 # this is super wonky, consider changing
-                if output == 0 or ('Error' not in output and 'error' not in output and 'Abort' not in output and 'fatal' not in output and 'Invalid' not in output):
+                if output == 0 or ('ERROR' not in output.upper() and 'ABORT' not in output.upper() and 'FATAL' not in output.upper() and 'INVALID' not in output.upper() and 'FAILED TO VALIDATE' not in output.upper()):
                     
                     self.echo(1, '############################' )
                     self.echo(1, '# %s ran successfully!' %self.app_name())
@@ -736,20 +804,21 @@ class WorkbenchRuntimeEnvironment(object):
                     
                     self.echo(1, '# Now downloading output file')
                     pre, ext = os.path.splitext(options.input)
-                    ftp.get(remote_output_path, os.path.join(self.working_directory, pre + '.out'))
+
+                    self.pre = pre
+                    ftp.get(remote_output_path, self.output_path)
                     # this is super wonky, consider changing
-                    time.sleep(5)
-                    self.echo(1, '# Download complete (%s)' %os.path.join(self.working_directory, pre + '.out'))
+                    time.sleep(10)
+                    self.echo(1, '# Download complete (%s)' %self.output_path)
 
                 else:
                     self.echo(1, '# Run Failed! See the following output')
                     self.echo(1, output)
 
             except Exception as e:
-                self.echo(0, 'Something Went Wrong')
+                self.echo(0, 'Something went wrong during running Cyclus remotely:')
                 self.echo(0, 'See Error below:')
                 print(e)
-                self.echo(0, e)
                 sys.exit(1)
 
         else:
@@ -758,24 +827,27 @@ class WorkbenchRuntimeEnvironment(object):
             # execute
             rtncode = 0
             try:
-                proc = subprocess.Popen(args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                args = [self.executable, self.json_filepath, '-o', self.output_path]
+                proc = subprocess.Popen(args, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-                # tee-output objects
-                teeout = None
-                teeerr = None
+                
+                if False:
+                    # tee-output objects
+                    teeout = None
+                    teeerr = None
 
-                # tee requested
-                if self.tee:
-                    teeout = open(options.output_basename + ".out", "w")
-                    teeerr = open(options.output_basename + ".err", "w")
+                    # tee requested
+                    if self.tee:
+                        teeout = open(options.output_basename + ".out", "w")
+                        teeerr = open(options.output_basename + ".err", "w")
 
-                # start background readers
-                out = threading.Thread(target=streamer, name="out_reader",
-                                   args=(proc.stdout, sys.stdout, teeout))
-                err = threading.Thread(target=streamer, name="err_reader",
-                                   args=(proc.stderr, sys.stderr, teeerr))
-                out.start()
-                err.start()
+                    # start background readers
+                    out = threading.Thread(target=streamer, name="out_reader",
+                                       args=(proc.stdout, sys.stdout, teeout))
+                    err = threading.Thread(target=streamer, name="err_reader",
+                                       args=(proc.stderr, sys.stderr, teeerr))
+                    out.start()
+                    err.start()
 
                 # wait for process to finish
                 proc.wait()

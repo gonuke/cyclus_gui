@@ -1,6 +1,7 @@
 #import xmltodict
 import copy
 import numpy as np
+import shutil
 import json
 import re
 import os
@@ -333,11 +334,14 @@ $$spec_string
         # this is where everything happens
         
         # temporary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        #p = subprocess.Popen([self.cyclus_cmd, '-m'], stdout=subprocess.PIPE)
-        #meta_str = p.stdout.read()
-        #self.meta_dict = json.loads(meta_str) 
-        heredir = os.path.abspath(os.path.dirname(__file__))
-        self.meta_dict = json.loads(open(os.path.join(heredir, 'm.json')).read())
+        try:
+          p = subprocess.Popen([self.cyclus_cmd, '-m'], stdout=subprocess.PIPE)
+          meta_str = p.stdout.read()
+          self.meta_dict = json.loads(meta_str) 
+        except:
+          print('Could not run Cyclus, replacing metadata file with a pre-stored one..')        
+          heredir = os.path.abspath(os.path.dirname(__file__))
+          self.meta_dict = json.loads(open(os.path.join(heredir, 'm.json')).read())
         
         # temporary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
@@ -351,8 +355,9 @@ $$spec_string
             name = arche.split(':')[-1]
             self.type_dict[name] = self.meta_dict['annotations'][arche]['entity']
             self.schema_dict[name] = {'InputTmpl': '"%s"' %name.encode('ascii')}
+            spec_string += ' '*16 + 'spec = {lib="%s" name="%s"}\n' %(arche.split(':')[1], arche.split(':')[2])
             if 'NullRegion' in arche or 'NullInst' in arche:
-                self.template_dict[name] = name+'= null'
+                self.template_dict[name] = name+r'={}'
                 continue
             d = dict(xml2obj(self.meta_dict['schema'][arche])._attrs)
             #d = xmltodict.parse(self.meta_dict['schema'][arche])['interleave']
@@ -372,7 +377,6 @@ $$spec_string
 
             # fill in init_template to have the archetypes
 
-            spec_string += ' '*16 + 'spec = {lib="%s" name="%s"}\n' %(arche.split(':')[1], arche.split(':')[2])
 
         self.init_template = self.init_template.replace('$$spec_string', spec_string)
         self.template_dict['init_template'] = self.init_template
@@ -588,14 +592,22 @@ $$spec_string
         return d
 
 
-
-def generate_cyclus_workbench_files(#schema_path='/Users/4ib/Desktop/git/cyclus_gui/neams/cyclus.sch',
-         schema_path='/Users/4ib/Desktop/git/cyclus_gui/neams/cyclus.sch',
-         template_dir='/Users/4ib/Desktop/git/cyclus_gui/neams/templates/',
-         highlight_path='/Users/4ib/Desktop/git/cyclus_gui/neams/cyclus.wbh',
-         grammar_path='/Users/4ib/.workbench/2.0.0/grammars/cyclus.wbg',
-         cyclus_cmd='cyclus'):
+here = os.path.dirname(os.path.abspath(__file__))
+def generate_cyclus_workbench_files(workbench_rte_dir,
+                                    cyclus_cmd):
     # settings part
+    cyclus_dir = os.path.join(workbench_rte_dir, 'cyclus')
+    if not os.path.exists(cyclus_dir):
+        os.mkdir(cyclus_dir)
+    etc_dir = os.path.join(workbench_rte_dir, os.pardir, 'etc')
+    # define paths
+    schema_path = os.path.join(cyclus_dir, 'cyclus.sch')
+    template_dir = os.path.join(etc_dir, 'Templates', 'cyclus')
+    highlight_path = os.path.join(etc_dir, 'grammars', 'highlighters', 'cyclus.wbh')
+    grammar_path = os.path.join(etc_dir, 'grammars', 'cyclus.wbg')
+
+
+
     grammar_str  = """name= Cyclus
 enabled = true
 
@@ -613,6 +625,8 @@ maxDepth = 10
 
     # write the files
     with open(grammar_path, 'w') as f:
+        print('Wrote grammar file at:')
+        print(grammar_path)
         f.write(grammar_str)
     # extra copy for giggles
     with open(schema_path.replace('.sch', '.wbg'), 'w') as f:
@@ -620,17 +634,41 @@ maxDepth = 10
 
     s_ = generate_schema(cyclus_cmd)
     with open(schema_path, 'w') as f:
+        print('Wrote schema file at:')
+        print(schema_path)
         f.write(s_.sch_str)
 
+    # create template directory if it doesn't exist
+    if not os.path.exists(template_dir):
+        os.mkdir(template_dir)
+    print('Writing template files on %s:' %template_dir)
     for key, val in s_.template_dict.items():
         with open(os.path.join(template_dir, key+'.tmpl'), 'w') as f:
+            print('\tWrote template for %s at:' %key)
+            print('\t'+os.path.join(template_dir, key+'.tmpl'))
             f.write(val)
 
     h_ = highlighter()
     with open(highlight_path, 'w') as f:
+        print('Wrote highlight file at:')
+        print(highlight_path)
         f.write(h_.highlight_str)
 
-    print('Done!')
+
+    # copy the cyclus.py file
+    shutil.copyfile(os.path.join(here, 'cyclus.py'), os.path.join(workbench_rte_dir, 'cyclus.py'))
+    print('Copied cyclus runner to:')
+    print(os.path.join(workbench_rte_dir, 'cyclus.py'))
+    shutil.copyfile(os.path.join(here, 'cyclus_processor.py'), os.path.join(workbench_rte_dir, 'cyclus', 'cyclus_processor.py'))
+    print('Copied cyclus processor to:')
+    print(os.path.join(workbench_rte_dir, 'cyclus', 'cyclus_processor.py'))    
+    shutil.copyfile(os.path.join(here, 'cyclus.wbp'), os.path.join(etc_dir, 'processors', 'cyclus.wbp'))
+    print('Copied cyclus processor file to:')
+    print(os.path.join(etc_dir, 'processors', 'cyclus.wbp'))
+    
+    print('Done!\n\n')
+
+
 
 def clean_xml(s):
     new = []
@@ -653,4 +691,8 @@ def clean_xml(s):
 
 
 if __name__ == '__main__':
-    generate_cyclus_workbench_files()
+    # modify this for your setup!
+    path = '/Users/4ib/Downloads/Workbench-Darwin/rte'
+    cyclus_cmd = 'cyclus'
+    generate_cyclus_workbench_files(workbench_rte_dir=path,
+                                    cyclus_cmd=cyclus_cmd)
