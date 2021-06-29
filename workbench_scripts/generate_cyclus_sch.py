@@ -692,6 +692,7 @@ def clean_xml(s):
 
 if __name__ == '__main__':
     # modify this for your setup!
+    # make sure your slashes are os appropriate
     path = '/Users/4ib/Downloads/Workbench-Darwin/rte'
     cyclus_cmd = 'cyclus'
     generate_cyclus_workbench_files(workbench_rte_dir=path,
