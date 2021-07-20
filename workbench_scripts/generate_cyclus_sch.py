@@ -13,6 +13,7 @@ sys.path.append(os.path.join(here, os.pardir, os.pardir, 'wasppy'))
 from xml2obj import xml2obj
 
 
+# PPHW: defining some colors to be used later for syntax highlighting
 class highlighter:
     def __init__(self):
         self.rgb_dict = {'black': [0,0,0],
@@ -27,7 +28,7 @@ class highlighter:
         self.highlight_str = self.make_basic_son()
 
     
-
+# PPHW: shortcut to help define rules
     def highlight_maker(self, name, word, color='blue'):
         s = """rule("%s") {
 pattern = "%s"
@@ -43,9 +44,10 @@ foreground {
               self.rgb_dict[color][1], self.rgb_dict[color][2])
         return s
     
-
+# PPHW: a set of rules for syntax highlighting
     def make_basic_son(self):
         highlight_str = ''
+        # PPHW: these phrases will all appear in blue (default)
         for i in ['simulation', ' control ', ' archetypes ',
                   ' facility ', ' region ', ' recipe ']:
             highlight_str += self.highlight_maker(i, i)
@@ -53,6 +55,7 @@ foreground {
         # highlight_str += highlight_maker('brack_close', '}', 'red')
         # highlight_str += highlight_maker('square_open', '[', 'lime')
         # highlight_str += highlight_maker('square_close', ']', 'lime')
+        # PPHW: all quoted strings will appear in yellow-ish color
         highlight_str += '''rule("Quoted string") {
 pattern = """'[^']*'|"[^"]*""""
 bold = true
@@ -93,7 +96,9 @@ rule("Comment") {
 
 class generate_schema:
     def __init__(self, cyclus_cmd, metadata_path='/Users/4ib/Desktop/git/cyclus_gui/neams/m.json'):
+        # define how to run cyclus
         self.cyclus_cmd = cyclus_cmd
+        # cross-listing of types: XML <-> SON
         self.conversion_dict = {'string': 'String',
                                 'nonNegativeInteger': 'Int',
                                 'boolean': 'Int',
@@ -109,10 +114,13 @@ class generate_schema:
                                 'int': 'Int',
                                 'token': 'String'
                                 }
+        # default schema (grammar) for a Cyclus SON file
+        # hand-coded version of standard Cyclus XML Schema
+        # to get XML Schema type command: cyclus --schema
         self.sch_str = sch_str = """simulation {
     Description="Agent-based fuel cycle simulator"
     InputTmpl="init_template"
-    control {
+    control {  
              MinOccurs=1
              Description="Defines simulation time and decay methods"
              MaxOccurs=1
@@ -239,6 +247,7 @@ class generate_schema:
 
 }
 """
+        # PPHW: basic template to start a new file
         self.init_template = """simulation{
 
     control {
@@ -334,6 +343,7 @@ $$spec_string
         # this is where everything happens
         
         # temporary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # PPHW: Read the metadata, either from a Cyclus run or saved metadata file
         try:
           p = subprocess.Popen([self.cyclus_cmd, '-m'], stdout=subprocess.PIPE)
           meta_str = p.stdout.read()
@@ -345,22 +355,31 @@ $$spec_string
         
         # temporary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
+        # PPHW: read list of archetypes from the metadata
         archetypes = self.meta_dict['specs']
         # reading them all
         self.schema_dict = {}
         self.template_dict = {}
         self.type_dict = {}
         spec_string = ''
+        # PPHW: go through each archetype to understand its contents
         for arche in archetypes:
+            # PPHW: extract archetype name from arche
             name = arche.split(':')[-1]
+            # PPHW: create an entry in the type dictionary for this archetype by reading its entity type from metadata
             self.type_dict[name] = self.meta_dict['annotations'][arche]['entity']
             self.schema_dict[name] = {'InputTmpl': '"%s"' %name.encode('ascii')}
+            # PPHW: make a valid input file line for a spec using the library name and archetype name extracted from arche
             spec_string += ' '*16 + 'spec = {lib="%s" name="%s"}\n' %(arche.split(':')[1], arche.split(':')[2])
+            # PPHW: If this is a NullRegion or NullInst, its template is empty
+            # PPHW: bad practice - hardcoded specific archetypes
             if 'NullRegion' in arche or 'NullInst' in arche:
                 self.template_dict[name] = name+r'={}'
                 continue
+            # PPHW: convert XML schema to SON from inside metadata
             d = dict(xml2obj(self.meta_dict['schema'][arche])._attrs)
             #d = xmltodict.parse(self.meta_dict['schema'][arche])['interleave']
+            # PPHW: check what is in the dictionary that was made out of the XML Schema
             k = self.check_if_list(d['element'])
             for i in k:
                 self.schema_dict[name].update(self.read_element(dict(i._attrs)))
