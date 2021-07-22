@@ -453,22 +453,33 @@ $$spec_string
 
 
 
-
+    # PPHW: process a single element
     def read_element(self, eld, from_one_or_more=False, optional=False):
+
+        # PPHW: handle interleaved elements differently
         if 'interleave' in eld.keys():
             s = self.read_interleave(eld['interleave'], eld['name'], from_one_or_more, optional)
             return s
 
         # now there's optional and non-optional
         keys = eld.keys()
+
+        # PPHW: XML NOT one or more ==> SON MaxOccurs = 1
         if not from_one_or_more:
             options = {'MaxOccurs': 1}
+        # PPHW: XML IS one or more ==> SON has no MaxOccurs
         else:
             options = {}
+
+        # PPHW: XML NOT option ==> XON MinOccurs = 1
         if not optional:
             options['MinOccurs'] = 1
-            
+
+        # PPHW: start a dictionary with "name" => options    
         s = {eld['name'].encode('ascii'): options}
+
+        # PPHW: recursively add elements that are one or more in this element
+        # PPHW: (I'm not sure this is right, but I'd need to see some examples)
         if 'oneOrMore' in keys:
             # s = {eld['@name']: {}}
             s[eld['name']].update(self.read_element(dict(eld['oneOrMore']['element']._attrs),
@@ -476,6 +487,7 @@ $$spec_string
                                   )           
             return s
 
+        # PPHW: convert the data type from XML to SON using conversion_dict and add to opti0ns
         if 'data' in keys:
             options['ValType'] = self.conversion_dict[eld['data']['type']].encode('ascii')
             s[eld['name']] = options
