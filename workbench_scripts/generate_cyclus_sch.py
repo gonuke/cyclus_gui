@@ -390,18 +390,31 @@ $$spec_string
             #d = xmltodict.parse(self.meta_dict['schema'][arche])['interleave']
 
             # PPHW: check what is in the dictionary that was made out of the XML Schema
+
+            # PPHW: get a list of "elements"
             k = self.check_if_list(d['element'])
+
+            # PPHW: for each of the "required elements"
             for i in k:
+                # PPHW: update the schema_dict for this "name" with the attributes of this "element"
                 self.schema_dict[name].update(self.read_element(dict(i._attrs)))
+
+            # PPHW: get a list of "optional elements"
             k = self.check_if_list(d['optional'])
             for i in k:
+
+                # PPHW: update the schema_dict for this "name" with the attributes of this "element"
                 self.schema_dict[name].update(self.read_element(dict(i.element._attrs), optional=True))
+
+            # PPHW: set the size of a tab depending on the archetype type
             if self.type_dict[name] == 'facility':
                 tab = ' ' * 16
             elif self.type_dict[name] == 'region':
                 tab = ' ' * 16
             elif self.type_dict[name] == 'institution':
                 tab = ' ' * 25
+
+            # PPHW: Update the template_dict for "name" by processing the schema_dict for "name"
             self.template_dict[name] = self.schema_dict_string_to_template(self.schema_dict[name], arche, tab)
 
             # fill in init_template to have the archetypes
