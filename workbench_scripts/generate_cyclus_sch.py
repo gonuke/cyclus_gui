@@ -494,6 +494,7 @@ $$spec_string
             return s
 
 
+    # PPHW: translate from one key => value format to a different one
     def schema_dict_entry_to_schema_string(self, e):
         schema_string = pprint.pformat(e)
         schema_string = schema_string.replace(',', '')
@@ -502,7 +503,8 @@ $$spec_string
         return schema_string
 
 
-
+    # PPHW: breaks long line into many lines by
+    #       finding the first space after every 60 characters
     def reasonable_linebreak(self, string, lim=60):
         nlines = len(string) // lim
         space_indices = []
@@ -530,62 +532,121 @@ $$spec_string
         else:
             return d
 
-
-    def schema_dict_string_to_template(self, d, key, tab='\t'):
+    # PPHW: this is probably doing some heavy lifting
+    def schema_dict_string_to_template(self, d, key, tab='\t'`):
+        
+        # PPHW: get the archetype name (problem if two archetypes from different libs have the same name)
         name = key.split(':')[-1]
         prev_bracket_location = 0
+
+        # PPHW: make a copy of the schema to avoid messing it up
         c = copy.deepcopy(d)
+
+        # PPHW: turn the schema into a dictionary of itself
         d = {name: d}
+
+        # PPHW: get a string representation of the schema after deleting some stuff
         s = pprint.pformat(self.delete_keys_from_dict(c, ['MaxOccurs', 'MinOccurs', 'ValType']))
+
+        # PPHW: drop the first character
         s = s[1:]
+
+        # PPHW: split and rejoin on new lines (this should do nothing)
         s = '\n'.join(s.split('\n'))
+
+        # PPHW: drop the last character
         s = s[:-1]
+
+        # PPHW: replace characters
         s = s.replace("'", '').replace(',', '').replace(':', '').replace('"', '')
+
+        # PPHW: split into a list
         s = s.split('\n')
+
+        # PPHW: get documentation from annotations, word-wrap it and split it into individual lines
         n = self.reasonable_linebreak(self.meta_dict['annotations'][key]['doc']).split('\n') + ['']
+
+        # PPHW: add a comment character at the beginning of each line
         n = ['%'+w for w in n]
+
+        # PPHW: add a new line with the name of the archetype
         n.append(name + ' {')
+
+        # PPHW: for each entry in the original schema
         for i in s:
+
+            # PPHW: get the first word
             var = i.strip().split()[0]
             # print(self.schema_dict[name].keys())
             # if var == 'streams':
             #    var = 'streams_'
+
+            # PPHW: if that word is "InputTmpl" do nothing
             if var == 'InputTmpl':
                 continue
+
+            # PPHW: if that word is not in the schema (??) skip a bunch of stuff
             if var not in self.schema_dict[name].keys():
                 # multiline variables with weird things
                 skipallthat = True
             else:
                 skipallthat = False
 
+
+            # PPHW: Not skipping!
             if not skipallthat:
               # see if optional
+
+              # PPHW: set a string to indicate if optional
               if 'MinOccurs' not in self.schema_dict[name][var]:
                   optional = '(optional)'
               else:
                   optional = ''
+
+              # PPHW: Start a blank string for the type
               t = ''
+
+              # PPHW: try this and if it fails it means there is no documentation
               try:
+
+                  # PPHW: special handling for some archtypes with "streams"
                   if var == 'streams':
+
+                    # PPHW: get the type
                     t = self.meta_dict['annotations'][key]['vars']['streams_']['type']
+
+                    # PPHW: format the documentation to include the optional, type and metadata documentation
                     doc = self.reasonable_linebreak(optional + ' [%s] ' %t +self.meta_dict['annotations'][key]['vars']['streams_']['doc'] ).split('\n')
                     
                   else:
+                    # PPHW: get the type
                     t = self.meta_dict['annotations'][key]['vars'][var]['type']
+
+                    # PPHW: format the documentation to include the optional, type and metadata documentation
                     doc = self.reasonable_linebreak(optional + ' [%s] ' %t +self.meta_dict['annotations'][key]['vars'][var]['doc'] ).split('\n')
               except:
+
+                  # PPHW: basic documentation when it doesn't exist
                   doc = [optional + ' [%s] '%t + 'no doc available.']
+
+              # PPHW: add tabs to each line of documentation    
               for j in doc:
                   #if j == doc[0]:
                   n.append(tab+ '\t%' + j)
+
+              # PPHW: append a formated line with the original schema
               line = tab + i.strip().replace('{}', '=')
               n.append(line)
+
               # this is saved just for later
+              # PPHW: find the location of the bracket (but there shouldn't be any because of the replace above)
               prev_bracket_location = line.rfind('{') + 1
               #if i.count('{') == 1:
               #  n.append(tab + i.strip().replace(' {', '=').replace('}', ''))
               #else:
               #  n.append(tab + i.strip().replace('{}', '='))
+
+              # PPHW: if it's optional, there must be default info - add it to the documentation
               if optional:
                 default = self.meta_dict['annotations'][key]['vars'][var]['default']
                 if isinstance(default, str):
@@ -619,7 +680,7 @@ $$spec_string
         n.append('}')
         return '\n'.join(n)
 
-
+    # PPHW: delete all keys from a dictionary and recursively in their member dictionaries
     def delete_keys_from_dict(self, dict_del, lst_keys):
         for k in lst_keys:
             try:
@@ -632,7 +693,7 @@ $$spec_string
 
         return dict_del
 
-
+    # PPHW: special handling of interleaved things - not sure is SON can handle interleaved
     def read_interleave(self, intd, name, from_one_or_more, optional):
         if not optional:
             options = {'MinOccurs':1}
@@ -645,7 +706,7 @@ $$spec_string
             d[name].update(self.read_element(dict(i._attrs)))
         return d
 
-
+# PPHW: create files necessary for workbench
 here = os.path.dirname(os.path.abspath(__file__))
 def generate_cyclus_workbench_files(workbench_rte_dir,
                                     cyclus_cmd):
@@ -661,7 +722,7 @@ def generate_cyclus_workbench_files(workbench_rte_dir,
     grammar_path = os.path.join(etc_dir, 'grammars', 'cyclus.wbg')
 
 
-
+# PPHW: create contents of grammar file
     grammar_str  = """name= Cyclus
 enabled = true
 
@@ -686,6 +747,7 @@ maxDepth = 10
     with open(schema_path.replace('.sch', '.wbg'), 'w') as f:
         f.write(grammar_str)
 
+# PPHW: start a new shema object
     s_ = generate_schema(cyclus_cmd)
     with open(schema_path, 'w') as f:
         print('Wrote schema file at:')
@@ -723,7 +785,7 @@ maxDepth = 10
     print('Done!\n\n')
 
 
-
+# PPHW: not used
 def clean_xml(s):
     new = []
     indx = 0
